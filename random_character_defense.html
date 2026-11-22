@@ -599,18 +599,26 @@
         <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
           <div class="flex items-center gap-2">
             <span class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-base">📜</span>
-            <h3 class="text-sm font-black text-white">퀘스트 &amp; 성장 업적</h3>
+            <div>
+              <h3 class="text-sm font-black text-white">퀘스트 &amp; 성장 업적</h3>
+              <div id="lblDailyResetTimer" class="text-[10px] text-slate-400 font-semibold">매일 00:00 자동 리셋 · 오늘 완료 0회</div>
+            </div>
           </div>
           <button id="btnRefreshDailyQuests" class="game-btn px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow">
-            🔄 일일 미션 새 목표 받기
+            🔄 새 퀘스트 제작
           </button>
         </div>
 
-        <div class="text-xs font-extrabold text-amber-300 mt-1">🔥 일일 미션</div>
+        <div class="flex items-center justify-between gap-2 mt-1">
+          <div class="text-xs font-extrabold text-amber-300">🔥 일일 미션 (완료 시 추가 의뢰 자동 생성)</div>
+          <span id="lblDailyDateBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/35 text-amber-200 font-bold">오늘</span>
+        </div>
         <div id="dailyQuestList" class="flex flex-col gap-2"></div>
 
-        <div class="text-xs font-extrabold text-cyan-300 mt-2">🏆 성장 업적</div>
-        <div id="achQuestList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1"></div>
+        <div class="flex items-center justify-between gap-2 mt-2">
+          <div class="text-xs font-extrabold text-cyan-300">🏆 성장 업적 (무한 확장 · 3단계 이후 환생 재도전 가능)</div>
+        </div>
+        <div id="achQuestList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto custom-scrollbar pr-1"></div>
       </div>
 
       <!-- Right: Additional Content (Resource Trials & Endless Abyss) -->
@@ -731,8 +739,11 @@
             </div>
           </div>
 
-          <!-- Wave Skip / Bounty Boss / All Ultimate Quick Bar -->
+          <!-- Wave Skip / Bounty Boss / All Ultimate / Exit to Main Quick Bar -->
           <div class="flex flex-wrap items-center justify-end gap-1.5 ml-auto pointer-events-auto">
+            <button id="btnBattleExitMain" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/90 backdrop-blur-sm hover:bg-rose-900/80 border border-rose-400/50 text-[10px] sm:text-[11px] font-extrabold text-rose-200 shadow" title="메인화면으로 나가기">
+              🏠 메인
+            </button>
             <button id="btnNextWaveNow" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/85 backdrop-blur-sm hover:bg-slate-800 border border-sky-500/40 text-[10px] sm:text-[11px] font-extrabold text-sky-300 shadow">
               ⏩ 다음 웨이브
             </button>
@@ -1205,6 +1216,30 @@
       </div>
       <div id="codexFilterBar" class="px-5 py-2.5 bg-slate-950/70 border-b border-slate-800 flex flex-col gap-2"></div>
       <div id="codexGrid" class="p-4 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
+    </div>
+  </div>
+
+    <!-- Exit to Main Screen Confirmation Modal -->
+  <div id="exitMainModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="panel-glass border border-slate-700/80 rounded-2xl max-w-sm w-full p-5 shadow-2xl flex flex-col gap-3.5">
+      <div class="flex items-center gap-2.5">
+        <span class="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-400/40 flex items-center justify-center text-lg">🏠</span>
+        <div>
+          <h3 class="text-sm font-black text-white">메인화면으로 나가기</h3>
+          <p class="text-[11px] text-slate-400">전투가 일시정지되었습니다.</p>
+        </div>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        지금 메인화면(로비)으로 돌아가시겠습니까? 현재 진행 중인 전투는 종료되며, 이미 획득한 계정 재화와 퀘스트 진행도는 자동 저장됩니다.
+      </p>
+      <div class="flex items-center gap-2 pt-1">
+        <button id="btnCancelExitMain" class="game-btn flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/70 text-xs font-bold text-slate-200">
+          계속 전투하기
+        </button>
+        <button id="btnConfirmExitMain" class="game-btn flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-xs font-black text-white shadow">
+          🏠 메인화면으로
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1917,7 +1952,12 @@
       };
       let dailyQuestBase = { kills: 0, merges: 0, bosses: 0 };
       let dailyQuestClaimed = { kills: false, merges: false, bosses: false };
-      let achClaimed = {}; // { achId: levelClaimed }
+      let dailyQuestDate = ''; // YYYY-MM-DD (로컬 날짜 기준 자동 리셋)
+      let dailyQuests = [];    // 동적 생성된 일일 퀘스트 목록 [{ id, stat, title, base, goal, g, gem, sh, claimed, isBonus }]
+      let dailyCompletedToday = 0;
+      let achClaimed = {};     // { achId: levelClaimed }
+      let achBase = {};        // { achId: 환생(재도전) 기준 스탯 스냅샷 }
+      let achPrestige = {};    // { achId: 환생 횟수 (보상 +25%씩 영구 증가) }
 
       const TALENT_DEFS = [
         { key: 'startGoldLv', title: '💰 풍요의 서약', desc: '전투 시작 골드를 영구적으로 증가시킵니다.', unit: 'G', perLv: 40, maxLv: 10, baseCost: 6, stepCost: 4, statKey: 'startGold' },
@@ -2408,7 +2448,12 @@
             questStats,
             dailyQuestBase,
             dailyQuestClaimed,
+            dailyQuestDate,
+            dailyQuests,
+            dailyCompletedToday,
             achClaimed,
+            achBase,
+            achPrestige,
             talents,
             soundOn: typeof soundOn === 'boolean' ? soundOn : true,
             bgmOn: typeof bgmOn === 'boolean' ? bgmOn : true,
@@ -2443,8 +2488,23 @@
           if (data.dailyQuestClaimed && typeof data.dailyQuestClaimed === 'object') {
             Object.assign(dailyQuestClaimed, data.dailyQuestClaimed);
           }
+          if (typeof data.dailyQuestDate === 'string') {
+            dailyQuestDate = data.dailyQuestDate;
+          }
+          if (Array.isArray(data.dailyQuests)) {
+            dailyQuests = data.dailyQuests;
+          }
+          if (typeof data.dailyCompletedToday === 'number') {
+            dailyCompletedToday = data.dailyCompletedToday;
+          }
           if (data.achClaimed && typeof data.achClaimed === 'object') {
             achClaimed = data.achClaimed;
+          }
+          if (data.achBase && typeof data.achBase === 'object') {
+            achBase = data.achBase;
+          }
+          if (data.achPrestige && typeof data.achPrestige === 'object') {
+            achPrestige = data.achPrestige;
           }
           if (data.talents && typeof data.talents === 'object') {
             TALENT_DEFS.forEach(td => {
@@ -6130,6 +6190,32 @@
         ctx.restore();
       }
 
+      const MOB_SPRITE_CACHE = Object.create(null);
+      function getMobSpriteVariant(imgKey, img, variant) {
+        if (!variant) return img;
+        const cacheKey = `${imgKey}_${variant}`;
+        if (MOB_SPRITE_CACHE[cacheKey]) return MOB_SPRITE_CACHE[cacheKey];
+        const w = img.naturalWidth || img.width || 128;
+        const h = img.naturalHeight || img.height || 128;
+        if (!w || !h) return img;
+        const off = document.createElement('canvas');
+        off.width = w;
+        off.height = h;
+        const octx = off.getContext('2d');
+        octx.drawImage(img, 0, 0, w, h);
+        octx.globalCompositeOperation = 'source-atop';
+        if (variant === 'hit') {
+          octx.fillStyle = 'rgba(255, 255, 255, 0.62)';
+          octx.fillRect(0, 0, w, h);
+        } else if (variant === 'slow') {
+          octx.fillStyle = 'rgba(56, 189, 248, 0.45)';
+          octx.fillRect(0, 0, w, h);
+        }
+        octx.globalCompositeOperation = 'source-over';
+        MOB_SPRITE_CACHE[cacheKey] = off;
+        return off;
+      }
+
       function drawMob(m, t) {
         const img = IMGS[m.imgKey];
         if (!img) return;
@@ -6159,9 +6245,9 @@
         ctx.translate(m.x, m.y - hop);
         ctx.rotate(tilt);
         ctx.scale(m.facing, 1);
-        if (m.hitFlash > 0.2) ctx.filter = 'brightness(2.1)';
-        else if (m.slowTimer > 0) ctx.filter = 'hue-rotate(170deg) saturate(1.5)';
-        ctx.drawImage(img, -m.size / 2, -m.size * 0.85, m.size, m.size);
+        const mobVariant = m.hitFlash > 0.2 ? 'hit' : (m.slowTimer > 0 ? 'slow' : '');
+        const mobSprite = getMobSpriteVariant(m.imgKey, img, mobVariant);
+        ctx.drawImage(mobSprite, -m.size / 2, -m.size * 0.85, m.size, m.size);
         ctx.restore();
 
         const bw = m.size * 0.65;
@@ -7458,6 +7544,38 @@
         switchScreen(true);
       });
 
+      let exitMainPrevPaused = false;
+      function openExitMainModal() {
+        const modal = document.getElementById('exitMainModal');
+        if (!modal || inLobby) return;
+        exitMainPrevPaused = !!isPaused;
+        isPaused = true;
+        modal.classList.remove('hidden');
+        playSound('click');
+      }
+      function closeExitMainModal(restorePause = true) {
+        const modal = document.getElementById('exitMainModal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        if (restorePause) isPaused = exitMainPrevPaused;
+      }
+      document.getElementById('btnBattleExitMain').addEventListener('click', openExitMainModal);
+      document.getElementById('btnCancelExitMain').addEventListener('click', () => {
+        playSound('click');
+        closeExitMainModal(true);
+      });
+      document.getElementById('btnConfirmExitMain').addEventListener('click', () => {
+        playSound('click');
+        closeExitMainModal(false);
+        isPaused = false;
+        saveGameData();
+        switchScreen(true);
+        showToast('🏠 메인화면으로 돌아왔습니다.');
+      });
+      document.getElementById('exitMainModal').addEventListener('click', (e) => {
+        if (e.target.id === 'exitMainModal') closeExitMainModal(true);
+      });
+
       document.getElementById('btnStartStageBattle').addEventListener('click', () => {
         gameMode = 'stage';
         resetGame();
@@ -7466,43 +7584,138 @@
         showToast(`스테이지 ${wNum}-${currentStageSub} (난이도 x${getStageStepMult(currentStageSub).toFixed(2)}) 전투 시작!`);
       });
 
-      const ACH_DEFS = [
-        { id: 'summon', title: '초보 소환사', stat: 'totalSummons', steps: [20, 80, 250], rewardGold: 500, rewardGems: 4, rewardShards: 10 },
-        { id: 'merge',  title: '연금 합성가', stat: 'totalMerges',  steps: [15, 60, 180], rewardGold: 600, rewardGems: 5, rewardShards: 12 },
-        { id: 'mythic', title: '신화 각성자', stat: 'mythicsCrafted', steps: [1, 5, 15], rewardGold: 1000, rewardGems: 10, rewardShards: 22 },
-        { id: 'enhance', title: '전설의 대장장이', stat: 'enhances', steps: [5, 20, 50], rewardGold: 650, rewardGems: 5, rewardShards: 15 },
-        { id: 'boss',   title: '보스 슬레이어', stat: 'bossKills', steps: [3, 12, 35], rewardGold: 850, rewardGems: 8, rewardShards: 18 },
-        { id: 'clear',  title: '월드 정복자', stat: 'clears',    steps: [1, 5, 15],   rewardGold: 1200, rewardGems: 12, rewardShards: 26 }
+      const DAILY_QUEST_POOL = [
+        { stat: 'totalKills',     label: '몬스터 토벌',      unit: '마리', baseGoal: 120, stepGoal: 35, g: 520, gem: 2, sh: 10 },
+        { stat: 'totalSummons',   label: '유닛 소환',        unit: '회',   baseGoal: 25,  stepGoal: 10, g: 440, gem: 2, sh: 9  },
+        { stat: 'totalMerges',    label: '유닛 합성',        unit: '회',   baseGoal: 18,  stepGoal: 6,  g: 480, gem: 3, sh: 12 },
+        { stat: 'bossKills',      label: '보스·현상금 토벌', unit: '회',   baseGoal: 3,   stepGoal: 1,  g: 760, gem: 4, sh: 16 },
+        { stat: 'enhances',       label: '장비 강화 시도',   unit: '회',   baseGoal: 4,   stepGoal: 2,  g: 560, gem: 3, sh: 13 },
+        { stat: 'clears',         label: '스테이지·시련 클리어', unit: '회', baseGoal: 1, stepGoal: 1,  g: 820, gem: 5, sh: 18 },
+        { stat: 'salvages',       label: '장비 분해·판매',   unit: '회',   baseGoal: 3,   stepGoal: 2,  g: 460, gem: 2, sh: 11 },
+        { stat: 'mythicsCrafted', label: '신화·초월 조합',   unit: '회',   baseGoal: 1,   stepGoal: 1,  g: 920, gem: 6, sh: 20 }
       ];
+
+      const ACH_DEFS = [
+        { id: 'summon',  title: '소환사',       stat: 'totalSummons',   steps: [20, 80, 250],   rewardGold: 500,  rewardGems: 4,  rewardShards: 10 },
+        { id: 'merge',   title: '연금 합성가',  stat: 'totalMerges',    steps: [15, 60, 180],   rewardGold: 600,  rewardGems: 5,  rewardShards: 12 },
+        { id: 'mythic',  title: '신화 각성자',  stat: 'mythicsCrafted', steps: [1, 5, 15],      rewardGold: 1000, rewardGems: 10, rewardShards: 22 },
+        { id: 'enhance', title: '전설 대장장이', stat: 'enhances',       steps: [5, 20, 50],     rewardGold: 650,  rewardGems: 5,  rewardShards: 15 },
+        { id: 'boss',    title: '보스 슬레이어', stat: 'bossKills',      steps: [3, 12, 35],     rewardGold: 850,  rewardGems: 8,  rewardShards: 18 },
+        { id: 'clear',   title: '월드 정복자',  stat: 'clears',         steps: [1, 5, 15],      rewardGold: 1200, rewardGems: 12, rewardShards: 26 },
+        { id: 'slayer',  title: '몬스터 학살자', stat: 'totalKills',     steps: [300, 1200, 3500], rewardGold: 750, rewardGems: 6,  rewardShards: 16 },
+        { id: 'salvage', title: '장비 해체 전문가', stat: 'salvages',   steps: [5, 20, 60],     rewardGold: 580,  rewardGems: 5,  rewardShards: 14 }
+      ];
+
+      function getTodayDateKey() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+
+      function getTimeUntilMidnightStr() {
+        const now = new Date();
+        const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+        const diff = Math.max(0, Math.floor((next - now) / 1000));
+        const hh = String(Math.floor(diff / 3600)).padStart(2, '0');
+        const mm = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+        const ss = String(diff % 60).padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
+      }
+
+      function createDynamicQuest(tpl, isBonus = false) {
+        const tierBoost = Math.min(4, Math.floor((questStats.clears || 0) / 3) + Math.floor(dailyCompletedToday / 3));
+        const bonusMult = isBonus ? 1.25 : 1.0;
+        const goal = Math.max(1, Math.round((tpl.baseGoal + tpl.stepGoal * tierBoost) * (isBonus ? 1.15 : 1.0)));
+        const rewardScale = (1 + tierBoost * 0.22) * bonusMult;
+        return {
+          id: `dq_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          stat: tpl.stat,
+          title: `${isBonus ? '[추가 의뢰] ' : ''}${tpl.label} ${goal}${tpl.unit}`,
+          base: questStats[tpl.stat] || 0,
+          goal,
+          g: Math.round(tpl.g * rewardScale),
+          gem: Math.max(1, Math.round(tpl.gem * rewardScale)),
+          sh: Math.round(tpl.sh * rewardScale),
+          claimed: false,
+          isBonus
+        };
+      }
+
+      function generateDailyQuestSet(count = 3, isBonusSet = false) {
+        const pool = [...DAILY_QUEST_POOL];
+        const picked = [];
+        while (picked.length < count && pool.length > 0) {
+          const idx = Math.floor(Math.random() * pool.length);
+          picked.push(createDynamicQuest(pool.splice(idx, 1)[0], isBonusSet));
+        }
+        return picked;
+      }
+
+      function checkDailyQuestAutoReset(notify = false) {
+        const today = getTodayDateKey();
+        const needsInit = !Array.isArray(dailyQuests) || dailyQuests.length === 0;
+        if (dailyQuestDate !== today || needsInit) {
+          const wasDifferentDay = dailyQuestDate && dailyQuestDate !== today;
+          dailyQuestDate = today;
+          if (wasDifferentDay) dailyCompletedToday = 0;
+          dailyQuests = generateDailyQuestSet(3, false);
+          dailyQuestBase = {
+            kills: questStats.totalKills,
+            merges: questStats.totalMerges,
+            bosses: questStats.bossKills
+          };
+          dailyQuestClaimed = { kills: false, merges: false, bosses: false };
+          if (notify && wasDifferentDay) {
+            showToast(`🌅 새 하루(${today})가 되어 일일 퀘스트가 자동 리셋되었습니다!`);
+          }
+          return true;
+        }
+        return false;
+      }
+
+      function getAchievementGoal(def, lv) {
+        if (lv < def.steps.length) return def.steps[lv];
+        const last = def.steps[def.steps.length - 1];
+        return Math.round(last * Math.pow(1.75, lv - def.steps.length + 1));
+      }
 
       function renderLobbyQuestTab() {
         const dList = document.getElementById('dailyQuestList');
         const aList = document.getElementById('achQuestList');
         if (!dList || !aList) return;
 
+        checkDailyQuestAutoReset(true);
+
+        const timerEl = document.getElementById('lblDailyResetTimer');
+        if (timerEl) {
+          timerEl.textContent = `다음 자동 리셋까지 ${getTimeUntilMidnightStr()} · 오늘 완료 ${dailyCompletedToday}회`;
+        }
+        const dateEl = document.getElementById('lblDailyDateBadge');
+        if (dateEl) dateEl.textContent = dailyQuestDate || getTodayDateKey();
+
         let claimableCount = 0;
         dList.innerHTML = '';
-        const dailies = [
-          { key: 'kills',  title: '몬스터 처치 150마리', cur: questStats.totalKills - dailyQuestBase.kills, goal: 150, g: 550, gem: 2, sh: 10 },
-          { key: 'merges', title: '유닛 합성 20회 달성', cur: questStats.totalMerges - dailyQuestBase.merges, goal: 20,  g: 450, gem: 3, sh: 12 },
-          { key: 'bosses', title: '보스·현상금 3회 토벌', cur: questStats.bossKills - dailyQuestBase.bosses, goal: 3,   g: 750, gem: 4, sh: 16 }
-        ];
-        dailies.forEach(q => {
-          const prog = Math.min(q.goal, Math.max(0, q.cur));
+
+        dailyQuests.forEach((q, qIdx) => {
+          const rawCur = (questStats[q.stat] || 0) - (q.base || 0);
+          const prog = Math.min(q.goal, Math.max(0, rawCur));
           const pct = Math.round((prog / q.goal) * 100);
-          const claimed = !!dailyQuestClaimed[q.key];
+          const claimed = !!q.claimed;
           const ready = !claimed && prog >= q.goal;
           if (ready) claimableCount++;
+
           const row = document.createElement('div');
-          row.className = `p-2.5 rounded-xl bg-slate-950/90 border flex items-center justify-between gap-3 transition ${ready ? 'border-emerald-400/70 shadow-[0_0_12px_rgba(52,211,153,0.2)]' : 'border-slate-800'}`;
+          row.className = `p-2.5 rounded-xl bg-slate-950/90 border flex items-center justify-between gap-3 transition ${ready ? 'border-emerald-400/70 shadow-[0_0_12px_rgba(52,211,153,0.2)]' : (q.isBonus ? 'border-fuchsia-500/40' : 'border-slate-800')}`;
           row.innerHTML = `
             <div class="min-w-0 flex-1">
               <div class="flex items-center justify-between gap-2">
-                <span class="text-xs font-extrabold text-white truncate">${q.title}</span>
+                <span class="text-xs font-extrabold ${q.isBonus ? 'text-fuchsia-200' : 'text-white'} truncate">${q.title}</span>
                 <span class="text-[11px] font-black text-amber-300 shrink-0 tabular-nums">${prog} / ${q.goal}</span>
               </div>
               <div class="mt-1.5 h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                <div class="h-full rounded-full ${claimed ? 'bg-slate-600' : (ready ? 'bg-emerald-400' : 'bg-gradient-to-r from-amber-500 to-yellow-300')}" style="width:${pct}%"></div>
+                <div class="h-full rounded-full ${claimed ? 'bg-slate-600' : (ready ? 'bg-emerald-400' : (q.isBonus ? 'bg-gradient-to-r from-fuchsia-500 to-pink-400' : 'bg-gradient-to-r from-amber-500 to-yellow-300'))}" style="width:${pct}%"></div>
               </div>
               <div class="text-[10px] text-slate-400 mt-1">보상: <span class="text-amber-300 font-bold">+${q.g}G</span> · <span class="text-cyan-300 font-bold">+${q.gem}💎</span> · <span class="text-fuchsia-300 font-bold">+${q.sh}✨</span></div>
             </div>
@@ -7512,12 +7725,19 @@
           `;
           row.querySelector('button').addEventListener('click', () => {
             if (!ready) return;
-            dailyQuestClaimed[q.key] = true;
+            q.claimed = true;
+            dailyCompletedToday++;
             accountGold += q.g;
             accountGems += q.gem;
             accountShards += q.sh;
             playSound('mythic');
-            showToast(`🎁 일일 미션 보상 수령: +${q.g}G · +${q.gem}💎 · +${q.sh}✨`);
+            // 완료된 슬롯에 즉시 새로운 추가 의뢰(다른 유형 우선) 생성!
+            const activeStats = new Set(dailyQuests.filter(item => !item.claimed).map(item => item.stat));
+            const candidates = DAILY_QUEST_POOL.filter(t => !activeStats.has(t.stat) && t.stat !== q.stat);
+            const poolChoice = candidates.length > 0 ? candidates : DAILY_QUEST_POOL;
+            const nextTpl = poolChoice[Math.floor(Math.random() * poolChoice.length)];
+            dailyQuests[qIdx] = createDynamicQuest(nextTpl, true);
+            showToast(`🎁 퀘스트 보상 수령(+${q.g}G · +${q.gem}💎 · +${q.sh}✨) → 새 추가 의뢰 생성!`);
             renderLobbyAll();
           });
           dList.appendChild(row);
@@ -7526,45 +7746,68 @@
         aList.innerHTML = '';
         ACH_DEFS.forEach(a => {
           const lv = achClaimed[a.id] || 0;
-          const isMax = lv >= a.steps.length;
-          const goal = isMax ? a.steps[a.steps.length - 1] : a.steps[lv];
-          const cur = questStats[a.stat] || 0;
+          const prestige = achPrestige[a.id] || 0;
+          const baseSnap = achBase[a.id] || 0;
+          const isMastery = lv >= a.steps.length;
+          const goal = getAchievementGoal(a, lv);
+          const cur = Math.max(0, (questStats[a.stat] || 0) - baseSnap);
           const curClamped = Math.min(cur, goal);
           const pct = Math.round((curClamped / goal) * 100);
-          const ready = !isMax && cur >= goal;
+          const ready = cur >= goal;
           if (ready) claimableCount++;
-          const mult = lv + 1;
-          const rG = a.rewardGold * mult;
-          const rGem = a.rewardGems * mult;
-          const rSh = a.rewardShards * mult;
+
+          const prestigeMult = 1 + prestige * 0.25;
+          const stageMult = lv + 1;
+          const rG = Math.round(a.rewardGold * stageMult * prestigeMult);
+          const rGem = Math.round(a.rewardGems * stageMult * prestigeMult);
+          const rSh = Math.round(a.rewardShards * stageMult * prestigeMult);
+          const canPrestige = isMastery;
 
           const card = document.createElement('div');
-          card.className = `p-2.5 rounded-xl bg-slate-950/90 border flex flex-col justify-between gap-2 transition ${ready ? 'border-amber-400/75 shadow-[0_0_12px_rgba(251,191,36,0.2)]' : (isMax ? 'border-emerald-500/40' : 'border-slate-800')}`;
+          card.className = `p-2.5 rounded-xl bg-slate-950/90 border flex flex-col justify-between gap-2 transition ${ready ? 'border-amber-400/75 shadow-[0_0_12px_rgba(251,191,36,0.2)]' : (isMastery ? 'border-fuchsia-500/45' : 'border-slate-800')}`;
           card.innerHTML = `
             <div>
               <div class="flex items-center justify-between gap-1">
-                <span class="text-xs font-extrabold text-white truncate">${a.title} ${isMax ? '👑' : `<span class="text-amber-300">${lv + 1}단계</span>`}</span>
-                <span class="text-[11px] font-bold text-cyan-300 shrink-0 tabular-nums">${curClamped} / ${goal}</span>
+                <span class="text-xs font-extrabold text-white truncate">
+                  ${a.title}
+                  ${prestige > 0 ? `<span class="text-fuchsia-300">★${prestige}</span>` : ''}
+                  <span class="${isMastery ? 'text-fuchsia-300' : 'text-amber-300'}">${lv + 1}단계${isMastery ? ' ∞' : ''}</span>
+                </span>
+                <span class="text-[11px] font-bold text-cyan-300 shrink-0 tabular-nums">${curClamped.toLocaleString()} / ${goal.toLocaleString()}</span>
               </div>
               <div class="mt-1.5 h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                <div class="h-full rounded-full ${isMax ? 'bg-emerald-400' : (ready ? 'bg-amber-400' : 'bg-gradient-to-r from-cyan-500 to-indigo-400')}" style="width:${pct}%"></div>
+                <div class="h-full rounded-full ${ready ? 'bg-amber-400' : (isMastery ? 'bg-gradient-to-r from-fuchsia-500 to-cyan-400' : 'bg-gradient-to-r from-cyan-500 to-indigo-400')}" style="width:${pct}%"></div>
               </div>
-              <div class="text-[10px] text-slate-400 mt-1">${isMax ? '모든 단계 달성 완료!' : `보상: +${rG}G · +${rGem}💎 · +${rSh}✨`}</div>
+              <div class="text-[10px] text-slate-400 mt-1">보상: <span class="text-amber-300 font-bold">+${rG}G</span> · <span class="text-cyan-300 font-bold">+${rGem}💎</span> · <span class="text-fuchsia-300 font-bold">+${rSh}✨</span></div>
             </div>
-            <button ${ready ? '' : 'disabled'} class="game-btn w-full py-1.5 rounded-lg text-[11px] font-extrabold ${isMax ? 'bg-slate-800 text-amber-300' : (ready ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow' : 'bg-slate-800 text-slate-400')}">
-              ${isMax ? '👑 최종 달성' : (ready ? '🎁 업적 보상 수령' : `진행중 (${pct}%)`)}
-            </button>
+            <div class="flex items-center gap-1.5">
+              <button data-act="claim" ${ready ? '' : 'disabled'} class="game-btn flex-1 py-1.5 rounded-lg text-[11px] font-extrabold ${ready ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow' : 'bg-slate-800 text-slate-400'}">
+                ${ready ? `🎁 ${lv + 1}단계 수령` : `진행중 (${pct}%)`}
+              </button>
+              ${canPrestige ? `<button data-act="prestige" title="1단계부터 다시 도전 (보상 +25% 영구 증가)" class="game-btn px-2 py-1.5 rounded-lg text-[10px] font-extrabold bg-fuchsia-700/80 hover:bg-fuchsia-600 text-white shrink-0">🔄 재도전</button>` : ''}
+            </div>
           `;
-          card.querySelector('button').addEventListener('click', () => {
+          card.querySelector('[data-act="claim"]').addEventListener('click', () => {
             if (!ready) return;
             achClaimed[a.id] = lv + 1;
             accountGold += rG;
             accountGems += rGem;
             accountShards += rSh;
             playSound('mythic');
-            showToast(`🏆 [${a.title}] 업적 달성 보상: +${rG}G · +${rGem}💎 · +${rSh}✨`);
+            showToast(`🏆 [${a.title} ${lv + 1}단계] 달성! +${rG}G · +${rGem}💎 · +${rSh}✨ (다음 ${lv + 2}단계 해금!)`);
             renderLobbyAll();
           });
+          const pBtn = card.querySelector('[data-act="prestige"]');
+          if (pBtn) {
+            pBtn.addEventListener('click', () => {
+              achBase[a.id] = questStats[a.stat] || 0;
+              achClaimed[a.id] = 0;
+              achPrestige[a.id] = prestige + 1;
+              playSound('summon');
+              showToast(`✨ [${a.title}] 환생 재도전(★${prestige + 1}) 시작! 모든 단계 보상 +${(prestige + 1) * 25}%`);
+              renderLobbyAll();
+            });
+          }
           aList.appendChild(card);
         });
 
@@ -7576,6 +7819,19 @@
         const recEl = document.getElementById('lblEndlessRecord');
         if (recEl) recEl.textContent = `최고 기록: W${bestEndlessWave}`;
       }
+
+      // 자정(하루 경과) 자동 리셋 및 카운트다운 표시 타이머
+      setInterval(() => {
+        const resetOccurred = checkDailyQuestAutoReset(true);
+        if (resetOccurred) {
+          renderLobbyAll();
+          return;
+        }
+        const timerEl = document.getElementById('lblDailyResetTimer');
+        if (timerEl && !document.getElementById('lobbyTabQuest').classList.contains('hidden')) {
+          timerEl.textContent = `다음 자동 리셋까지 ${getTimeUntilMidnightStr()} · 오늘 완료 ${dailyCompletedToday}회`;
+        }
+      }, 1000);
 
       function syncAudioButtonsUI() {
         const btnS = document.getElementById('btnSound');
@@ -7935,6 +8191,8 @@
 
       // Quest Refresh & Additional Content Launchers
       document.getElementById('btnRefreshDailyQuests').addEventListener('click', () => {
+        dailyQuestDate = getTodayDateKey();
+        dailyQuests = generateDailyQuestSet(3, false);
         dailyQuestBase = {
           kills: questStats.totalKills,
           merges: questStats.totalMerges,
@@ -7942,7 +8200,7 @@
         };
         dailyQuestClaimed = { kills: false, merges: false, bosses: false };
         playSound('summon');
-        showToast('🔄 일일 미션 목표가 새로 갱신되었습니다!');
+        showToast('🔄 새로운 랜덤 퀘스트 3종이 제작되었습니다!');
         renderLobbyAll();
       });
 
@@ -8072,7 +8330,12 @@
         questStats.clears = 0;
         dailyQuestBase = { kills: 0, merges: 0, bosses: 0 };
         dailyQuestClaimed = { kills: false, merges: false, bosses: false };
+        dailyQuestDate = getTodayDateKey();
+        dailyCompletedToday = 0;
+        dailyQuests = generateDailyQuestSet(3, false);
         achClaimed = {};
+        achBase = {};
+        achPrestige = {};
         talents = { startGoldLv: 0, atkPctLv: 0, skillLv: 0, luckLv: 0, econLv: 0 };
         soundOn = true;
         bgmOn = true;
@@ -8251,7 +8514,8 @@
       });
       document.getElementById('btnExportSave').addEventListener('click', () => {
         saveGameData();
-        const raw = localStorage.getItem(SAVE_KEY) || '';
+        let raw = '';
+        try { raw = localStorage.getItem(SAVE_KEY) || ''; } catch (_) {}
         const txt = document.getElementById('txtSaveCode');
         if (txt) {
           txt.value = raw;
@@ -8260,7 +8524,9 @@
         }
         try {
           if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(raw).catch(() => {});
+            navigator.clipboard.writeText(raw).catch(() => { try { document.execCommand('copy'); } catch (_) {} });
+          } else {
+            document.execCommand('copy');
           }
         } catch (_) {}
         showToast('💾 세이브 데이터(JSON)를 내보내고 복사했습니다!');
@@ -8542,7 +8808,7 @@
         else showToast('💡 브라우저 메뉴(⋮ 또는 공유)에서 [홈 화면에 추가]를 선택해 주세요.');
       });
       document.getElementById('btnDownloadSwJs').addEventListener('click', () => {
-        const swContent = "self.addEventListener('install', (e) => self.skipWaiting());\nself.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));\nself.addEventListener('fetch', (e) => { if (e.request.method === 'GET') e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });\n";
+        const swContent = "const CACHE_NAME = 'rcd-offline-v2';\nconst CORE_ASSETS = [\n  './',\n  './index.html',\n  './random_character_defense.html'\n];\n\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_NAME).then((cache) =>\n      Promise.allSettled(CORE_ASSETS.map((url) => cache.add(url)))\n    ).then(() => self.skipWaiting())\n  );\n});\n\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys()\n      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))\n      .then(() => self.clients.claim())\n  );\n});\n\nself.addEventListener('fetch', (event) => {\n  if (event.request.method !== 'GET') return;\n  const req = event.request;\n  const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');\n\n  if (isNav) {\n    event.respondWith(\n      fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => caches.match(req).then((m) => m || caches.match('./index.html') || caches.match('./random_character_defense.html')))\n    );\n    return;\n  }\n\n  event.respondWith(\n    caches.match(req).then((cached) => {\n      const netFetch = fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => cached);\n      return cached || netFetch;\n    })\n  );\n});\n";
         const blob = new Blob([swContent], { type: 'application/javascript' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
