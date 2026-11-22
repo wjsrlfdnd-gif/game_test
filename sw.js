@@ -1,4 +1,5 @@
-const CACHE_NAME = 'rcd-game-cache-v1';
+// Random Character Defense — Auto-Sync Offline Service Worker (v3)
+const CACHE_NAME = 'rcd-offline-v3';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -7,64 +8,64 @@ const CORE_ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(CORE_ASSETS))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.allSettled(
+        CORE_ASSETS.map((url) =>
+          fetch(url, { cache: 'no-store' }).then((res) => (res && res.ok ? cache.put(url, res) : null))
+        )
+      )
+    ).then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== CACHE_NAME)
-            .map((key) => caches.delete(key))
-        )
-      )
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const req = event.request;
+  const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
 
-  const url = new URL(event.request.url);
-
-  // HTML 페이지 탐색 및 동일 출처 리소스: 네트워크 우선, 실패 시 캐시 반환
-  if (event.request.mode === 'navigate' || url.origin === self.location.origin) {
+  // HTML 문서는 항상 Network-First (cache: 'no-store')로 최신 배포본 즉시 동기화, 오프라인 시 캐시 폴백
+  if (isNav) {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      fetch(req, { cache: 'no-store' })
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put(req, copy));
           }
-          return response;
+          return res;
         })
-        .catch(async () => {
-          const cached = await caches.match(event.request);
-          return cached || caches.match('./index.html');
-        })
+        .catch(() => caches.match(req).then((m) => m || caches.match('./random_character_defense.html') || caches.match('./index.html')))
     );
     return;
   }
 
-  // 외부 CDN 리소스(Tailwind, Google Fonts 등): 캐시 우선, 백그라운드 갱신
+  // 정적 리소스는 Stale-While-Revalidate
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const networkFetch = fetch(event.request)
-        .then((response) => {
-          if (response && (response.ok || response.type === 'opaque')) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+    caches.match(req).then((cached) => {
+      const netFetch = fetch(req)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put(req, copy));
           }
-          return response;
+          return res;
         })
         .catch(() => cached);
-
-      return cached || networkFetch;
+      return cached || netFetch;
     })
   );
 });

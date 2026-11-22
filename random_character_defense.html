@@ -22,7 +22,7 @@
       color: #f1f5f9;
       user-select: none;
     }
-    canvas { image-rendering: auto; touch-action: manipulation; }
+    canvas { image-rendering: auto; touch-action: none; -webkit-user-select: none; user-select: none; }
     .game-btn { transition: transform 0.1s ease, filter 0.15s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
     .game-btn:hover:not(:disabled) { filter: brightness(1.09); }
     .game-btn:active:not(:disabled) { transform: scale(0.95); }
@@ -116,6 +116,23 @@
         font-size: 0.65rem !important;
         gap: 0.2rem;
       }
+      .keycap { display: none !important; }
+      #battleScreen .game-btn { min-height: 32px; }
+      #btnBattleExitMain, #btnAutoArrange, #btnNextWaveNow, #btnBountyBoss, #btnAllUltimate {
+        padding: 0.24rem 0.42rem !important;
+        font-size: 0.64rem !important;
+        min-height: 28px !important;
+      }
+      header > div:last-child {
+        max-width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 2px;
+      }
+    }
+    @media (pointer: coarse) {
+      .keycap { display: none !important; }
     }
 
     /* Mobile Landscape (phones & compact tablets) */
@@ -173,6 +190,14 @@
   </style>
 </head>
 <body class="min-h-[100dvh] flex flex-col">
+  <!-- Auto-Sync Update Notification Banner (shown if new version arrives during active battle) -->
+  <div id="appUpdateBanner" class="hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-50 px-3.5 py-2 rounded-2xl bg-slate-900/95 border border-emerald-400/70 shadow-2xl backdrop-blur-md flex items-center gap-3 max-w-[94vw]">
+    <span class="text-xs font-extrabold text-emerald-300">✨ 새 업데이트가 감지되었습니다!</span>
+    <button id="btnApplyAppUpdate" class="game-btn px-3 py-1 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shrink-0">
+      지금 동기화
+    </button>
+    <button id="btnDismissAppUpdate" class="text-slate-400 hover:text-white text-xs font-bold px-1">✕</button>
+  </div>
 
   <!-- Top Navigation & Resource Bar -->
   <header class="sticky top-0 z-30 border-b border-slate-800/90 bg-slate-950/90 backdrop-blur-md px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2 shadow-[0_6px_24px_rgba(2,6,23,0.7)]">
@@ -7829,6 +7854,7 @@
         isDraggingUnit = false;
         if (idx !== null && units.some(u => u.slotIdx === idx)) {
           dragSourceSlotIdx = idx;
+          try { if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId); } catch (_) {}
         } else {
           dragSourceSlotIdx = null;
         }
@@ -9303,11 +9329,110 @@
           const manifestUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
           addLink('manifest', manifestUrl);
 
-          if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-            navigator.serviceWorker.register('./sw.js', { scope: './' })
-              .then(() => { pwaSwRegistered = true; })
-              .catch(() => { pwaSwRegistered = false; });
+          const APP_BUILD_ID = '2026.11.22-3d-v3';
+          let pendingUpdateReload = false;
+          let swRegistrationRef = null;
+
+          async function applyLatestUpdateNow() {
+            try { saveGameData(); } catch (_) {}
+            try {
+              if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+              }
+              if (swRegistrationRef && swRegistrationRef.waiting) {
+                swRegistrationRef.waiting.postMessage({ type: 'SKIP_WAITING' });
+              }
+            } catch (_) {}
+            const base = location.href.split('?')[0].split('#')[0];
+            location.replace(`${base}?v=${Date.now()}`);
           }
+
+          function handleDetectedUpdate() {
+            if (pendingUpdateReload) return;
+            pendingUpdateReload = true;
+            saveGameData();
+            if (inLobby || gameOver) {
+              showToast('✨ 최신 업데이트 감지! 자동 동기화 중...');
+              setTimeout(applyLatestUpdateNow, 900);
+            } else {
+              const banner = document.getElementById('appUpdateBanner');
+              if (banner) banner.classList.remove('hidden');
+            }
+          }
+
+          async function checkAppUpdateSync() {
+            if (!(location.protocol === 'https:' || location.hostname === 'localhost')) return;
+            try {
+              if (swRegistrationRef) await swRegistrationRef.update().catch(() => {});
+              const res = await fetch(location.href.split('?')[0].split('#')[0], { cache: 'no-store' });
+              if (!res || !res.ok) return;
+              const etag = res.headers.get('etag') || res.headers.get('last-modified') || '';
+              if (etag) {
+                const prevTag = sessionStorage.getItem('rcd_sync_etag');
+                if (prevTag && prevTag !== etag) {
+                  sessionStorage.setItem('rcd_sync_etag', etag);
+                  handleDetectedUpdate();
+                  return;
+                }
+                sessionStorage.setItem('rcd_sync_etag', etag);
+              }
+              const txt = await res.text();
+              const m = txt.match(/APP_BUILD_ID\s*=\s*'([^']+)'/);
+              if (m && m[1] && m[1] !== APP_BUILD_ID) {
+                handleDetectedUpdate();
+              }
+            } catch (_) {}
+          }
+
+          const btnApplyUpd = document.getElementById('btnApplyAppUpdate');
+          if (btnApplyUpd) btnApplyUpd.addEventListener('click', applyLatestUpdateNow);
+          const btnDismissUpd = document.getElementById('btnDismissAppUpdate');
+          if (btnDismissUpd) btnDismissUpd.addEventListener('click', () => {
+            document.getElementById('appUpdateBanner').classList.add('hidden');
+          });
+
+          if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+            navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' })
+              .then((reg) => {
+                pwaSwRegistered = true;
+                swRegistrationRef = reg;
+                reg.addEventListener('updatefound', () => {
+                  const nw = reg.installing;
+                  if (!nw) return;
+                  nw.addEventListener('statechange', () => {
+                    if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                      handleDetectedUpdate();
+                    }
+                  });
+                });
+              })
+              .catch(() => { pwaSwRegistered = false; });
+
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+              if (!pendingUpdateReload && (inLobby || gameOver)) {
+                handleDetectedUpdate();
+              }
+            });
+          }
+
+          // 포그라운드 복귀 시 자동 일시정지 해제 안내 + 최신 업데이트 자동 동기화 체크
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+              saveGameData();
+              if (!inLobby && !gameOver && !paused) {
+                paused = true;
+                const pBtn = document.getElementById('btnPause');
+                if (pBtn) pBtn.textContent = '재개';
+              }
+              updateBgmGain();
+            } else {
+              updateBgmGain();
+              checkAppUpdateSync();
+            }
+          });
+          setInterval(checkAppUpdateSync, 5 * 60 * 1000);
+          setTimeout(checkAppUpdateSync, 4000);
         } catch (_) {}
       }
       initPWAManifestAndIcon();
@@ -9394,7 +9519,7 @@
         else showToast('💡 브라우저 메뉴(⋮ 또는 공유)에서 [홈 화면에 추가]를 선택해 주세요.');
       });
       document.getElementById('btnDownloadSwJs').addEventListener('click', () => {
-        const swContent = "const CACHE_NAME = 'rcd-offline-v2';\nconst CORE_ASSETS = [\n  './',\n  './index.html',\n  './random_character_defense.html'\n];\n\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_NAME).then((cache) =>\n      Promise.allSettled(CORE_ASSETS.map((url) => cache.add(url)))\n    ).then(() => self.skipWaiting())\n  );\n});\n\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys()\n      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))\n      .then(() => self.clients.claim())\n  );\n});\n\nself.addEventListener('fetch', (event) => {\n  if (event.request.method !== 'GET') return;\n  const req = event.request;\n  const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');\n\n  if (isNav) {\n    event.respondWith(\n      fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => caches.match(req).then((m) => m || caches.match('./index.html') || caches.match('./random_character_defense.html')))\n    );\n    return;\n  }\n\n  event.respondWith(\n    caches.match(req).then((cached) => {\n      const netFetch = fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => cached);\n      return cached || netFetch;\n    })\n  );\n});\n";
+        const swContent = "const CACHE_NAME = 'rcd-offline-v3';\nconst CORE_ASSETS = [\n  './',\n  './index.html',\n  './random_character_defense.html'\n];\n\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_NAME).then((cache) =>\n      Promise.allSettled(CORE_ASSETS.map((url) => cache.add(url)))\n    ).then(() => self.skipWaiting())\n  );\n});\n\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys()\n      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))\n      .then(() => self.clients.claim())\n  );\n});\n\nself.addEventListener('fetch', (event) => {\n  if (event.request.method !== 'GET') return;\n  const req = event.request;\n  const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');\n\n  if (isNav) {\n    event.respondWith(\n      fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => caches.match(req).then((m) => m || caches.match('./index.html') || caches.match('./random_character_defense.html')))\n    );\n    return;\n  }\n\n  event.respondWith(\n    caches.match(req).then((cached) => {\n      const netFetch = fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => cached);\n      return cached || netFetch;\n    })\n  );\n});\n";
         const blob = new Blob([swContent], { type: 'application/javascript' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
