@@ -81,6 +81,7 @@
       overflow-x: hidden;
     }
     body {
+      box-sizing: border-box;
       min-height: 100dvh;
       padding-top: env(safe-area-inset-top, 0px);
       padding-left: env(safe-area-inset-left, 0px);
@@ -91,101 +92,547 @@
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .hud-lbl-short { display: none; }
+
+    /* Hide desktop keyboard-shortcut keycaps on touch/mobile screens */
+    @media (pointer: coarse), (max-width: 1023px), (max-height: 580px) and (orientation: landscape) {
+      .keycap { display: none !important; }
+    }
 
     /* Mobile Portrait (< 640px) */
     @media (max-width: 639px) {
+      .mobile-label-hide, .portrait-label-hide { display: none !important; }
+      .header-currency-label, .currency-dup-icon { display: none !important; }
       header {
-        padding: 0.35rem 0.5rem !important;
-        gap: 0.35rem !important;
+        padding: 0.3rem 0.45rem !important;
+        gap: 0.28rem 0.35rem !important;
       }
-      header h1 { font-size: 0.85rem !important; }
+      #headerBrand { gap: 0.35rem !important; min-width: 0; }
+      #headerBrand .brand-badge { width: 1.55rem !important; height: 1.55rem !important; font-size: 0.6rem !important; border-radius: 0.48rem !important; flex-shrink: 0; }
+      header h1 { font-size: 0.78rem !important; white-space: nowrap; }
+      #headerToolbar { display: contents !important; }
+      #headerCurrencyBar {
+        flex-shrink: 0;
+        font-size: 0.66rem !important;
+        border-radius: 0.6rem !important;
+      }
+      #headerCurrencyBar > div { padding: 0.18rem 0.34rem !important; gap: 0.16rem !important; white-space: nowrap; }
+      #headerActionBtns {
+        width: 100%;
+        flex-wrap: nowrap !important;
+        justify-content: space-between;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none !important;
+        gap: 0.2rem !important;
+      }
+      #headerActionBtns::-webkit-scrollbar { display: none; }
       header .game-btn {
-        padding: 0.28rem 0.45rem !important;
-        font-size: 0.68rem !important;
+        padding: 0.22rem 0.38rem !important;
+        font-size: 0.66rem !important;
         white-space: nowrap;
+        flex-shrink: 0;
+        border-radius: 0.55rem !important;
       }
-      #lobbyScreen { padding: 0.4rem !important; gap: 0.5rem !important; }
-      #battleScreen { padding: 0.35rem !important; gap: 0.45rem !important; }
+      #lobbyScreen { padding: 0.35rem 0.4rem !important; gap: 0.4rem !important; }
+      #lobbyBanner { padding: 0.35rem 0.45rem !important; gap: 0.3rem !important; border-radius: 0.9rem !important; }
+      #lobbyTabBar {
+        width: 100%;
+        max-width: 100%;
+        flex-wrap: nowrap !important;
+        justify-content: space-between;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none !important;
+        flex-shrink: 1 !important;
+        gap: 0.18rem !important;
+      }
+      #lobbyTabBar::-webkit-scrollbar { display: none; }
+      #lobbyTabBar > button {
+        flex: 1 0 auto;
+        padding: 0.3rem 0.35rem !important;
+        font-size: 0.68rem !important;
+        text-align: center;
+      }
+      #lobbyTabStage { padding: 0.5rem !important; gap: 0.4rem !important; border-radius: 0.9rem !important; }
+      #worldSliderViewport, #worldSliderOverlay {
+        min-height: 310px !important;
+      }
+      #worldSliderOverlay { padding: 0.5rem !important; gap: 0.35rem !important; }
+      #lobbySelectedWorldTitle { font-size: 1rem !important; }
+      #btnWorldPrev, #btnWorldNext {
+        width: 2rem !important;
+        height: 2rem !important;
+        font-size: 0.85rem !important;
+      }
+      #stageSubGrid button { padding: 0.32rem 0.2rem !important; }
+      #btnStartStageBattle { padding: 0.65rem 1rem !important; font-size: 0.875rem !important; }
+      #battleScreen { padding: 0.3rem !important; gap: 0.4rem !important; }
+      #battleHudStrip {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.25rem !important;
+        padding: 0.25rem !important;
+      }
+      #battleHudStrip > div { padding: 0.2rem 0.35rem !important; }
+      #battleHudStrip .hud-lbl-full { display: none !important; }
+      #battleHudStrip .hud-lbl-short { display: inline !important; }
       #battleScreen .aspect-video { border-radius: 0.65rem !important; }
+      #battleScreen .game-btn { min-height: 30px; }
+      #battleQuickBar { flex-wrap: nowrap !important; gap: 0.2rem !important; }
+      #battleQuickBar button { padding: 0.18rem 0.36rem !important; gap: 0.18rem !important; font-size: 0.6rem !important; min-height: 24px !important; }
+      #battleControlBar { gap: 0.25rem !important; padding: 0.25rem !important; }
+      #battleControlBar button { padding: 0.32rem 0.2rem !important; border-radius: 0.6rem !important; }
       #dangerBanner, #mythicAwakenBanner {
         width: 90%;
         max-width: 320px;
       }
-      #btnUseGoldPotion, #btnUseShockScroll, #btnUseBossBane {
-        padding: 0.35rem 0.4rem !important;
-        font-size: 0.65rem !important;
-        gap: 0.2rem;
-      }
-      .keycap { display: none !important; }
-      #battleScreen .game-btn { min-height: 32px; }
-      #btnBattleExitMain, #btnAutoArrange, #btnNextWaveNow, #btnBountyBoss, #btnAllUltimate {
-        padding: 0.24rem 0.42rem !important;
-        font-size: 0.64rem !important;
-        min-height: 28px !important;
-      }
-      header > div:last-child {
-        max-width: 100%;
-        overflow-x: auto;
-        flex-wrap: nowrap !important;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 2px;
-      }
-    }
-    @media (pointer: coarse) {
-      .keycap { display: none !important; }
     }
 
     /* Mobile Landscape (phones & compact tablets) */
-    @media (max-height: 560px) and (orientation: landscape) {
-      header {
-        padding: 0.2rem 0.55rem !important;
-        gap: 0.3rem !important;
+    @media (max-height: 580px) and (orientation: landscape) {
+      .mobile-label-hide { display: none !important; }
+      .header-currency-label, .currency-dup-icon { display: none !important; }
+
+      /* Pure flexbox 100dvh lock for Stage Select & Battle (works across all safe-area insets & phone heights) */
+      body.fit-viewport-lock,
+      body:has(#battleScreen:not(.hidden)),
+      body:has(#lobbyScreen:not(.hidden) #lobbyTabStage:not(.hidden)) {
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
       }
-      header h1 { font-size: 0.8rem !important; }
-      header .game-btn {
-        padding: 0.22rem 0.45rem !important;
+
+      header {
+        flex-shrink: 0;
+        flex-wrap: nowrap !important;
+        padding: 0.18rem 0.45rem !important;
+        gap: 0.3rem !important;
+        min-height: 34px;
+      }
+      #headerBrand { gap: 0.35rem !important; flex-shrink: 0; }
+      #headerBrand .brand-badge {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+        font-size: 0.58rem !important;
+        border-radius: 0.45rem !important;
+      }
+      #headerBrand p { display: none !important; }
+      header h1 { font-size: 0.76rem !important; white-space: nowrap; }
+      #headerToolbar {
+        display: flex !important;
+        width: auto !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none !important;
+        gap: 0.22rem !important;
+        min-width: 0;
+        padding-bottom: 0;
+      }
+      #headerToolbar::-webkit-scrollbar { display: none; }
+      #headerActionBtns {
+        width: auto !important;
+        flex-wrap: nowrap !important;
+        gap: 0.22rem !important;
+        flex-shrink: 0;
+      }
+      #headerCurrencyBar {
+        flex-shrink: 0;
         font-size: 0.68rem !important;
+        border-radius: 0.55rem !important;
+      }
+      #headerCurrencyBar > div {
+        padding: 0.18rem 0.38rem !important;
+        gap: 0.18rem !important;
         white-space: nowrap;
       }
-      #battleScreen {
-        grid-template-columns: minmax(0, 1fr) 248px !important;
+      header .game-btn {
+        padding: 0.18rem 0.42rem !important;
+        font-size: 0.66rem !important;
+        line-height: 1.25;
+        white-space: nowrap;
+        flex-shrink: 0;
+        border-radius: 0.55rem !important;
+      }
+
+      /* Lobby Layout in Mobile Landscape */
+      #lobbyScreen {
+        padding: 0.2rem 0.45rem !important;
+        gap: 0.22rem !important;
+        min-height: 0 !important;
+      }
+      body.fit-viewport-lock #lobbyScreen:not(.hidden),
+      body:has(#lobbyTabStage:not(.hidden)) #lobbyScreen:not(.hidden) {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+      #lobbyBanner {
+        flex-shrink: 0;
+        padding: 0.16rem 0.35rem !important;
+        gap: 0.25rem !important;
+        border-radius: 0.75rem !important;
+        flex-wrap: nowrap !important;
+      }
+      #lobbyBannerTitle { display: none !important; }
+      #lobbyTabBar {
+        width: 100%;
+        max-width: 100%;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none !important;
+        justify-content: space-between;
+        padding: 0.14rem !important;
+        gap: 0.2rem !important;
+        border-radius: 0.6rem !important;
+        flex-shrink: 1 !important;
+      }
+      #lobbyTabBar::-webkit-scrollbar { display: none; }
+      #lobbyTabBar > button {
+        flex: 1 0 auto;
+        padding: 0.2rem 0.45rem !important;
+        font-size: 0.68rem !important;
+        text-align: center;
+      }
+
+      /* Stage Tab: Pure Flexbox Fit - Start Button Guaranteed Always Visible */
+      #lobbyTabStage:not(.hidden) {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        padding: 0.28rem 0.42rem !important;
+        gap: 0.2rem !important;
+        border-radius: 0.85rem !important;
+        overflow: hidden !important;
+      }
+      #lobbyStageHeaderStrip {
+        gap: 0.3rem !important;
+        flex-wrap: nowrap !important;
+        flex-shrink: 0;
+      }
+      #lobbyStageHeaderStrip h3 { font-size: 0.72rem !important; white-space: nowrap; }
+      #lobbyWorldProgressBadge { padding: 0.08rem 0.45rem !important; font-size: 0.64rem !important; white-space: nowrap; }
+      #lobbyEquipSummary { padding: 0.08rem 0.45rem !important; font-size: 0.64rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      #worldSliderViewport {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        border-radius: 0.75rem !important;
+      }
+      #worldSliderOverlay {
+        min-height: 0 !important;
+        height: 100% !important;
+        overflow-y: auto;
+        scrollbar-width: none !important;
+        padding: 0.24rem 0.42rem !important;
+        gap: 0.14rem !important;
+      }
+      #worldSliderOverlay::-webkit-scrollbar { display: none; }
+      #worldOverlayTop {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
+        flex-shrink: 0;
+      }
+      #worldOverlayTop > div:first-child {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
+        min-width: 0;
+      }
+      #lobbyWorldNumBadge, #lobbyWorldClearBadge, #lobbyDiffBadge, #lobbyStageRecordBadge {
+        padding: 0.08rem 0.38rem !important;
+        font-size: 0.6rem !important;
+        white-space: nowrap;
+      }
+      #lobbySelectedWorldTitle {
+        font-size: 0.8rem !important;
+        line-height: 1.15 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #worldArrowRow {
+        min-height: 22px;
+        flex: 1 1 0%;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+      #btnWorldPrev, #btnWorldNext {
+        width: 1.7rem !important;
+        height: 1.7rem !important;
+        font-size: 0.72rem !important;
+      }
+      #worldOverlayBottom {
+        gap: 0.18rem !important;
+        flex-shrink: 0;
+      }
+      #stageSubGrid {
+        grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
+        gap: 0.18rem !important;
+        padding: 0.16rem !important;
+        border-radius: 0.55rem !important;
+      }
+      #stageSubGrid button {
+        padding: 0.14rem 0.1rem !important;
+        border-radius: 0.42rem !important;
+      }
+      #stageSubGrid button > div:first-child { font-size: 0.64rem !important; line-height: 1.1 !important; }
+      #stageSubGrid button > div:last-child { font-size: 0.54rem !important; margin-top: 1px !important; line-height: 1.1 !important; }
+
+      #lobbyStageInfoBox {
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.55fr) minmax(0, 0.85fr) !important;
+        gap: 0.3rem !important;
+        padding: 0.2rem 0.32rem !important;
+        border-radius: 0.55rem !important;
+      }
+      #lobbyStageInfoBox > div:nth-child(2),
+      #lobbyStageInfoBox > div:nth-child(3) {
+        border-top: 0 !important;
+        border-left: 1px solid rgba(51, 65, 85, 0.75) !important;
+        padding-top: 0 !important;
+        padding-left: 0.32rem !important;
+      }
+      #lobbyStageInfoBox > div:first-child { gap: 0.1rem !important; }
+      #lobbyStageInfoBox > div:first-child > div:first-child { font-size: 0.56rem !important; }
+      #lobbyMobTierStats { gap: 0.16rem !important; }
+      #lobbyMobTierStats > div { padding: 0.1rem 0.2rem !important; font-size: 0.56rem !important; line-height: 1.15 !important; }
+      #previewMidBossImg, #previewMainBossImg { width: 1.45rem !important; height: 1.45rem !important; }
+      #previewMidBossName, #previewMainBossName { font-size: 0.6rem !important; line-height: 1.15 !important; }
+      #previewMidBossHp, #previewMainBossHp { font-size: 0.54rem !important; line-height: 1.15 !important; }
+      #lobbyBossPatternBox {
+        font-size: 0.55rem !important;
+        padding: 0.06rem 0.28rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #lobbyRewardPreviewBox {
+        font-size: 0.56rem !important;
+        line-height: 1.2 !important;
+      }
+
+      /* Footer Row: World Dots + Always-Visible Start Battle Button */
+      #lobbyStageFooter {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
         gap: 0.4rem !important;
-        padding: 0.25rem 0.45rem !important;
+        flex-shrink: 0;
+      }
+      #worldSliderDots {
+        flex: 1 1 auto;
+        min-width: 0;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none !important;
+        gap: 0.22rem !important;
+      }
+      #worldSliderDots::-webkit-scrollbar { display: none; }
+      #worldSliderDots button {
+        padding: 0.18rem 0.48rem !important;
+        font-size: 0.64rem !important;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      #btnStartStageBattle {
+        width: auto !important;
+        min-width: 190px;
+        flex-shrink: 0;
+        padding: 0.38rem 0.95rem !important;
+        font-size: 0.78rem !important;
+        line-height: 1.2 !important;
+        border-radius: 0.6rem !important;
+        white-space: nowrap;
+      }
+
+      /* Other Lobby Tabs (Shop, Forge, Quest, Lab) Side-by-Side in Mobile Landscape */
+      #lobbyTabShop:not(.hidden),
+      #lobbyTabQuest:not(.hidden) {
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr) !important;
+        gap: 0.45rem !important;
+      }
+      #lobbyTabForge:not(.hidden) {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.45rem !important;
+      }
+      #lobbyTabShop > div,
+      #lobbyTabForge > div,
+      #lobbyTabQuest > div,
+      #lobbyTabLab {
+        padding: 0.55rem !important;
+        gap: 0.4rem !important;
+        border-radius: 0.85rem !important;
+      }
+      #shopCatalogGrid, #shopInventoryList, #forgeInventoryList, #achQuestList {
+        max-height: 200px !important;
+      }
+      #forgeCharGrid { max-height: 115px !important; }
+      #lobbyLabGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.4rem !important; }
+
+      /* Battle Screen: Pure Flexbox Fit - Canvas + Summon Bar + Aside never cut off */
+      #battleScreen:not(.hidden) {
+        display: grid !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        grid-template-columns: minmax(0, 1fr) 232px !important;
+        align-items: stretch !important;
+        gap: 0.32rem !important;
+        padding: 0.18rem 0.4rem !important;
+        overflow: hidden !important;
       }
       #battleScreen > section, #battleScreen > aside {
         grid-column: span 1 / span 1 !important;
+        min-height: 0 !important;
       }
       #battleScreen > section {
-        gap: 0.25rem !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.16rem !important;
+        overflow: hidden;
       }
-      #battleScreen > section > div:first-child {
-        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-        padding: 0.2rem !important;
-        gap: 0.2rem !important;
+      #battleHudStrip {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 0.16rem !important;
+        padding: 0.12rem 0.18rem !important;
+        border-radius: 0.55rem !important;
+        flex-shrink: 0;
       }
-      #battleScreen > section > div:first-child > div {
-        padding: 0.15rem 0.3rem !important;
+      #battleHudStrip > div {
+        flex: 1 1 auto !important;
+        padding: 0.08rem 0.25rem !important;
+        gap: 0.18rem !important;
+        border-radius: 0.4rem !important;
       }
-      #battleScreen .aspect-video {
-        align-self: center;
-        aspect-ratio: 16 / 9;
-        height: calc(100dvh - 148px);
-        max-height: calc(100dvh - 148px);
-        width: auto;
-        max-width: 100%;
+      #battleHudStrip .hud-lbl-full { display: none !important; }
+      #battleHudStrip .hud-lbl-short { display: inline !important; font-size: 0.56rem !important; }
+      #battleHudStrip span[id^="hud"] { font-size: 0.62rem !important; }
+
+      #battleCanvasStage {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        container-type: size;
       }
+      #battleCanvasStage > .aspect-video {
+        width: min(100cqw, calc(100cqh * 16 / 9)) !important;
+        height: min(100cqh, calc(100cqw * 9 / 16)) !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0.6rem !important;
+      }
+      #battleQuickBar {
+        flex-wrap: nowrap !important;
+        gap: 0.16rem !important;
+      }
+      #battleQuickBar button {
+        padding: 0.12rem 0.3rem !important;
+        gap: 0.16rem !important;
+        border-radius: 0.42rem !important;
+        font-size: 0.56rem !important;
+        white-space: nowrap;
+      }
+      #battleQuickBar button span { font-size: 0.56rem !important; white-space: nowrap; }
+      #battleSynergyBar {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none !important;
+        padding: 0.12rem 0.32rem !important;
+        gap: 0.22rem !important;
+        font-size: 0.58rem !important;
+        border-radius: 0.48rem !important;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+      #battleSynergyBar::-webkit-scrollbar { display: none; }
+      #battleSynergyBar > span { flex-shrink: 0; }
+
+      #battleControlBar {
+        grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+        gap: 0.16rem !important;
+        padding: 0.16rem !important;
+        border-radius: 0.55rem !important;
+        flex-shrink: 0;
+      }
+      #battleControlBar button {
+        padding: 0.2rem 0.08rem !important;
+        border-radius: 0.42rem !important;
+        min-width: 0;
+      }
+      #battleControlBar button > span:first-child { font-size: 0.6rem !important; line-height: 1.1 !important; white-space: nowrap; }
+      #battleControlBar button > span:last-child { font-size: 0.53rem !important; line-height: 1.1 !important; white-space: nowrap; }
+
       #battleScreen > aside {
-        max-height: calc(100dvh - 44px) !important;
+        height: 100% !important;
+        max-height: 100% !important;
         overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.28rem !important;
       }
-      #btnSummon, #btnBatchMerge, #btnGambleRare, #btnBountyBoss, #btnAllUltimate {
-        padding: 0.25rem 0.3rem !important;
+      #battleScreen > aside > div {
+        padding: 0.38rem !important;
+        gap: 0.28rem !important;
+        border-radius: 0.72rem !important;
       }
-      #btnUseGoldPotion, #btnUseShockScroll, #btnUseBossBane {
-        padding: 0.22rem 0.4rem !important;
-        font-size: 0.65rem !important;
+      #selUnitBox { padding: 0.32rem !important; gap: 0.4rem !important; }
+      #selUnitImgFrame { width: 2.5rem !important; height: 2.5rem !important; }
+      #selUnitImg { width: 2.1rem !important; height: 2.1rem !important; }
+      #selUnitName { font-size: 0.74rem !important; }
+      #selUnitRole, #selUnitStats { font-size: 0.6rem !important; }
+      #selUnitDps, #selUnitMech, #selUnitGear { padding: 0.22rem 0.38rem !important; font-size: 0.6rem !important; }
+      #battleScreen aside .game-btn { padding: 0.24rem 0.32rem !important; font-size: 0.64rem !important; }
+
+      /* Compact Game Over Overlay inside small landscape canvas */
+      #gameOverModal { padding: 0.4rem 0.6rem !important; justify-content: flex-start !important; }
+      #gameOverTitle { font-size: 1.05rem !important; margin-bottom: 0.15rem !important; }
+      #gameOverSub { font-size: 0.66rem !important; margin-bottom: 0.35rem !important; }
+      #gameOverStatsBox { padding: 0.35rem 0.5rem !important; margin-bottom: 0.4rem !important; font-size: 0.66rem !important; }
+      #gameOverModal .game-btn { padding: 0.35rem 0.65rem !important; font-size: 0.7rem !important; }
+
+      /* Compact Modals in Mobile Landscape */
+      #settingsModal, #codexModal, #mythicRecipeModal, #installAppModal { padding: 0.45rem !important; }
+    }
+
+    /* Narrow Mobile Landscape (e.g. Galaxy 20:9 680~780px, iPhone SE 667px) */
+    @media (max-height: 580px) and (max-width: 820px) and (orientation: landscape) {
+      #headerBrand h1 { display: none !important; }
+      #battleScreen:not(.hidden) {
+        grid-template-columns: minmax(0, 1fr) 202px !important;
       }
-      #lobbyScreen { padding: 0.35rem 0.55rem !important; gap: 0.35rem !important; }
+      #lobbyStageInfoBox {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) minmax(0, 0.85fr) !important;
+      }
+      #btnStartStageBattle { min-width: 170px; padding: 0.34rem 0.78rem !important; font-size: 0.74rem !important; }
+    }
+
+    /* Ultra-short Mobile Landscape (e.g. Android 20:9 / browser bar height <= 365px) */
+    @media (max-height: 365px) and (orientation: landscape) {
+      header { padding: 0.12rem 0.4rem !important; min-height: 30px; }
+      header .game-btn { padding: 0.14rem 0.36rem !important; font-size: 0.62rem !important; }
+      #headerCurrencyBar > div { padding: 0.14rem 0.3rem !important; font-size: 0.64rem !important; }
+      #lobbyScreen { padding: 0.15rem 0.4rem !important; gap: 0.16rem !important; }
+      #lobbyBanner { padding: 0.12rem 0.28rem !important; }
+      #lobbyTabBar > button { padding: 0.16rem 0.38rem !important; font-size: 0.64rem !important; }
+      #lobbyStageHeaderStrip { display: none !important; }
+      #lobbyBossPatternBox { display: none !important; }
+      #lobbyTabStage:not(.hidden) { padding: 0.22rem 0.35rem !important; gap: 0.16rem !important; }
+      #worldSliderOverlay { padding: 0.18rem 0.35rem !important; gap: 0.1rem !important; }
+      #worldArrowRow { min-height: 16px; }
+      #btnWorldPrev, #btnWorldNext { width: 1.45rem !important; height: 1.45rem !important; font-size: 0.64rem !important; }
+      #lobbyStageInfoBox { padding: 0.14rem 0.28rem !important; }
+      #btnStartStageBattle { padding: 0.28rem 0.75rem !important; font-size: 0.72rem !important; }
+      #battleSynergyBar { display: none !important; }
     }
   </style>
 </head>
@@ -201,8 +648,8 @@
 
   <!-- Top Navigation & Resource Bar -->
   <header class="sticky top-0 z-30 border-b border-slate-800/90 bg-slate-950/90 backdrop-blur-md px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2 shadow-[0_6px_24px_rgba(2,6,23,0.7)]">
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-300 via-rose-500 to-purple-600 flex items-center justify-center font-black text-slate-950 text-xs shadow-lg shadow-rose-500/20 ring-1 ring-white/30">RCD</div>
+    <div id="headerBrand" class="flex items-center gap-2.5">
+      <div class="brand-badge w-8 h-8 rounded-xl bg-gradient-to-br from-amber-300 via-rose-500 to-purple-600 flex items-center justify-center font-black text-slate-950 text-xs shadow-lg shadow-rose-500/20 ring-1 ring-white/30">RCD</div>
       <div>
         <h1 class="text-sm sm:text-base font-black text-white tracking-tight leading-tight">랜덤 캐릭터 디펜스</h1>
         <p class="hidden sm:block text-[10px] text-slate-400 font-medium leading-none mt-0.5">전략 타워 디펜스 · 초월 각성</p>
@@ -210,47 +657,49 @@
     </div>
 
     <!-- Account Currency, Speed, Codex & Settings -->
-    <div class="flex flex-wrap items-center gap-1.5">
-      <div class="flex items-center divide-x divide-slate-800 bg-slate-900/90 border border-slate-700/75 rounded-xl text-xs shadow-inner">
+    <div id="headerToolbar" class="flex flex-wrap items-center gap-1.5">
+      <div id="headerCurrencyBar" class="flex items-center divide-x divide-slate-800 bg-slate-900/90 border border-slate-700/75 rounded-xl text-xs shadow-inner">
         <div class="flex items-center gap-1 px-2.5 py-1.5">
           <span class="text-amber-300 text-[11px]">🪙</span>
-          <span class="text-slate-400 hidden md:inline text-[10px] font-medium">금화</span>
+          <span class="header-currency-label text-slate-400 hidden md:inline text-[10px] font-medium">금화</span>
           <span id="topAccGold" class="font-bold text-amber-300 tabular-nums">1,500 G</span>
         </div>
         <div class="flex items-center gap-1 px-2.5 py-1.5">
-          <span class="text-cyan-300 text-[11px]">💎</span>
-          <span class="text-slate-400 hidden md:inline text-[10px] font-medium">보석</span>
+          <span class="currency-dup-icon text-cyan-300 text-[11px]">💎</span>
+          <span class="header-currency-label text-slate-400 hidden md:inline text-[10px] font-medium">보석</span>
           <span id="topAccGems" class="font-bold text-cyan-300 tabular-nums">10 💎</span>
         </div>
         <div class="flex items-center gap-1 px-2.5 py-1.5">
-          <span class="text-fuchsia-300 text-[11px]">✨</span>
-          <span class="text-slate-400 hidden md:inline text-[10px] font-medium">파편</span>
+          <span class="currency-dup-icon text-fuchsia-300 text-[11px]">✨</span>
+          <span class="header-currency-label text-slate-400 hidden md:inline text-[10px] font-medium">파편</span>
           <span id="topAccShards" class="font-bold text-fuchsia-300 tabular-nums">10 ✨</span>
         </div>
       </div>
 
-      <button id="btnSpeed" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-amber-300">
-        배속: 1x
-      </button>
-      <button id="btnMythicRecipeModal" class="game-btn relative px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-rose-950/70 border border-rose-500/35 text-xs font-bold text-rose-200 flex items-center gap-1.5">
-        <span>✨ 신화 조합식</span>
-        <span id="mythicReadyBadge" class="hidden px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black animate-bounce leading-none">0</span>
-      </button>
-      <button id="btnCodex" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-200">
-        유닛 도감
-      </button>
-      <button id="btnEquipCodex" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-200">
-        🛡️ 장비 도감
-      </button>
-      <button id="btnLandscapeFs" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300" title="모바일 가로모드 전체화면 전환">
-        📱 가로전체
-      </button>
-      <button id="btnInstallApp" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-emerald-500/35 text-xs font-semibold text-emerald-300" title="홈 화면에 앱 설치 (가로모드 지원)">
-        📲 앱 설치
-      </button>
-      <button id="btnSettings" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300">
-        ⚙️ 설정
-      </button>
+      <div id="headerActionBtns" class="flex flex-wrap items-center gap-1.5">
+        <button id="btnSpeed" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-amber-300">
+          <span class="mobile-label-hide">배속: </span><span id="lblSpeedVal">1x</span>
+        </button>
+        <button id="btnMythicRecipeModal" class="game-btn relative px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-rose-950/70 border border-rose-500/35 text-xs font-bold text-rose-200 flex items-center gap-1.5">
+          <span>✨ 신화<span class="mobile-label-hide"> 조합식</span></span>
+          <span id="mythicReadyBadge" class="hidden px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black animate-bounce leading-none">0</span>
+        </button>
+        <button id="btnCodex" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-200">
+          <span class="mobile-label-hide">유닛 </span>도감
+        </button>
+        <button id="btnEquipCodex" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-200">
+          🛡️ 장비<span class="mobile-label-hide"> 도감</span>
+        </button>
+        <button id="btnLandscapeFs" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300" title="모바일 가로모드 전체화면 전환">
+          📱<span class="mobile-label-hide"> 가로전체</span>
+        </button>
+        <button id="btnInstallApp" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-emerald-500/35 text-xs font-semibold text-emerald-300" title="홈 화면에 앱 설치 (가로모드 지원)">
+          📲<span class="mobile-label-hide"> 앱 설치</span>
+        </button>
+        <button id="btnSettings" class="game-btn px-2.5 py-1.5 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300">
+          ⚙️<span class="mobile-label-hide"> 설정</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -260,8 +709,8 @@
   <div id="lobbyScreen" class="flex-1 max-w-[1440px] w-full mx-auto p-2.5 sm:p-4 flex flex-col gap-3">
 
     <!-- Lobby Top Banner & Sub-navigation Tabs -->
-    <div class="panel-glass border border-slate-800 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
-      <div class="flex items-center gap-2.5">
+    <div id="lobbyBanner" class="panel-glass border border-slate-800 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
+      <div id="lobbyBannerTitle" class="flex items-center gap-2.5">
         <span class="w-1.5 h-5 rounded-full bg-amber-400"></span>
         <div>
           <h2 class="text-sm font-black text-white leading-tight">모험가 본부</h2>
@@ -269,22 +718,22 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap xl:flex-nowrap items-center gap-1 p-1 rounded-xl bg-slate-950/80 border border-slate-800/80 shrink-0">
+      <div id="lobbyTabBar" class="flex flex-wrap xl:flex-nowrap items-center gap-1 p-1 rounded-xl bg-slate-950/80 border border-slate-800/80 shrink-0">
         <button id="tabBtnStage" class="game-btn px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-extrabold text-xs shadow whitespace-nowrap">
-          🗺️ 월드 &amp; 스테이지
+          🗺️ <span class="portrait-label-hide">월드 &amp; </span>스테이지
         </button>
         <button id="tabBtnShop" class="game-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 font-semibold text-xs whitespace-nowrap">
-          🛒 아이템 상점
+          🛒 <span class="portrait-label-hide">아이템 </span>상점
         </button>
         <button id="tabBtnForge" class="game-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 font-semibold text-xs whitespace-nowrap">
-          🔨 장비 &amp; 강화
+          🔨 장비<span class="portrait-label-hide"> &amp; 강화</span>
         </button>
         <button id="tabBtnQuest" class="game-btn relative px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 font-semibold text-xs whitespace-nowrap">
-          📜 퀘스트 &amp; 추가 컨텐츠
+          📜 퀘스트<span class="portrait-label-hide"> &amp; 추가 컨텐츠</span>
           <span id="questBadgeCount" class="hidden ml-1 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black">0</span>
         </button>
         <button id="tabBtnLab" class="game-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 font-semibold text-xs whitespace-nowrap">
-          🧬 특성 연구소
+          🧬 <span class="portrait-label-hide">특성 </span>연구소
         </button>
       </div>
     </div>
@@ -292,7 +741,7 @@
     <!-- TAB 1: STAGE SELECT (Unified Map-Integrated Info & Bottom Start Button) -->
     <div id="lobbyTabStage" class="w-full max-w-[1160px] mx-auto bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-4 flex flex-col gap-3 shadow-2xl">
       <!-- Top Header Strip -->
-      <div class="flex flex-wrap items-center justify-between gap-2">
+      <div id="lobbyStageHeaderStrip" class="flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
           <h3 class="text-sm font-extrabold text-white">🗺️ 월드 & 스테이지</h3>
           <span id="lobbyWorldProgressBadge" class="px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/40 text-xs font-extrabold text-amber-300">해금: 1 / 10 월드</span>
@@ -306,17 +755,10 @@
       <div id="worldSliderViewport" class="relative w-full overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-950 shadow-inner select-none touch-pan-y min-h-[390px] sm:min-h-[430px] lg:min-h-[450px]">
         <div id="worldSliderTrack" class="absolute inset-0 flex h-full transition-transform duration-300 ease-out" style="transform: translateX(0%);"></div>
 
-        <button id="btnWorldPrev" type="button" aria-label="이전 월드" class="game-btn absolute left-2.5 sm:left-4 top-[34%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 border border-slate-600/80 text-white font-black text-base sm:text-lg flex items-center justify-center shadow-xl backdrop-blur-sm">
-          ◀
-        </button>
-        <button id="btnWorldNext" type="button" aria-label="다음 월드" class="game-btn absolute right-2.5 sm:right-4 top-[34%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 border border-slate-600/80 text-white font-black text-base sm:text-lg flex items-center justify-center shadow-xl backdrop-blur-sm">
-          ▶
-        </button>
-
         <!-- Overlaid Info Layer Inside Map Image -->
-        <div class="relative z-10 min-h-[390px] sm:min-h-[430px] lg:min-h-[450px] p-3 sm:p-4 flex flex-col justify-between gap-3 pointer-events-none">
+        <div id="worldSliderOverlay" class="relative z-10 min-h-[390px] sm:min-h-[430px] lg:min-h-[450px] p-3 sm:p-4 flex flex-col justify-between gap-2 pointer-events-none">
           <!-- Top Map Title & Record Badges -->
-          <div class="flex flex-wrap items-start justify-between gap-2">
+          <div id="worldOverlayTop" class="flex flex-wrap items-start justify-between gap-2">
             <div class="flex flex-col gap-1">
               <div class="flex items-center gap-1.5">
                 <span id="lobbyWorldNumBadge" class="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-xs font-black shadow">1월드</span>
@@ -324,17 +766,27 @@
               </div>
               <h4 id="lobbySelectedWorldTitle" class="text-lg sm:text-2xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">1월드: 초원 왕국 성곽 (1-1)</h4>
             </div>
-            <div class="flex flex-wrap items-center gap-1.5">
+            <div class="flex flex-wrap items-center gap-1.5 shrink-0">
               <span id="lobbyDiffBadge" class="px-2.5 py-1 rounded-full bg-rose-950/85 border border-rose-400/50 text-[11px] font-extrabold text-rose-200 backdrop-blur-sm shadow">난이도 x1.00</span>
               <span id="lobbyStageRecordBadge" class="px-2.5 py-1 rounded-full bg-emerald-950/85 border border-emerald-500/45 text-[11px] font-extrabold text-emerald-200 backdrop-blur-sm shadow">기록: 미도전</span>
             </div>
           </div>
 
+          <!-- Middle Non-Overlapping World Navigation Arrows -->
+          <div id="worldArrowRow" class="flex-1 flex items-center justify-between py-1 pointer-events-none">
+            <button id="btnWorldPrev" type="button" aria-label="이전 월드" class="game-btn pointer-events-auto z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 border border-slate-600/80 text-white font-black text-base sm:text-lg flex items-center justify-center shadow-xl backdrop-blur-sm">
+              ◀
+            </button>
+            <button id="btnWorldNext" type="button" aria-label="다음 월드" class="game-btn pointer-events-auto z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 border border-slate-600/80 text-white font-black text-base sm:text-lg flex items-center justify-center shadow-xl backdrop-blur-sm">
+              ▶
+            </button>
+          </div>
+
           <!-- Bottom Overlaid Stage Selector & Compact Stage Info -->
-          <div class="mt-auto flex flex-col gap-2 pointer-events-auto">
+          <div id="worldOverlayBottom" class="flex flex-col gap-2 pointer-events-auto">
             <div id="stageSubGrid" class="grid grid-cols-5 sm:grid-cols-10 gap-1.5 bg-slate-950/70 backdrop-blur-md border border-slate-700/60 rounded-xl p-1.5 shadow-lg"></div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-2 bg-slate-950/80 backdrop-blur-md border border-slate-700/60 rounded-xl p-2 sm:p-2.5 shadow-lg">
+            <div id="lobbyStageInfoBox" class="grid grid-cols-1 lg:grid-cols-12 gap-2 bg-slate-950/80 backdrop-blur-md border border-slate-700/60 rounded-xl p-2 sm:p-2.5 shadow-lg">
               <!-- Brief Monster Tier Stats -->
               <div class="lg:col-span-4 flex flex-col justify-center gap-1">
                 <div class="flex items-center justify-between text-[10px] font-bold text-slate-300">
@@ -391,13 +843,13 @@
         </div>
       </div>
 
-      <!-- World Quick Dots -->
-      <div id="worldSliderDots" class="flex flex-wrap items-center justify-center gap-1.5"></div>
-
-      <!-- Bottom Start Button -->
-      <button id="btnStartStageBattle" class="game-btn w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/25">
-        🚀 스테이지 1-1 전투 출격!
-      </button>
+      <!-- World Quick Dots & Bottom Start Button -->
+      <div id="lobbyStageFooter" class="flex flex-col gap-2">
+        <div id="worldSliderDots" class="flex flex-wrap items-center justify-center gap-1.5"></div>
+        <button id="btnStartStageBattle" class="game-btn w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/25">
+          🚀 스테이지 1-1 전투 출격!
+        </button>
+      </div>
     </div>
 
     <!-- TAB 2: ITEM SHOP (Buy & Sell Character Equipment) -->
@@ -720,101 +1172,109 @@
     <!-- Left Column: Battle Canvas & Action Deck -->
     <section class="lg:col-span-9 flex flex-col gap-2">
       <!-- Top Live HUD Strip -->
-      <div class="grid grid-cols-2 sm:grid-cols-6 gap-1.5 panel-glass border border-slate-700/75 rounded-xl p-1.5">
+      <div id="battleHudStrip" class="grid grid-cols-2 sm:grid-cols-6 gap-1.5 panel-glass border border-slate-700/75 rounded-xl p-1.5">
         <div class="flex items-center justify-between gap-1 bg-slate-950/90 px-2.5 py-1.5 rounded-lg border border-amber-500/25 min-w-0">
-          <span class="text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">스테이지</span>
+          <span class="hud-lbl-full text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">스테이지</span>
+          <span class="hud-lbl-short text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">맵</span>
           <span id="hudStageLabel" class="text-[11px] font-black text-amber-300 whitespace-nowrap truncate" title="현재 모드">1-1 (x1.00)</span>
         </div>
         <div class="flex items-center justify-between gap-1 bg-slate-950/90 px-2.5 py-1.5 rounded-lg border border-slate-700/80 min-w-0">
-          <span class="text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">웨이브</span>
+          <span class="hud-lbl-full text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">웨이브</span>
+          <span class="hud-lbl-short text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">W</span>
           <span id="hudWave" class="text-[11px] font-black text-white whitespace-nowrap tabular-nums">W1 / 30 (18s)</span>
         </div>
         <div class="flex items-center justify-between gap-1 bg-slate-950/90 px-2.5 py-1.5 rounded-lg border border-amber-500/30 min-w-0">
-          <span class="text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">전투 골드</span>
+          <span class="hud-lbl-full text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">전투 골드</span>
+          <span class="hud-lbl-short text-[10px] text-amber-300 font-semibold whitespace-nowrap shrink-0">🪙</span>
           <span id="hudGold" class="text-xs font-black text-amber-400 whitespace-nowrap tabular-nums">250 G</span>
         </div>
         <div class="flex items-center justify-between gap-1 bg-slate-950/90 px-2.5 py-1.5 rounded-lg border border-cyan-500/25 min-w-0">
-          <span class="text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">보석</span>
+          <span class="hud-lbl-full text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">보석</span>
+          <span class="hud-lbl-short text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">보석</span>
           <span id="hudGems" class="text-xs font-black text-cyan-300 whitespace-nowrap tabular-nums">10 💎</span>
         </div>
         <div class="flex items-center justify-between gap-1 bg-slate-950/90 px-2.5 py-1.5 rounded-lg border border-emerald-500/25 min-w-0">
-          <span class="text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">몬스터</span>
+          <span class="hud-lbl-full text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">몬스터</span>
+          <span class="hud-lbl-short text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">몹</span>
           <span id="hudMobCount" class="text-xs font-black text-emerald-400 whitespace-nowrap tabular-nums">0 / 60</span>
         </div>
         <div class="flex items-center justify-between gap-1 bg-slate-950/90 px-2.5 py-1.5 rounded-lg border border-purple-500/25 min-w-0">
-          <span class="text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">배치 유닛</span>
+          <span class="hud-lbl-full text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">배치 유닛</span>
+          <span class="hud-lbl-short text-[10px] text-slate-400 font-semibold whitespace-nowrap shrink-0">유닛</span>
           <span id="hudUnitCount" class="text-xs font-black text-purple-300 whitespace-nowrap tabular-nums">0 / 24</span>
         </div>
       </div>
 
       <!-- Battleground Canvas Container -->
-      <div class="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden border border-slate-700/80 ring-1 ring-white/10 shadow-[0_8px_36px_rgba(2,6,23,0.95)]">
-        <canvas id="battleCanvas" class="w-full h-full block cursor-pointer"></canvas>
+      <div id="battleCanvasStage" class="w-full">
+        <div class="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden border border-slate-700/80 ring-1 ring-white/10 shadow-[0_8px_36px_rgba(2,6,23,0.95)]">
+          <canvas id="battleCanvas" class="w-full h-full block cursor-pointer"></canvas>
 
-        <!-- Top Overlay Bar: Boss Timer Banner (left) + Quick Action Bar (right), non-overlapping -->
-        <div class="absolute top-2 left-2 right-2 flex flex-wrap items-start justify-between gap-1.5 pointer-events-none z-10">
-          <!-- Boss Countdown Timer Banner -->
-          <div id="bossTimerBanner" class="hidden flex-1 min-w-[210px] max-w-md bg-slate-950/92 backdrop-blur-md border border-rose-500/75 rounded-xl px-3 py-1.5 shadow-xl pointer-events-none">
-            <div id="bossBannerName" class="text-[11px] font-extrabold text-rose-300 truncate">👑 보스 출현</div>
-            <div class="flex items-center justify-between gap-2 text-[10px] font-bold mt-0.5">
-              <span id="bossBannerTime" class="text-amber-300 shrink-0 tabular-nums">⏱️ 제한시간: 45.0초</span>
-              <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div id="bossBannerBar" class="h-full bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400 transition-all duration-100" style="width:100%"></div>
+          <!-- Top Overlay Bar: Boss Timer Banner (left) + Quick Action Bar (right), non-overlapping -->
+          <div class="absolute top-2 left-2 right-2 flex flex-wrap items-start justify-between gap-1.5 pointer-events-none z-10">
+            <!-- Boss Countdown Timer Banner -->
+            <div id="bossTimerBanner" class="hidden flex-1 min-w-[180px] max-w-md bg-slate-950/92 backdrop-blur-md border border-rose-500/75 rounded-xl px-3 py-1.5 shadow-xl pointer-events-none">
+              <div id="bossBannerName" class="text-[11px] font-extrabold text-rose-300 truncate">👑 보스 출현</div>
+              <div class="flex items-center justify-between gap-2 text-[10px] font-bold mt-0.5">
+                <span id="bossBannerTime" class="text-amber-300 shrink-0 tabular-nums">⏱️ 제한시간: 45.0초</span>
+                <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div id="bossBannerBar" class="h-full bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400 transition-all duration-100" style="width:100%"></div>
+                </div>
               </div>
+            </div>
+
+            <!-- Wave Skip / Bounty Boss / All Ultimate / Exit to Main Quick Bar -->
+            <div id="battleQuickBar" class="flex flex-wrap items-center justify-end gap-1.5 ml-auto pointer-events-auto">
+              <button id="btnBattleExitMain" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/90 backdrop-blur-sm hover:bg-rose-900/80 border border-rose-400/50 text-[10px] sm:text-[11px] font-extrabold text-rose-200 shadow" title="메인화면으로 나가기">
+                🏠<span class="mobile-label-hide"> 메인</span>
+              </button>
+              <button id="btnAutoArrange" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/90 backdrop-blur-sm hover:bg-emerald-900/80 border border-emerald-400/50 text-[10px] sm:text-[11px] font-extrabold text-emerald-200 shadow" title="고등급·고화력 유닛을 중앙 핵심 명당에 자동 정렬 [A]">
+                📐<span class="mobile-label-hide"> 자동</span> 배치<span class="mobile-label-hide"> [A]</span>
+              </button>
+              <button id="btnNextWaveNow" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/85 backdrop-blur-sm hover:bg-slate-800 border border-sky-500/40 text-[10px] sm:text-[11px] font-extrabold text-sky-300 shadow">
+                ⏩ 다음<span class="mobile-label-hide"> 웨이브</span>
+              </button>
+              <button id="btnBountyBoss" class="game-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-orange-600/95 to-rose-700/95 backdrop-blur-sm hover:from-orange-500 hover:to-rose-600 border border-orange-400/60 text-white font-bold shadow">
+                <span class="text-[10px] sm:text-[11px]">🎯 현상금<span class="mobile-label-hide"> [B]</span></span>
+                <span id="lblBountyCd" class="text-[9px] sm:text-[10px] font-semibold text-orange-100 opacity-95">보상: 전투 골드</span>
+              </button>
+              <button id="btnAllUltimate" class="game-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-fuchsia-600/95 to-purple-700/95 backdrop-blur-sm hover:from-fuchsia-500 hover:to-purple-600 border border-fuchsia-400/60 text-white font-bold shadow">
+                <span class="text-[10px] sm:text-[11px]">⚡ 궁극기<span class="mobile-label-hide"> [S]</span></span>
+                <span id="lblUltCd" class="text-[9px] sm:text-[10px] font-semibold text-fuchsia-100 opacity-95">즉시 발동</span>
+              </button>
             </div>
           </div>
 
-          <!-- Wave Skip / Bounty Boss / All Ultimate / Exit to Main Quick Bar -->
-          <div class="flex flex-wrap items-center justify-end gap-1.5 ml-auto pointer-events-auto">
-            <button id="btnBattleExitMain" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/90 backdrop-blur-sm hover:bg-rose-900/80 border border-rose-400/50 text-[10px] sm:text-[11px] font-extrabold text-rose-200 shadow" title="메인화면으로 나가기">
-              🏠 메인
-            </button>
-            <button id="btnAutoArrange" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/90 backdrop-blur-sm hover:bg-emerald-900/80 border border-emerald-400/50 text-[10px] sm:text-[11px] font-extrabold text-emerald-200 shadow" title="고등급·고화력 유닛을 중앙 핵심 명당에 자동 정렬 [A]">
-              📐 자동 배치 [A]
-            </button>
-            <button id="btnNextWaveNow" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/85 backdrop-blur-sm hover:bg-slate-800 border border-sky-500/40 text-[10px] sm:text-[11px] font-extrabold text-sky-300 shadow">
-              ⏩ 다음 웨이브
-            </button>
-            <button id="btnBountyBoss" class="game-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-orange-600/95 to-rose-700/95 backdrop-blur-sm hover:from-orange-500 hover:to-rose-600 border border-orange-400/60 text-white font-bold shadow">
-              <span class="text-[10px] sm:text-[11px]">🎯 현상금 [B]</span>
-              <span id="lblBountyCd" class="text-[9px] sm:text-[10px] font-semibold text-orange-100 opacity-95">보상: 전투 골드</span>
-            </button>
-            <button id="btnAllUltimate" class="game-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-fuchsia-600/95 to-purple-700/95 backdrop-blur-sm hover:from-fuchsia-500 hover:to-purple-600 border border-fuchsia-400/60 text-white font-bold shadow">
-              <span class="text-[10px] sm:text-[11px]">⚡ 궁극기 [S]</span>
-              <span id="lblUltCd" class="text-[9px] sm:text-[10px] font-semibold text-fuchsia-100 opacity-95">즉시 발동</span>
-            </button>
+          <!-- Danger Alert Banner -->
+          <div id="dangerBanner" class="hidden absolute top-16 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-rose-600/95 border border-rose-300 text-xs font-extrabold text-white shadow-lg animate-pulse pointer-events-none z-10">
+            ⚠️ 몬스터 한계 초과! <span id="dangerTimer">15.0</span>초 안에 60마리 미만으로 줄이세요!
           </div>
-        </div>
 
-        <!-- Danger Alert Banner -->
-        <div id="dangerBanner" class="hidden absolute top-16 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-rose-600/95 border border-rose-300 text-xs font-extrabold text-white shadow-lg animate-pulse pointer-events-none z-10">
-          ⚠️ 몬스터 한계 초과! <span id="dangerTimer">15.0</span>초 안에 60마리 미만으로 줄이세요!
-        </div>
+          <!-- Mythic Awakening Banner -->
+          <div id="mythicAwakenBanner" class="hidden mythic-banner-pop absolute top-20 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-950/95 via-fuchsia-950/95 to-amber-950/95 border-2 border-amber-300/90 shadow-[0_0_36px_rgba(251,113,133,0.85)] pointer-events-none text-center z-10">
+            <div class="text-[11px] font-extrabold tracking-widest text-amber-300 uppercase">✨ MYTHIC AWAKENING ✨</div>
+            <div id="mythicAwakenName" class="text-sm sm:text-base font-black text-white drop-shadow">신화 유닛 합성 완료!</div>
+          </div>
 
-        <!-- Mythic Awakening Banner -->
-        <div id="mythicAwakenBanner" class="hidden mythic-banner-pop absolute top-20 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-950/95 via-fuchsia-950/95 to-amber-950/95 border-2 border-amber-300/90 shadow-[0_0_36px_rgba(251,113,133,0.85)] pointer-events-none text-center z-10">
-          <div class="text-[11px] font-extrabold tracking-widest text-amber-300 uppercase">✨ MYTHIC AWAKENING ✨</div>
-          <div id="mythicAwakenName" class="text-sm sm:text-base font-black text-white drop-shadow">신화 유닛 합성 완료!</div>
-        </div>
+          <!-- Toast Message -->
+          <div id="gameToast" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-amber-400/60 text-xs font-semibold text-amber-200 shadow-lg pointer-events-none"></div>
 
-        <!-- Toast Message -->
-        <div id="gameToast" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-amber-400/60 text-xs font-semibold text-amber-200 shadow-lg pointer-events-none"></div>
-
-        <!-- Game Over / Stage Clear Overlay Modal -->
-        <div id="gameOverModal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 sm:p-6 text-center overflow-y-auto z-20">
-          <h2 id="gameOverTitle" class="text-xl sm:text-3xl font-extrabold text-rose-400 mb-1.5">전선 붕괴 (Game Over)</h2>
-          <p id="gameOverSub" class="text-xs sm:text-sm text-slate-300 mb-3">도달 웨이브: W1 / 30 | 총 처치 수: 0</p>
-          <div id="gameOverStatsBox" class="hidden w-full max-w-md bg-slate-900/95 border border-slate-700/80 rounded-xl p-3 mb-4 text-left shadow-xl"></div>
-          <div class="flex flex-wrap justify-center gap-3">
-            <button id="btnModalRestart" class="game-btn px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm shadow-lg">
-              다시 도전하기
-            </button>
-            <button id="btnModalNextStage" class="game-btn px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm shadow-lg">
-              다음 단계(x1.5 난이도) 진행
-            </button>
-            <button id="btnModalLobby" class="game-btn px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-sm">
-              메인 로비 / 장비 상점
-            </button>
+          <!-- Game Over / Stage Clear Overlay Modal -->
+          <div id="gameOverModal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 sm:p-6 text-center overflow-y-auto z-20">
+            <h2 id="gameOverTitle" class="text-xl sm:text-3xl font-extrabold text-rose-400 mb-1.5">전선 붕괴 (Game Over)</h2>
+            <p id="gameOverSub" class="text-xs sm:text-sm text-slate-300 mb-3">도달 웨이브: W1 / 30 | 총 처치 수: 0</p>
+            <div id="gameOverStatsBox" class="hidden w-full max-w-md bg-slate-900/95 border border-slate-700/80 rounded-xl p-3 mb-4 text-left shadow-xl"></div>
+            <div class="flex flex-wrap justify-center gap-3">
+              <button id="btnModalRestart" class="game-btn px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm shadow-lg">
+                다시 도전하기
+              </button>
+              <button id="btnModalNextStage" class="game-btn px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm shadow-lg">
+                다음 단계(x1.5 난이도) 진행
+              </button>
+              <button id="btnModalLobby" class="game-btn px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-sm">
+                메인 로비 / 장비 상점
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -826,7 +1286,7 @@
       </div>
 
       <!-- Unified Bottom Control Bar: Summon / 5x Summon / Merge / AutoMerge / Gamble / Consumables -->
-      <div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5 panel-glass border border-slate-700/75 rounded-xl p-1.5">
+      <div id="battleControlBar" class="grid grid-cols-4 sm:grid-cols-8 gap-1.5 panel-glass border border-slate-700/75 rounded-xl p-1.5">
         <button id="btnSummon" class="game-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20 text-center">
           <span class="text-[11px] leading-tight flex items-center gap-1">소환 <span class="keycap bg-slate-950/20 border-slate-950/25 text-slate-950">Space</span></span>
           <span id="lblSummonCost" class="text-[10px] font-extrabold opacity-90">비용: 80 G</span>
@@ -1141,12 +1601,12 @@
   <!-- Unit Codex Modal -->
   <!-- Settings Modal -->
   <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
-      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-950/60">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full max-h-[92dvh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-950/60 shrink-0">
         <h3 class="text-base font-extrabold text-white">⚙️ 게임 설정</h3>
         <button id="btnCloseSettings" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">닫기</button>
       </div>
-      <div class="p-4 flex flex-col gap-3">
+      <div class="p-4 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
         <div class="flex flex-col gap-1.5">
           <div class="text-[11px] font-bold text-slate-400">월드 및 스테이지 선택</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -3739,16 +4199,20 @@
 
       function showToast(msg) {
         const el = document.getElementById('gameToast');
-        el.textContent = msg;
-        el.classList.remove('hidden');
-        clearTimeout(el._t);
-        el._t = setTimeout(() => el.classList.add('hidden'), 2000);
-
         const gEl = document.getElementById('globalToast');
-        gEl.textContent = msg;
-        gEl.classList.remove('hidden');
-        clearTimeout(gEl._t);
-        gEl._t = setTimeout(() => gEl.classList.add('hidden'), 2000);
+        if (!inLobby && el) {
+          el.textContent = msg;
+          el.classList.remove('hidden');
+          clearTimeout(el._t);
+          el._t = setTimeout(() => el.classList.add('hidden'), 2000);
+          if (gEl) gEl.classList.add('hidden');
+        } else if (gEl) {
+          gEl.textContent = msg;
+          gEl.classList.remove('hidden');
+          clearTimeout(gEl._t);
+          gEl._t = setTimeout(() => gEl.classList.add('hidden'), 2000);
+          if (el) el.classList.add('hidden');
+        }
       }
 
       // Mode-aware Wave & Stage Display Helpers
@@ -3993,6 +4457,12 @@
         return Math.max(0.18, baseCd / ((1 + (eq.aspdPct + aura.aspdBonus + syn.allAspdPct) / 100) * debuffPenalty));
       }
 
+      function syncViewportLockClass() {
+        const stageTab = document.getElementById('lobbyTabStage');
+        const isStageLobby = inLobby && stageTab && !stageTab.classList.contains('hidden');
+        document.body.classList.toggle('fit-viewport-lock', !inLobby || isStageLobby);
+      }
+
       function switchScreen(toLobby) {
         inLobby = toLobby;
         const lobbyEl = document.getElementById('lobbyScreen');
@@ -4010,6 +4480,7 @@
           btnToggle.textContent = '🏠 메인 로비 / 상점';
           syncUI();
         }
+        syncViewportLockClass();
         updateBgmGain();
       }
 
@@ -5458,15 +5929,16 @@
         }
         if (bossBaneTimer > 0) bossBaneTimer = Math.max(0, bossBaneTimer - dt);
         const rwNow = getActiveRewardSummary();
+        const isCompactMobile = window.innerWidth <= 960 || window.innerHeight <= 580;
         document.getElementById('lblBountyCd').textContent = bountyCd > 0
-          ? `재사용 대기: ${Math.ceil(bountyCd)}초`
-          : `보상: 전투 +${rwNow.bountyGold}G (메인 미포함)`;
+          ? (isCompactMobile ? `${Math.ceil(bountyCd)}s` : `재사용 대기: ${Math.ceil(bountyCd)}초`)
+          : (isCompactMobile ? `+${rwNow.bountyGold}G` : `보상: 전투 +${rwNow.bountyGold}G (메인 미포함)`);
         if (ultCd > 0) {
           ultCd = Math.max(0, ultCd - dt);
-          document.getElementById('lblUltCd').textContent = ultCd > 0
-            ? `쿨타임: ${Math.ceil(ultCd)}초`
-            : '즉시 발동 가능';
         }
+        document.getElementById('lblUltCd').textContent = ultCd > 0
+          ? (isCompactMobile ? `${Math.ceil(ultCd)}s` : `쿨타임: ${Math.ceil(ultCd)}초`)
+          : (isCompactMobile ? '준비' : '즉시 발동 가능');
 
         // Wave Spawning & Progression up to Wave 30
         waveTimer -= dt;
@@ -6930,8 +7402,8 @@
           const canPrev = curSlideIdx > 0;
           btnPrev.disabled = !canPrev;
           btnPrev.className = canPrev
-            ? 'game-btn absolute left-2.5 sm:left-4 top-[34%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/85 hover:bg-amber-500 hover:text-slate-950 border border-amber-400/60 text-white font-black text-lg sm:text-xl flex items-center justify-center shadow-xl backdrop-blur-sm transition'
-            : 'absolute left-2.5 sm:left-4 top-[34%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/45 border border-slate-800 text-slate-600 font-black text-lg sm:text-xl flex items-center justify-center cursor-not-allowed';
+            ? 'game-btn pointer-events-auto shrink-0 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/85 hover:bg-amber-500 hover:text-slate-950 border border-amber-400/60 text-white font-black text-lg sm:text-xl flex items-center justify-center shadow-xl backdrop-blur-sm transition'
+            : 'pointer-events-auto shrink-0 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/45 border border-slate-800 text-slate-600 font-black text-lg sm:text-xl flex items-center justify-center cursor-not-allowed';
         }
 
         if (btnNext) {
@@ -6941,13 +7413,13 @@
           btnNext.disabled = !hasNextWorld;
           if (!hasNextWorld) {
             btnNext.textContent = '▶';
-            btnNext.className = 'absolute right-2.5 sm:right-4 top-[34%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/45 border border-slate-800 text-slate-600 font-black text-lg sm:text-xl flex items-center justify-center cursor-not-allowed';
+            btnNext.className = 'pointer-events-auto shrink-0 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/45 border border-slate-800 text-slate-600 font-black text-lg sm:text-xl flex items-center justify-center cursor-not-allowed';
           } else if (nextUnlocked) {
             btnNext.textContent = '▶';
-            btnNext.className = 'game-btn absolute right-2.5 sm:right-4 top-[34%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/85 hover:bg-amber-500 hover:text-slate-950 border border-amber-400/60 text-white font-black text-lg sm:text-xl flex items-center justify-center shadow-xl backdrop-blur-sm transition';
+            btnNext.className = 'game-btn pointer-events-auto shrink-0 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/85 hover:bg-amber-500 hover:text-slate-950 border border-amber-400/60 text-white font-black text-lg sm:text-xl flex items-center justify-center shadow-xl backdrop-blur-sm transition';
           } else {
             btnNext.textContent = '🔒';
-            btnNext.className = 'game-btn absolute right-2.5 sm:right-4 top-[34%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/75 hover:bg-slate-900 border border-slate-700 text-amber-300 font-black text-base flex items-center justify-center shadow-xl backdrop-blur-sm';
+            btnNext.className = 'game-btn pointer-events-auto shrink-0 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-950/75 hover:bg-slate-900 border border-slate-700 text-amber-300 font-black text-base flex items-center justify-center shadow-xl backdrop-blur-sm';
           }
         }
 
@@ -8517,6 +8989,7 @@
         document.getElementById('tabBtnForge').className = tabName === 'forge' ? activeCls : idleCls;
         document.getElementById('tabBtnQuest').className = (tabName === 'quest' ? activeCls : idleCls) + ' relative';
         document.getElementById('tabBtnLab').className = tabName === 'lab' ? activeCls : idleCls;
+        syncViewportLockClass();
         renderLobbyAll();
       }
       document.getElementById('tabBtnStage').addEventListener('click', () => { playSound('click'); setLobbyTab('stage'); });
@@ -9078,9 +9551,11 @@
         showToast(`단계 변경: ${MAPS[currentMap].worldNum}-${currentStageSub} (난이도 x${getStageStepMult(currentStageSub).toFixed(2)})`);
       });
 
-      document.getElementById('btnSpeed').addEventListener('click', (e) => {
+      document.getElementById('btnSpeed').addEventListener('click', () => {
         speedMult = speedMult === 1 ? 2 : (speedMult === 2 ? 3 : 1);
-        e.target.textContent = `배속: ${speedMult}x`;
+        const lbl = document.getElementById('lblSpeedVal');
+        if (lbl) lbl.textContent = `${speedMult}x`;
+        else document.getElementById('btnSpeed').textContent = `배속: ${speedMult}x`;
       });
       document.getElementById('btnPause').addEventListener('click', (e) => {
         if (gameOver) return;
@@ -9329,7 +9804,7 @@
           const manifestUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
           addLink('manifest', manifestUrl);
 
-          const APP_BUILD_ID = '2026.11.22-3d-v3';
+          const APP_BUILD_ID = '2026.11.23-mobile-v4';
           let pendingUpdateReload = false;
           let swRegistrationRef = null;
 
@@ -9506,7 +9981,7 @@
         deferredInstallPrompt = null;
         showToast('🎉 랜덤 캐릭터 디펜스 앱이 설치되었습니다!');
         const btn = document.getElementById('btnInstallApp');
-        if (btn) btn.textContent = '✅ 설치됨';
+        if (btn) btn.innerHTML = '✅<span class="mobile-label-hide"> 설치됨</span>';
       });
 
       document.getElementById('btnInstallApp').addEventListener('click', triggerAppInstall);
@@ -9519,7 +9994,7 @@
         else showToast('💡 브라우저 메뉴(⋮ 또는 공유)에서 [홈 화면에 추가]를 선택해 주세요.');
       });
       document.getElementById('btnDownloadSwJs').addEventListener('click', () => {
-        const swContent = "const CACHE_NAME = 'rcd-offline-v3';\nconst CORE_ASSETS = [\n  './',\n  './index.html',\n  './random_character_defense.html'\n];\n\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_NAME).then((cache) =>\n      Promise.allSettled(CORE_ASSETS.map((url) => cache.add(url)))\n    ).then(() => self.skipWaiting())\n  );\n});\n\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys()\n      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))\n      .then(() => self.clients.claim())\n  );\n});\n\nself.addEventListener('fetch', (event) => {\n  if (event.request.method !== 'GET') return;\n  const req = event.request;\n  const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');\n\n  if (isNav) {\n    event.respondWith(\n      fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => caches.match(req).then((m) => m || caches.match('./index.html') || caches.match('./random_character_defense.html')))\n    );\n    return;\n  }\n\n  event.respondWith(\n    caches.match(req).then((cached) => {\n      const netFetch = fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => cached);\n      return cached || netFetch;\n    })\n  );\n});\n";
+        const swContent = "const CACHE_NAME = 'rcd-offline-v4';\nconst CORE_ASSETS = [\n  './',\n  './index.html',\n  './random_character_defense.html'\n];\n\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_NAME).then((cache) =>\n      Promise.allSettled(CORE_ASSETS.map((url) => cache.add(url)))\n    ).then(() => self.skipWaiting())\n  );\n});\n\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys()\n      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))\n      .then(() => self.clients.claim())\n  );\n});\n\nself.addEventListener('fetch', (event) => {\n  if (event.request.method !== 'GET') return;\n  const req = event.request;\n  const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');\n\n  if (isNav) {\n    event.respondWith(\n      fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => caches.match(req).then((m) => m || caches.match('./index.html') || caches.match('./random_character_defense.html')))\n    );\n    return;\n  }\n\n  event.respondWith(\n    caches.match(req).then((cached) => {\n      const netFetch = fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => cached);\n      return cached || netFetch;\n    })\n  );\n});\n";
         const blob = new Blob([swContent], { type: 'application/javascript' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -9551,7 +10026,7 @@
         initPWAManifestAndIcon();
         if (isStandalonePWA()) {
           const btn = document.getElementById('btnInstallApp');
-          if (btn) btn.textContent = '✅ 앱 실행중';
+          if (btn) btn.innerHTML = '✅<span class="mobile-label-hide"> 앱 실행중</span>';
         }
         buildCodex();
         loadAssets(() => {
