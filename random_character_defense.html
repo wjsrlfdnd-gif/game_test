@@ -932,16 +932,39 @@
       .lab-talent-card button { padding: 0.32rem 0.25rem !important; font-size: 0.66rem !important; }
 
       /* =============================================================== */
-      /* Battle Screen (Landscape) — Pure 100dvh Fit + 2-Tab Aside       */
+      /* Battle Screen (Landscape) — Pure 100dvh Fit + Maximize Play Area*/
       /* =============================================================== */
+      body:has(#battleScreen:not(.hidden)) header {
+        padding: 0.05rem 0.3rem !important;
+        min-height: 24px !important;
+        gap: 0.2rem !important;
+      }
+      body:has(#battleScreen:not(.hidden)) #headerBrand .brand-badge {
+        width: 1.2rem !important;
+        height: 1.2rem !important;
+        font-size: 0.5rem !important;
+      }
+      body:has(#battleScreen:not(.hidden)) #headerBrand h1 {
+        display: none !important;
+      }
+      body:has(#battleScreen:not(.hidden)) #headerCurrencyBar > div {
+        padding: 0.08rem 0.26rem !important;
+        font-size: 0.58rem !important;
+      }
+      body:has(#battleScreen:not(.hidden)) header .game-btn {
+        padding: 0.08rem 0.3rem !important;
+        font-size: 0.58rem !important;
+        line-height: 1.15 !important;
+      }
+
       #battleScreen:not(.hidden) {
         display: grid !important;
         flex: 1 1 0% !important;
         min-height: 0 !important;
-        grid-template-columns: minmax(0, 1fr) 236px !important;
+        grid-template-columns: minmax(0, 1fr) 210px !important;
         align-items: stretch !important;
-        gap: 0.3rem !important;
-        padding: 0.16rem 0.4rem !important;
+        gap: 0.22rem !important;
+        padding: 0.06rem 0.28rem !important;
         overflow: hidden !important;
       }
       #battleScreen > section, #battleScreen > aside {
@@ -952,27 +975,27 @@
         height: 100% !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 0.14rem !important;
+        gap: 0.06rem !important;
         overflow: hidden;
       }
       #battleHudStrip {
         display: flex !important;
         flex-wrap: nowrap !important;
         align-items: center !important;
-        gap: 0.16rem !important;
-        padding: 0.1rem 0.18rem !important;
-        border-radius: 0.52rem !important;
+        gap: 0.12rem !important;
+        padding: 0.06rem 0.12rem !important;
+        border-radius: 0.45rem !important;
         flex-shrink: 0;
       }
       #battleHudStrip > div {
         flex: 1 1 auto !important;
-        padding: 0.08rem 0.24rem !important;
-        gap: 0.16rem !important;
-        border-radius: 0.38rem !important;
+        padding: 0.04rem 0.2rem !important;
+        gap: 0.14rem !important;
+        border-radius: 0.35rem !important;
       }
       #battleHudStrip .hud-lbl-full { display: none !important; }
-      #battleHudStrip .hud-lbl-short { display: inline !important; font-size: 0.55rem !important; }
-      #battleHudStrip span[id^="hud"] { font-size: 0.61rem !important; }
+      #battleHudStrip .hud-lbl-short { display: inline !important; font-size: 0.54rem !important; }
+      #battleHudStrip span[id^="hud"] { font-size: 0.58rem !important; }
 
       #battleCanvasStage {
         flex: 1 1 0% !important;
@@ -988,7 +1011,7 @@
         height: min(100cqh, calc(100cqw * 9 / 16)) !important;
         max-width: 100% !important;
         max-height: 100% !important;
-        border-radius: 0.58rem !important;
+        border-radius: 0.55rem !important;
       }
       #battleCanvasOverlayTop { top: 0.25rem !important; left: 0.25rem !important; right: 0.25rem !important; }
       #battleQuickBar {
@@ -1017,10 +1040,11 @@
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none !important;
-        padding: 0.1rem 0.3rem !important;
+        padding: 0.05rem 0.28rem !important;
         gap: 0.2rem !important;
-        font-size: 0.57rem !important;
-        border-radius: 0.45rem !important;
+        font-size: 0.53rem !important;
+        line-height: 1.15 !important;
+        border-radius: 0.4rem !important;
         flex-shrink: 0;
         white-space: nowrap;
       }
@@ -1029,18 +1053,18 @@
 
       #battleControlBar {
         grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
-        gap: 0.15rem !important;
-        padding: 0.14rem !important;
-        border-radius: 0.52rem !important;
+        gap: 0.12rem !important;
+        padding: 0.1rem !important;
+        border-radius: 0.48rem !important;
         flex-shrink: 0;
       }
       #battleControlBar button {
-        padding: 0.18rem 0.06rem !important;
-        border-radius: 0.4rem !important;
+        padding: 0.13rem 0.06rem !important;
+        border-radius: 0.38rem !important;
         min-width: 0;
       }
       #battleControlBar button > span:first-child { font-size: 0.58rem !important; line-height: 1.1 !important; white-space: nowrap; }
-      #battleControlBar button > span:last-child { font-size: 0.52rem !important; line-height: 1.1 !important; white-space: nowrap; }
+      #battleControlBar button > span:last-child { font-size: 0.51rem !important; line-height: 1.1 !important; white-space: nowrap; }
 
       /* Landscape Battle Aside: Clean 2-Tab Switcher (Zero Cutoff!) */
       #battleAside {
@@ -1146,7 +1170,7 @@
     @media (max-height: 580px) and (max-width: 820px) and (orientation: landscape) {
       #headerBrand h1 { display: none !important; }
       #battleScreen:not(.hidden) {
-        grid-template-columns: minmax(0, 1fr) 208px !important;
+        grid-template-columns: minmax(0, 1fr) 196px !important;
       }
       #lobbyStageInfoBox {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) minmax(0, 0.85fr) !important;
@@ -1323,9 +1347,14 @@
     <div id="lobbyTabStage" class="w-full max-w-[1160px] mx-auto bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-4 flex flex-col gap-3 shadow-2xl">
       <!-- Top Header Strip -->
       <div id="lobbyStageHeaderStrip" class="flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <h3 class="text-sm font-extrabold text-white">🗺️ 월드 & 스테이지</h3>
           <span id="lobbyWorldProgressBadge" class="px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/40 text-xs font-extrabold text-amber-300">해금: 1 / 10 월드</span>
+          <div id="lobbyDiffSelector" class="flex items-center gap-1 bg-slate-950/85 border border-slate-700/80 rounded-lg p-0.5">
+            <button id="btnDiffNormal" type="button" class="game-btn px-2 py-0.5 rounded-md text-[11px] font-extrabold transition">🟢 노멀</button>
+            <button id="btnDiffHard" type="button" class="game-btn px-2 py-0.5 rounded-md text-[11px] font-extrabold transition">🔒 하드</button>
+            <button id="btnDiffNightmare" type="button" class="game-btn px-2 py-0.5 rounded-md text-[11px] font-extrabold transition">🔒 나이트메어</button>
+          </div>
         </div>
         <div id="lobbyEquipSummary" class="text-[11px] text-emerald-300 font-semibold bg-emerald-950/35 border border-emerald-500/30 rounded-lg px-2.5 py-1">
           장착: 0유닛 (0부위)
@@ -1744,6 +1773,18 @@
           <button id="btnStartEndless" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-black text-xs shadow">
             🌌 무한 심연 도전 시작
           </button>
+        </div>
+
+        <!-- Event Coupon Exchange -->
+        <div class="p-3.5 rounded-xl bg-gradient-to-br from-indigo-950/65 to-slate-950 border border-indigo-500/45 flex flex-col gap-2 shadow">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs sm:text-sm font-extrabold text-indigo-300">🎟️ 이벤트 쿠폰 교환</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/35 text-[10px] font-bold text-indigo-200">보상 즉시 지급</span>
+          </div>
+          <div class="flex gap-1.5">
+            <input id="txtLobbyCouponCode" type="text" placeholder="쿠폰 코드 입력 (예: MOBILE2026 / RCD1-...)" class="flex-1 min-w-0 bg-slate-950/90 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-400" />
+            <button id="btnLobbyRedeemCoupon" type="button" class="game-btn px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-xs shrink-0 shadow">교환</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2302,10 +2343,10 @@
         <div class="pt-2 border-t border-slate-800 flex flex-col gap-1.5">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-fuchsia-300">🎁 실시간 이벤트 쿠폰 입력</span>
-            <span class="text-[10px] text-slate-500">live_config.json 연동</span>
+            <span class="text-[10px] text-slate-500">live_config · 서명 쿠폰 연동</span>
           </div>
           <div class="flex gap-1.5">
-            <input id="txtCouponCode" type="text" placeholder="쿠폰 코드 입력 (예: MOBILE2026)" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-100 uppercase focus:outline-none focus:border-fuchsia-400" />
+            <input id="txtCouponCode" type="text" placeholder="쿠폰 코드 입력 (예: MOBILE2026 / RCD1-...)" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-100 focus:outline-none focus:border-fuchsia-400" />
             <button id="btnRedeemCoupon" class="game-btn px-3 py-1.5 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-[11px] font-extrabold text-white shrink-0">보상 받기</button>
           </div>
           <div id="lblCouponStatus" class="hidden text-[10px] font-bold"></div>
@@ -3152,8 +3193,31 @@
       const consumables = { goldPotion: 1, shockScroll: 1, bossBane: 0 };
       let selectedForgeUid = null;
       let autoProtectMythicMats = true;
-      let stageRecords = {}; // key: `${mapKey}_${subLv}` -> { cleared: bool, bestWave: number, clearCount: number }
+      let stageRecords = {}; // key: `${mapKey}_${subLv}` (normal) or `${diff}:${mapKey}_${subLv}` -> { cleared: bool, bestWave: number, clearCount: number }
       let bestEndlessWave = 0;
+
+      // Stage Difficulty Modes (Normal -> Hard -> Nightmare unlocked on 10-10 clear)
+      const DIFFICULTY_MODES = {
+        normal:    { key: 'normal',    label: '노멀',       shortLabel: '노멀',       badge: '🟢 노멀',       hpMult: 1.0,  defMult: 1.0,  rewardMult: 1.0  },
+        hard:      { key: 'hard',      label: '하드',       shortLabel: '하드',       badge: '🔥 하드',       hpMult: 3.5,  defMult: 1.35, rewardMult: 1.65 },
+        nightmare: { key: 'nightmare', label: '나이트메어', shortLabel: '나이트메어', badge: '💀 나이트메어', hpMult: 12.0, defMult: 1.80, rewardMult: 2.60 }
+      };
+      let stageDifficulty = 'normal';
+
+      function getDifficultyConfig(diff = stageDifficulty) {
+        return DIFFICULTY_MODES[diff] || DIFFICULTY_MODES.normal;
+      }
+
+      function getStageRecordKey(mapKey, subLv, diff = stageDifficulty) {
+        return diff === 'normal' ? `${mapKey}_${subLv}` : `${diff}:${mapKey}_${subLv}`;
+      }
+
+      function isDifficultyUnlocked(diff) {
+        if (diff === 'normal') return true;
+        if (diff === 'hard') return !!(stageRecords[getStageRecordKey('void', 10, 'normal')]?.cleared);
+        if (diff === 'nightmare') return !!(stageRecords[getStageRecordKey('void', 10, 'hard')]?.cleared);
+        return false;
+      }
 
       // Game Mode ('stage' | 'trial_gold' | 'trial_shard' | 'endless') & Active Consumable Buff
       let gameMode = 'stage';
@@ -3684,6 +3748,7 @@
             consumables,
             currentMap,
             currentStageSub,
+            stageDifficulty,
             autoProtectMythicMats,
             stageRecords,
             bestEndlessWave,
@@ -3762,7 +3827,13 @@
           if (typeof data.bgmOn === 'boolean') bgmOn = data.bgmOn;
           if (typeof data.soundOn === 'boolean') soundOn = data.soundOn;
           if (typeof data.hapticOn === 'boolean') hapticOn = data.hapticOn;
-          if (Array.isArray(data.claimedCoupons)) claimedCoupons = data.claimedCoupons.slice(0, 128);
+          if (Array.isArray(data.claimedCoupons)) claimedCoupons = data.claimedCoupons.slice(0, 128).map(c => String(c).trim().toUpperCase()).filter(Boolean);
+          if (Array.isArray(data.redeemedCoupons)) {
+            data.redeemedCoupons.forEach(c => {
+              const up = String(c).trim().toUpperCase();
+              if (up && !claimedCoupons.includes(up)) claimedCoupons.push(up);
+            });
+          }
           if (typeof data.sfxVolume === 'number') sfxVolume = Math.max(0, Math.min(1, data.sfxVolume));
           if (typeof data.bgmVolume === 'number') bgmVolume = Math.max(0, Math.min(1, data.bgmVolume));
           if (typeof data.autoMergeOn === 'boolean') autoMergeOn = data.autoMergeOn;
@@ -3803,6 +3874,11 @@
           if (data.stageRecords && typeof data.stageRecords === 'object') {
             stageRecords = data.stageRecords;
           }
+          if (typeof data.stageDifficulty === 'string' && DIFFICULTY_MODES[data.stageDifficulty] && isDifficultyUnlocked(data.stageDifficulty)) {
+            stageDifficulty = data.stageDifficulty;
+          } else {
+            stageDifficulty = 'normal';
+          }
           if (data.currentMap && MAPS[data.currentMap]) currentMap = data.currentMap;
           if (typeof data.currentStageSub === 'number' && data.currentStageSub >= 1 && data.currentStageSub <= 10) {
             currentStageSub = data.currentStageSub;
@@ -3841,11 +3917,11 @@
 
       function isStageUnlocked(mapKey, subLv) {
         if (mapKey === 'meadow' && subLv === 1) return true;
-        const rec = stageRecords[`${mapKey}_${subLv}`];
+        const rec = stageRecords[getStageRecordKey(mapKey, subLv)];
         if (rec && rec.cleared) return true;
         const prev = getPrevStage(mapKey, subLv);
         if (!prev) return false;
-        const prevRec = stageRecords[`${prev.mapKey}_${prev.subLv}`];
+        const prevRec = stageRecords[getStageRecordKey(prev.mapKey, prev.subLv)];
         return !!(prevRec && prevRec.cleared);
       }
 
@@ -3923,7 +3999,7 @@
       }
 
       function recordWaveProgress(w, isCleared = false) {
-        const key = `${currentMap}_${currentStageSub}`;
+        const key = getStageRecordKey(currentMap, currentStageSub);
         const prev = stageRecords[key] || { cleared: false, bestWave: 1, clearCount: 0 };
         prev.bestWave = Math.max(prev.bestWave || 1, w);
         if (isCleared) {
@@ -4941,7 +5017,8 @@
         if (gameMode === 'trial_shard') return '시련: 수정 균열';
         if (gameMode === 'endless') return `무한 심연 (최고 W${bestEndlessWave})`;
         const wNum = MAPS[currentMap].worldNum;
-        return `${wNum}-${currentStageSub} (x${getStageStepMult(currentStageSub).toFixed(2)})`;
+        const dCfg = getDifficultyConfig();
+        return `[${dCfg.shortLabel}] ${wNum}-${currentStageSub} (x${getStageStepMult(currentStageSub).toFixed(2)})`;
       }
 
       function getActiveRewardSummary() {
@@ -4984,30 +5061,31 @@
 
       function getStageRewardSummary(mapKey = currentMap, subLv = currentStageSub) {
         const wNum = MAPS[mapKey].worldNum;
+        const dCfg = getDifficultyConfig();
         const wRewardMult = getRewardWorldMult(wNum);
         const sMult = getStageStepMult(subLv);
-        const econScale = Math.pow(sMult, 0.65) * wRewardMult;
-        const battleScale = Math.pow(sMult, 0.35) * Math.pow(wNum, 0.25);
+        const econScale = Math.pow(sMult, 0.65) * wRewardMult * dCfg.rewardMult;
+        const battleScale = Math.pow(sMult, 0.35) * Math.pow(wNum, 0.25) * Math.pow(dCfg.rewardMult, 0.55);
 
-        const recKey = `${mapKey}_${subLv}`;
+        const recKey = getStageRecordKey(mapKey, subLv);
         const isFirstClear = !(stageRecords[recKey] && stageRecords[recKey].cleared);
 
         const ev = getLiveEventMultipliers();
         const midGold = Math.round(220 * battleScale);
         const midAccGold = Math.round(260 * econScale * ev.goldMult);
-        const midGems = Math.max(1, Math.round((2 + Math.floor(wNum / 3) + Math.floor(subLv / 4)) * ev.gemMult));
+        const midGems = Math.max(1, Math.round((2 + Math.floor(wNum / 3) + Math.floor(subLv / 4)) * Math.pow(dCfg.rewardMult, 0.65) * ev.gemMult));
 
         const mainGold = Math.round(480 * battleScale);
         const mainAccGold = Math.round(620 * econScale * ev.goldMult);
-        const mainGems = Math.max(1, Math.round((5 + Math.floor(wNum / 2) + Math.floor(subLv / 3)) * ev.gemMult));
+        const mainGems = Math.max(1, Math.round((5 + Math.floor(wNum / 2) + Math.floor(subLv / 3)) * Math.pow(dCfg.rewardMult, 0.65) * ev.gemMult));
 
         const bountyGold = Math.round(180 * battleScale);
         const bountyAccGold = Math.round(180 * econScale * ev.goldMult);
-        const bountyGems = Math.max(1, Math.round((2 + Math.floor(wNum / 4)) * ev.gemMult));
+        const bountyGems = Math.max(1, Math.round((2 + Math.floor(wNum / 4)) * Math.pow(dCfg.rewardMult, 0.65) * ev.gemMult));
 
         const baseClearGold = Math.round(780 * econScale * ev.goldMult);
-        const baseClearGems = Math.max(1, Math.round((7 + Math.floor(wNum * 0.9) + subLv) * ev.gemMult));
-        const baseClearShards = Math.max(1, Math.round((8 + wNum * 2 + Math.floor(subLv * 0.8)) * ev.shardMult));
+        const baseClearGems = Math.max(1, Math.round((7 + Math.floor(wNum * 0.9) + subLv) * dCfg.rewardMult * ev.gemMult));
+        const baseClearShards = Math.max(1, Math.round((8 + wNum * 2 + Math.floor(subLv * 0.8)) * dCfg.rewardMult * ev.shardMult));
         const clearGold = isFirstClear ? baseClearGold * 2 : baseClearGold;
         const clearGems = isFirstClear ? baseClearGems * 2 : baseClearGems;
         const clearShards = isFirstClear ? baseClearShards * 2 : baseClearShards;
@@ -5756,7 +5834,8 @@
         const waveScale = Math.pow(1.13, wave - 1);
         const stageStepMult = isStageMode ? getStageStepMult(currentStageSub) : 1.0; // 1.5^(sub-1)
         const worldMult = isStageMode ? getWorldBaseMult(currentMap) : 1.0;
-        const totalMult = waveScale * stageStepMult * worldMult;
+        const diffCfg = isStageMode ? getDifficultyConfig() : DIFFICULTY_MODES.normal;
+        const totalMult = waveScale * stageStepMult * worldMult * diffCfg.hpMult;
 
         let kind = forcedKind;
         if (!kind) {
@@ -5781,7 +5860,7 @@
         // Main-Boss: x2.0 boost (3800 * 2.0 = 7600, DEF = midBossDef * 2.0)
         const baseNormalHp = 80 * 1.5 * totalMult; // 120 * totalMult
         const baseNormalDef = isStageMode
-          ? 10 * 1.25 * Math.pow(1.12, currentStageSub - 1) * Math.pow(1.10, mapCfg.worldNum - 1)
+          ? 10 * 1.25 * Math.pow(1.12, currentStageSub - 1) * Math.pow(1.10, mapCfg.worldNum - 1) * diffCfg.defMult
           : 12.5;
 
         const interHp = baseNormalHp * 1.5;
@@ -5851,7 +5930,7 @@
             speed: 88,
             size: 54,
             gold: Math.round(32 * rw.battleScale),
-            accGold: 22,
+            accGold: 0,
             gems: 0,
             shards: 0,
             isBoss: false,
@@ -5908,8 +5987,8 @@
             speed: 52,
             size: 58,
             gold: Math.round(68 * rw.battleScale),
-            accGold: 45,
-            gems: Math.random() < 0.25 ? 1 : 0,
+            accGold: 0,
+            gems: 0,
             shards: Math.random() < 0.35 ? 1 : 0,
             isBoss: false,
             isSpecial: true
@@ -7077,27 +7156,25 @@
         updateBgmGain();
         playSound('defeat');
         const rw = getActiveRewardSummary();
-        const reachedWaves = Math.max(0, wave - 1);
-        const consolationGold = reachedWaves > 0 ? Math.round(reachedWaves * 18 * rw.econScale) : 0;
-        const consolationGems = wave >= 16 ? Math.max(1, Math.floor(rw.baseClearGems * 0.25)) : 0;
-        accountGold += consolationGold;
-        accountGems += consolationGems;
+        const consolationGold = 0;
+        const consolationGems = 0;
         if (gameMode === 'stage') recordWaveProgress(wave, false);
         else saveGameData();
         const wNum = MAPS[currentMap].worldNum;
         document.getElementById('gameOverTitle').textContent = `${reason} (Game Over)`;
         document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-rose-400 mb-2';
-        const consolationTxt = consolationGold > 0
-          ? ` | 정산 보상: +${consolationGold.toLocaleString()} 금화${consolationGems > 0 ? ` & +${consolationGems} 💎` : ''}`
-          : '';
+        const consolationTxt = '';
         const modeTitle = gameMode === 'trial_gold' ? '황금 고블린 소굴'
           : (gameMode === 'trial_shard' ? '마력 수정 균열'
-          : (gameMode === 'endless' ? '무한 심연 챌린지' : `스테이지 ${wNum}-${currentStageSub}`));
+          : (gameMode === 'endless' ? '무한 심연 챌린지' : `[${getDifficultyConfig().shortLabel}] 스테이지 ${wNum}-${currentStageSub}`));
         document.getElementById('gameOverSub').textContent =
           `${modeTitle} | 도달: Wave ${wave} / ${getMaxWaveLabel()} | 처치: ${totalKills}마리${consolationTxt} (자동저장 완료)`;
         const nxtFail = gameMode === 'stage' ? getNextStage(currentMap, currentStageSub) : null;
         const canNextFail = !!(nxtFail && isStageUnlocked(nxtFail.mapKey, nxtFail.subLv));
-        document.getElementById('btnModalNextStage').classList.toggle('hidden', !canNextFail);
+        const failNextBtn = document.getElementById('btnModalNextStage');
+        failNextBtn.dataset.diffStart = '';
+        failNextBtn.textContent = '다음 단계 진행';
+        failNextBtn.classList.toggle('hidden', !canNextFail);
         renderGameOverSummary();
         document.getElementById('gameOverModal').classList.remove('hidden');
         syncUI();
@@ -7154,13 +7231,38 @@
         const nxt = getNextStage(currentMap, currentStageSub);
         const wasNextUnlocked = nxt ? isStageUnlocked(nxt.mapKey, nxt.subLv) : false;
 
+        const prevDiff = stageDifficulty;
+        const wasHardUnlocked = isDifficultyUnlocked('hard');
+        const wasNightmareUnlocked = isDifficultyUnlocked('nightmare');
+
         accountGold += bonusGold;
         accountGems += bonusGems;
         recordWaveProgress(MAX_WAVES, true);
         syncStageSelectors();
 
         let unlockNotice = '';
-        if (nxt && !wasNextUnlocked && isStageUnlocked(nxt.mapKey, nxt.subLv)) {
+        let unlockedNewDiff = null;
+        if (currentMap === 'void' && currentStageSub === 10) {
+          if (prevDiff === 'normal' && !wasHardUnlocked && isDifficultyUnlocked('hard')) {
+            unlockedNewDiff = 'hard';
+            stageDifficulty = 'hard';
+            currentMap = 'meadow';
+            currentStageSub = 1;
+            saveGameData();
+            unlockNotice = ' 🔥 [하드 난이도] 해금! 난이도가 하드로 상승했습니다!';
+            showToast('🔥 노멀 10-10 클리어! 하드 난이도가 해금되었습니다!');
+          } else if (prevDiff === 'hard' && !wasNightmareUnlocked && isDifficultyUnlocked('nightmare')) {
+            unlockedNewDiff = 'nightmare';
+            stageDifficulty = 'nightmare';
+            currentMap = 'meadow';
+            currentStageSub = 1;
+            saveGameData();
+            unlockNotice = ' 💀 [나이트메어 난이도] 해금! 난이도가 나이트메어로 상승했습니다!';
+            showToast('💀 하드 10-10 클리어! 나이트메어 난이도가 해금되었습니다!');
+          }
+        }
+
+        if (!unlockedNewDiff && nxt && !wasNextUnlocked && isStageUnlocked(nxt.mapKey, nxt.subLv)) {
           const nxtWNum = MAPS[nxt.mapKey].worldNum;
           unlockNotice = nxt.mapKey !== currentMap
             ? ` 🔓 신규 월드 [${nxtWNum}월드: ${MAPS[nxt.mapKey].title}] 해금!`
@@ -7168,11 +7270,20 @@
           showToast(unlockNotice.trim());
         }
 
-        const canNextClear = !!(nxt && isStageUnlocked(nxt.mapKey, nxt.subLv));
-        document.getElementById('btnModalNextStage').classList.toggle('hidden', !canNextClear);
+        const nextBtn = document.getElementById('btnModalNextStage');
+        const canNextClear = !!(unlockedNewDiff || (nxt && isStageUnlocked(nxt.mapKey, nxt.subLv)));
+        nextBtn.classList.toggle('hidden', !canNextClear);
+        nextBtn.dataset.diffStart = unlockedNewDiff || '';
+        if (unlockedNewDiff) {
+          const ndCfg = getDifficultyConfig(unlockedNewDiff);
+          nextBtn.textContent = `${ndCfg.badge} 1-1 도전하기`;
+        } else {
+          nextBtn.textContent = '다음 단계 진행';
+        }
 
         playSound('victory');
-        document.getElementById('gameOverTitle').textContent = `🎉 스테이지 ${wNum}-${currentStageSub} (30웨이브) 클리어!`;
+        const prevDiffCfg = getDifficultyConfig(prevDiff);
+        document.getElementById('gameOverTitle').textContent = `🎉 [${prevDiffCfg.label}] ${wNum}-${unlockedNewDiff ? 10 : currentStageSub} (30웨이브) 클리어!`;
         document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-amber-300 mb-2';
         document.getElementById('gameOverSub').textContent =
           `${firstTag} 클리어 보상: +${bonusGold.toLocaleString()} 금화 · +${bonusGems} 💎 · +${bonusShards} ✨ 지급 및 기록 저장 완료!${unlockNotice}`;
@@ -8861,8 +8972,49 @@
         selectUnlockedWorldByIndex(nextIdx);
       }
 
+      function setStageDifficulty(diff) {
+        if (!DIFFICULTY_MODES[diff]) return;
+        if (!isDifficultyUnlocked(diff)) {
+          const reqLabel = diff === 'hard' ? '노멀 10-10' : '하드 10-10';
+          showToast(`🔒 ${reqLabel} 스테이지를 클리어하면 해금됩니다!`);
+          return;
+        }
+        stageDifficulty = diff;
+        if (!isWorldUnlocked(currentMap)) {
+          currentMap = 'meadow';
+        }
+        if (!isStageUnlocked(currentMap, currentStageSub)) {
+          currentStageSub = getHighestUnlockedSubInWorld(currentMap);
+        }
+        playSound('summon');
+        saveGameData();
+        syncStageSelectors();
+        renderLobbyStageTab();
+      }
+
       function renderLobbyStageTab() {
         syncStageSelectors();
+        const diffBtnMap = [
+          { id: 'btnDiffNormal',    diff: 'normal',    activeCls: 'bg-emerald-500 text-slate-950 shadow' },
+          { id: 'btnDiffHard',      diff: 'hard',      activeCls: 'bg-amber-500 text-slate-950 shadow' },
+          { id: 'btnDiffNightmare', diff: 'nightmare', activeCls: 'bg-rose-500 text-white shadow' }
+        ];
+        diffBtnMap.forEach(({ id, diff, activeCls }) => {
+          const btn = document.getElementById(id);
+          if (!btn) return;
+          const unlocked = isDifficultyUnlocked(diff);
+          const active = stageDifficulty === diff;
+          const cfg = DIFFICULTY_MODES[diff];
+          btn.textContent = unlocked ? cfg.badge : `🔒 ${cfg.label}`;
+          btn.className = `game-btn px-2 py-0.5 rounded-md text-[11px] font-extrabold transition ${
+            active
+              ? activeCls
+              : (unlocked
+                ? 'bg-transparent hover:bg-slate-800 text-slate-300'
+                : 'bg-transparent text-slate-500 opacity-75 cursor-not-allowed')
+          }`;
+        });
+
         const track = document.getElementById('worldSliderTrack');
         const dots = document.getElementById('worldSliderDots');
         const progBadge = document.getElementById('lobbyWorldProgressBadge');
@@ -8889,10 +9041,6 @@
           track.innerHTML = '';
           unlockedKeys.forEach((key) => {
             const m = MAPS[key];
-            let clearedCnt = 0;
-            for (let s = 1; s <= 10; s++) {
-              if (stageRecords[`${key}_${s}`] && stageRecords[`${key}_${s}`].cleared) clearedCnt++;
-            }
             const slide = document.createElement('div');
             const wTheme = getWorld25DTheme(key);
             slide.className = 'min-w-full h-full relative overflow-hidden';
@@ -8960,10 +9108,12 @@
 
         const mapCfg = MAPS[currentMap];
         const wNum = mapCfg.worldNum;
+        const dCfg = getDifficultyConfig();
         const diffMult = getStageStepMult(currentStageSub);
         let curWorldClearedCnt = 0;
         for (let s = 1; s <= 10; s++) {
-          if (stageRecords[`${currentMap}_${s}`] && stageRecords[`${currentMap}_${s}`].cleared) curWorldClearedCnt++;
+          const r = stageRecords[getStageRecordKey(currentMap, s)];
+          if (r && r.cleared) curWorldClearedCnt++;
         }
         const wNumBadge = document.getElementById('lobbyWorldNumBadge');
         if (wNumBadge) wNumBadge.textContent = `${wNum}월드`;
@@ -8973,11 +9123,11 @@
           wClearBadge.className = `px-2.5 py-0.5 rounded-full bg-slate-950/80 border border-slate-700 text-xs font-extrabold backdrop-blur-sm ${curWorldClearedCnt > 0 ? 'text-emerald-400' : 'text-slate-300'}`;
         }
         document.getElementById('lobbySelectedWorldTitle').textContent = `${wNum}월드: ${mapCfg.title} (${wNum}-${currentStageSub})`;
-        document.getElementById('lobbyDiffBadge').textContent = `단계 난이도 x${diffMult.toFixed(2)}`;
+        document.getElementById('lobbyDiffBadge').textContent = `${dCfg.badge} · 단계 x${diffMult.toFixed(2)}`;
 
         const subGrid = document.getElementById('stageSubGrid');
         subGrid.innerHTML = '';
-        const curRec = stageRecords[`${currentMap}_${currentStageSub}`];
+        const curRec = stageRecords[getStageRecordKey(currentMap, currentStageSub)];
         const recBadge = document.getElementById('lobbyStageRecordBadge');
         if (recBadge) {
           recBadge.textContent = curRec
@@ -8990,7 +9140,7 @@
           const unlocked = isStageUnlocked(currentMap, s);
           const sm = getStageStepMult(s);
           const isSel = s === currentStageSub;
-          const rec = stageRecords[`${currentMap}_${s}`];
+          const rec = stageRecords[getStageRecordKey(currentMap, s)];
           const b = document.createElement('button');
           if (unlocked) {
             const cleared = !!(rec && rec.cleared);
@@ -9022,13 +9172,13 @@
           subGrid.appendChild(b);
         }
 
-        // Monster Tier & Boss previews with exact 1.5x / 1.25x / 1.5x / 2.0x scaling
-        const w1Scale = diffMult * getWorldBaseMult(currentMap);
-        const w15Scale = Math.pow(1.13, 14) * diffMult * getWorldBaseMult(currentMap);
-        const w30Scale = Math.pow(1.13, 29) * diffMult * getWorldBaseMult(currentMap);
+        // Monster Tier & Boss previews with exact 1.5x / 1.25x / 1.5x / 2.0x scaling + Difficulty mult
+        const w1Scale = diffMult * getWorldBaseMult(currentMap) * dCfg.hpMult;
+        const w15Scale = Math.pow(1.13, 14) * w1Scale;
+        const w30Scale = Math.pow(1.13, 29) * w1Scale;
 
         const nHp = Math.round(80 * 1.5 * w1Scale);
-        const nDef = Math.round(10 * 1.25 * Math.pow(1.12, currentStageSub - 1) * Math.pow(1.10, mapCfg.worldNum - 1));
+        const nDef = Math.round(10 * 1.25 * Math.pow(1.12, currentStageSub - 1) * Math.pow(1.10, mapCfg.worldNum - 1) * dCfg.defMult);
         const iHp = Math.round(nHp * 1.5);
         const iDef = Math.round(nDef * 1.25);
         const eHp = Math.round(iHp * 1.5);
@@ -10951,7 +11101,9 @@
         consumables.shockScroll = 1;
         consumables.bossBane = 0;
         stageRecords = {};
+        stageDifficulty = 'normal';
         bestEndlessWave = 0;
+        claimedCoupons = [];
         questStats.totalKills = 0;
         questStats.totalSummons = 0;
         questStats.totalMerges = 0;
@@ -11216,7 +11368,18 @@
         switchScreen(false);
       });
       document.getElementById('btnModalRestart').addEventListener('click', resetGame);
-      document.getElementById('btnModalNextStage').addEventListener('click', () => {
+      document.getElementById('btnDiffNormal')?.addEventListener('click', () => setStageDifficulty('normal'));
+      document.getElementById('btnDiffHard')?.addEventListener('click', () => setStageDifficulty('hard'));
+      document.getElementById('btnDiffNightmare')?.addEventListener('click', () => setStageDifficulty('nightmare'));
+      document.getElementById('btnModalNextStage').addEventListener('click', (e) => {
+        const btn = e.currentTarget;
+        if (btn && btn.dataset.diffStart) {
+          btn.dataset.diffStart = '';
+          gameMode = 'stage';
+          syncStageSelectors();
+          resetGame();
+          return;
+        }
         const nxt = getNextStage(currentMap, currentStageSub);
         if (!nxt || !isStageUnlocked(nxt.mapKey, nxt.subLv)) {
           showToast('🔒 현재 단계를 클리어해야 다음 단계가 해금됩니다!');
@@ -11456,7 +11619,97 @@
         bar.classList.add('hidden');
       });
 
-      // Live Coupon Redemption (powered by live_config.json without app restart!)
+      const COUPON_SIGN_SECRET = 'RCD_ADMIN_SIG_2026_V1';
+
+      function sha256Hex(str) {
+        const bytes = new TextEncoder().encode(str);
+        const K = [
+          0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+          0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+          0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+          0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+          0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+          0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+          0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+          0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+        ];
+        const bitLen = bytes.length * 8;
+        const withOne = bytes.length + 1;
+        const padLen = (withOne % 64 <= 56) ? (56 - (withOne % 64)) : (64 + 56 - (withOne % 64));
+        const padded = new Uint8Array(withOne + padLen + 8);
+        padded.set(bytes);
+        padded[bytes.length] = 0x80;
+        const dv = new DataView(padded.buffer);
+        dv.setUint32(padded.length - 8, Math.floor(bitLen / 0x100000000), false);
+        dv.setUint32(padded.length - 4, bitLen >>> 0, false);
+        let H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+        const W = new Uint32Array(64);
+        const rotr = (n, x) => (x >>> n) | (x << (32 - n));
+        for (let i = 0; i < padded.length; i += 64) {
+          for (let t = 0; t < 16; t++) W[t] = dv.getUint32(i + t * 4, false);
+          for (let t = 16; t < 64; t++) {
+            const s0 = rotr(7, W[t - 15]) ^ rotr(18, W[t - 15]) ^ (W[t - 15] >>> 3);
+            const s1 = rotr(17, W[t - 2]) ^ rotr(19, W[t - 2]) ^ (W[t - 2] >>> 10);
+            W[t] = (W[t - 16] + s0 + W[t - 7] + s1) >>> 0;
+          }
+          let [a, b, c, d, e, f, g, h] = H;
+          for (let t = 0; t < 64; t++) {
+            const S1 = rotr(6, e) ^ rotr(11, e) ^ rotr(25, e);
+            const ch = (e & f) ^ (~e & g);
+            const temp1 = (h + S1 + ch + K[t] + W[t]) >>> 0;
+            const S0 = rotr(2, a) ^ rotr(13, a) ^ rotr(22, a);
+            const maj = (a & b) ^ (a & c) ^ (b & c);
+            const temp2 = (S0 + maj) >>> 0;
+            h = g; g = f; f = e; e = (d + temp1) >>> 0;
+            d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+          }
+          H = [(H[0]+a)>>>0,(H[1]+b)>>>0,(H[2]+c)>>>0,(H[3]+d)>>>0,(H[4]+e)>>>0,(H[5]+f)>>>0,(H[6]+g)>>>0,(H[7]+h)>>>0];
+        }
+        return H.map(x => x.toString(16).padStart(8, '0')).join('');
+      }
+
+      function decodeB64UrlUtf8(b64u) {
+        let b64 = b64u.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) b64 += '=';
+        const bin = atob(b64);
+        const bytes = Uint8Array.from(bin, ch => ch.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+      }
+
+      function parseSignedCoupon(rawCode) {
+        const raw = (rawCode || '').trim();
+        if (!raw.startsWith('RCD1-')) return null;
+        const firstDash = raw.indexOf('-');
+        const lastDash = raw.lastIndexOf('-');
+        if (lastDash <= firstDash) return { error: '❌ 잘못된 서명 쿠폰 형식입니다.' };
+        const b64 = raw.slice(firstDash + 1, lastDash);
+        const sig = raw.slice(lastDash + 1).toUpperCase();
+        const expected = sha256Hex(`${COUPON_SIGN_SECRET}|${b64}`).slice(0, 10).toUpperCase();
+        if (sig !== expected) return { error: '❌ 쿠폰 서명이 올바르지 않거나 위변조된 코드입니다.' };
+        try {
+          const obj = JSON.parse(decodeB64UrlUtf8(b64));
+          const couponId = String(obj.c || '').trim().toUpperCase();
+          if (!couponId) return { error: '❌ 쿠폰 ID가 누락되었습니다.' };
+          return {
+            couponId,
+            label: obj.label || couponId,
+            gold: Math.max(0, Math.floor(Number(obj.g) || 0)),
+            gems: Math.max(0, Math.floor(Number(obj.d) || 0)),
+            shards: Math.max(0, Math.floor(Number(obj.s) || 0)),
+            goldPotion: Math.max(0, Math.floor(Number(obj.gp) || 0)),
+            shockScroll: Math.max(0, Math.floor(Number(obj.ss) || 0)),
+            bossBane: Math.max(0, Math.floor(Number(obj.bb) || 0)),
+            itemId: obj.it ? String(obj.it) : '',
+            itemLv: Math.max(0, Math.min(15, Math.floor(Number(obj.lv) || 0))),
+            itemEx: Math.max(0, Math.min(3, Math.floor(Number(obj.ex) || 0))),
+            expiresAt: obj.exp ? String(obj.exp).trim() : ''
+          };
+        } catch (_) {
+          return { error: '❌ 쿠폰 데이터를 해석할 수 없습니다.' };
+        }
+      }
+
+      // Live Coupon Redemption (live_config.json + coupons.json + RCD1 signed coupons)
       function setCouponStatusMsg(msg, tone = 'info') {
         const el = document.getElementById('lblCouponStatus');
         if (!el) return;
@@ -11466,55 +11719,113 @@
         el.className = `text-[10px] font-bold ${toneCls}`;
         el.textContent = msg;
       }
-      async function redeemLiveCoupon() {
-        const inp = document.getElementById('txtCouponCode');
+      async function redeemLiveCoupon(inputEl = document.getElementById('txtCouponCode')) {
+        const inp = inputEl || document.getElementById('txtCouponCode');
         if (!inp) return;
-        const rawCode = (inp.value || '').trim().toUpperCase();
-        if (!rawCode) {
-          const m = '🎁 쿠폰 코드를 입력해 주세요! (예: MOBILE2026)';
+        const rawInput = (inp.value || '').trim();
+        if (!rawInput) {
+          const m = '🎁 쿠폰 코드를 입력해 주세요! (예: MOBILE2026 / RCD1-...)';
           setCouponStatusMsg(m, 'warn');
           showToast(m);
           return;
         }
-        // 최신 쿠폰 목록 즉시 재확인
-        await fetchLiveConfig(false);
-        const coupons = (liveConfig && liveConfig.coupons && typeof liveConfig.coupons === 'object') ? liveConfig.coupons : {};
-        const entry = coupons[rawCode];
-        if (!entry) {
-          const m = '❌ 유효하지 않거나 만료된 쿠폰 코드입니다.';
+        let coupon = null;
+        if (rawInput.startsWith('RCD1-')) {
+          const parsed = parseSignedCoupon(rawInput);
+          if (parsed && parsed.error) {
+            setCouponStatusMsg(parsed.error, 'err');
+            showToast(parsed.error);
+            return;
+          }
+          coupon = parsed;
+        } else {
+          const rawCode = rawInput.toUpperCase();
+          await fetchLiveConfig(false);
+          const coupons = (liveConfig && liveConfig.coupons && typeof liveConfig.coupons === 'object') ? liveConfig.coupons : {};
+          let entry = coupons[rawCode];
+          if (!entry && /^https?:$/i.test(location.protocol)) {
+            try {
+              const r2 = await fetch(`./coupons.json?t=${Date.now()}`, { cache: 'no-store' });
+              if (r2 && r2.ok) {
+                const tbl = await r2.json();
+                if (tbl && typeof tbl === 'object' && tbl[rawCode]) entry = tbl[rawCode];
+              }
+            } catch (_) {}
+          }
+          if (!entry || entry.enabled === false) {
+            const m = '❌ 유효하지 않거나 만료된 쿠폰 코드입니다.';
+            setCouponStatusMsg(m, 'err');
+            showToast(m);
+            return;
+          }
+          coupon = {
+            couponId: rawCode,
+            label: entry.label || rawCode,
+            gold: Math.max(0, Math.floor(Number(entry.gold) || 0)),
+            gems: Math.max(0, Math.floor(Number(entry.gems) || 0)),
+            shards: Math.max(0, Math.floor(Number(entry.shards) || 0)),
+            goldPotion: Math.max(0, Math.floor(Number(entry.goldPotion) || 0)),
+            shockScroll: Math.max(0, Math.floor(Number(entry.shockScroll) || 0)),
+            bossBane: Math.max(0, Math.floor(Number(entry.bossBane) || 0)),
+            itemId: entry.itemId ? String(entry.itemId) : '',
+            itemLv: Math.max(0, Math.min(15, Math.floor(Number(entry.itemLv) || 0))),
+            itemEx: Math.max(0, Math.min(3, Math.floor(Number(entry.itemEx) || 0))),
+            expiresAt: entry.expiresAt ? String(entry.expiresAt).trim() : ''
+          };
+        }
+
+        if (coupon.expiresAt && getTodayDateKey() > coupon.expiresAt) {
+          const m = `⚠️ 만료된 이벤트 쿠폰입니다. (만료일: ${coupon.expiresAt})`;
+          setCouponStatusMsg(m, 'warn');
+          showToast(m);
+          return;
+        }
+        if (claimedCoupons.includes(coupon.couponId)) {
+          const m = `⚠️ 이미 수령한 쿠폰 코드입니다. (${coupon.couponId})`;
+          setCouponStatusMsg(m, 'warn');
+          showToast(m);
+          return;
+        }
+
+        const parts = [];
+        if (coupon.gold > 0) { accountGold += coupon.gold; parts.push(`+${coupon.gold.toLocaleString()}G`); }
+        if (coupon.gems > 0) { accountGems += coupon.gems; parts.push(`+${coupon.gems}💎`); }
+        if (coupon.shards > 0) { accountShards += coupon.shards; parts.push(`+${coupon.shards}✨`); }
+        if (coupon.goldPotion > 0) { consumables.goldPotion += coupon.goldPotion; parts.push(`비약+${coupon.goldPotion}`); }
+        if (coupon.shockScroll > 0) { consumables.shockScroll += coupon.shockScroll; parts.push(`충격파+${coupon.shockScroll}`); }
+        if (coupon.bossBane > 0) { consumables.bossBane += coupon.bossBane; parts.push(`영약+${coupon.bossBane}`); }
+        if (coupon.itemId) {
+          const tpl = SHOP_CATALOG.find(x => x.id === coupon.itemId);
+          if (tpl) {
+            const added = addInventoryItem(tpl);
+            added.level = coupon.itemLv;
+            added.extraLevel = coupon.itemEx;
+            parts.push(`[${tpl.name} ${formatItemLevelTag(added)}]`);
+          }
+        }
+        if (parts.length === 0) {
+          const m = '❌ 지급 가능한 보상이 없는 쿠폰입니다.';
           setCouponStatusMsg(m, 'err');
           showToast(m);
           return;
         }
-        if (claimedCoupons.includes(rawCode)) {
-          const m = '⚠️ 이미 수령한 쿠폰 코드입니다.';
-          setCouponStatusMsg(m, 'warn');
-          showToast(m);
-          return;
-        }
-        const g = Math.max(0, Math.floor(Number(entry.gold) || 0));
-        const gem = Math.max(0, Math.floor(Number(entry.gems) || 0));
-        const sh = Math.max(0, Math.floor(Number(entry.shards) || 0));
-        accountGold += g;
-        accountGems += gem;
-        accountShards += sh;
-        claimedCoupons.push(rawCode);
+        claimedCoupons.push(coupon.couponId);
         inp.value = '';
         playSound('victory');
         saveGameData();
         renderLobbyAll();
         syncUI();
-        const parts = [];
-        if (g > 0) parts.push(`+${g.toLocaleString()}G`);
-        if (gem > 0) parts.push(`+${gem}💎`);
-        if (sh > 0) parts.push(`+${sh}✨`);
-        const okMsg = `🎁 [${entry.label || rawCode}] 수령 완료! (${parts.join(' · ')})`;
+        const okMsg = `🎁 [${coupon.label || coupon.couponId}] 수령 완료! (${parts.join(' · ')})`;
         setCouponStatusMsg(okMsg, 'ok');
         showToast(okMsg);
       }
-      document.getElementById('btnRedeemCoupon')?.addEventListener('click', redeemLiveCoupon);
+      document.getElementById('btnRedeemCoupon')?.addEventListener('click', () => redeemLiveCoupon(document.getElementById('txtCouponCode')));
       document.getElementById('txtCouponCode')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') redeemLiveCoupon();
+        if (e.key === 'Enter') redeemLiveCoupon(document.getElementById('txtCouponCode'));
+      });
+      document.getElementById('btnLobbyRedeemCoupon')?.addEventListener('click', () => redeemLiveCoupon(document.getElementById('txtLobbyCouponCode')));
+      document.getElementById('txtLobbyCouponCode')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') redeemLiveCoupon(document.getElementById('txtLobbyCouponCode'));
       });
 
       function updateLiveVersionLabel(extraNote = '') {

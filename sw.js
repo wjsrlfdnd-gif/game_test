@@ -1,5 +1,5 @@
-// Random Character Defense — Mobile Game Real-Time OTA & Offline Service Worker (v7)
-const CACHE_NAME = 'rcd-offline-v7';
+// Random Character Defense — Mobile Game Real-Time OTA & Offline Service Worker (v8)
+const CACHE_NAME = 'rcd-offline-v8';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -46,6 +46,7 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const req = event.request;
   const url = new URL(req.url);
+  if (url.pathname.endsWith('/admin.html') || url.pathname.endsWith('/coupons.json')) return;
 
   // 실시간 버전 체크(version.json)는 항상 네트워크 직접 조회 (캐시 우회)
   if (url.pathname.endsWith('/version.json')) {

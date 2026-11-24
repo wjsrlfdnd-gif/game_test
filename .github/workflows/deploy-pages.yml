@@ -29,6 +29,8 @@ jobs:
           mkdir -p _site
           cp random_character_defense.html _site/index.html
           cp random_character_defense.html _site/random_character_defense.html
+          [ -f admin.html ] && cp admin.html _site/admin.html || true
+          [ -f coupons.json ] && cp coupons.json _site/coupons.json || true
           [ -f sw.js ] && cp sw.js _site/sw.js || true
           [ -f manifest.webmanifest ] && cp manifest.webmanifest _site/manifest.webmanifest || true
           [ -f live_config.json ] && cp live_config.json _site/live_config.json || true
