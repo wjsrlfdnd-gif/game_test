@@ -1,5 +1,5 @@
-// Random Character Defense — Mobile Game Real-Time OTA & Offline Service Worker (v10)
-const CACHE_NAME = 'rcd-offline-v10';
+// Random Character Defense — Mobile Game Real-Time OTA & Offline Service Worker (v11)
+const CACHE_NAME = 'rcd-offline-v11';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -49,8 +49,8 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.endsWith('/admin.html') || url.pathname.endsWith('/coupons.json')) return;
 
-  // Supabase 설정 파일은 Network-First (로컬 캐시 fallback)
-  if (url.pathname.endsWith('/supabase-config.js')) {
+  // Firebase 설정 파일은 Network-First (로컬 캐시 fallback)
+  if (url.pathname.endsWith('/firebase-config.js')) {
     event.respondWith(
       fetch(req, { cache: 'no-store' })
         .then((res) => {
