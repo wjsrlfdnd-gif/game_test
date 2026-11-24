@@ -24,13 +24,43 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Prepare site directory
+      - name: Prepare site directory & stamp real-time version.json
         run: |
           mkdir -p _site
           cp random_character_defense.html _site/index.html
           cp random_character_defense.html _site/random_character_defense.html
           [ -f sw.js ] && cp sw.js _site/sw.js || true
+          [ -f manifest.webmanifest ] && cp manifest.webmanifest _site/manifest.webmanifest || true
+          [ -f live_config.json ] && cp live_config.json _site/live_config.json || true
+          [ -d icons ] && cp -r icons _site/icons || true
           touch _site/.nojekyll
+
+          python3 - <<'PY'
+          import json, os, re, datetime
+          html = open('random_character_defense.html', encoding='utf-8').read()
+          m_build = re.search(r"APP_BUILD_ID\s*=\s*'([^']+)'", html)
+          build_id = m_build.group(1) if m_build else '2026.11.24-mobile-live-v7'
+          sw = open('sw.js', encoding='utf-8').read() if os.path.exists('sw.js') else ''
+          m_cache = re.search(r"CACHE_NAME\s*=\s*'([^']+)'", sw)
+          cache_name = m_cache.group(1) if m_cache else 'rcd-offline-v7'
+          base = {}
+          if os.path.exists('version.json'):
+              try:
+                  base = json.load(open('version.json', encoding='utf-8'))
+              except Exception:
+                  base = {}
+          sha = (os.environ.get('GITHUB_SHA') or 'local')[:7]
+          base.update({
+              'buildId': build_id,
+              'commit': sha,
+              'cacheName': cache_name,
+              'deployedAt': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+              'forceReload': bool(base.get('forceReload', False))
+          })
+          with open('_site/version.json', 'w', encoding='utf-8') as f:
+              json.dump(base, f, ensure_ascii=False, indent=2)
+          print('Stamped _site/version.json:', json.dumps(base, ensure_ascii=False))
+          PY
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

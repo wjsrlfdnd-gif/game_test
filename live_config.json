@@ -1,0 +1,31 @@
+{
+  "configVersion": 1,
+  "updatedAt": "2026-11-24T00:00:00Z",
+  "maintenanceNotice": "",
+  "banner": {
+    "enabled": true,
+    "id": "mobile-live-v7",
+    "text": "📱 모바일 앱 & 실시간 라이브 연결 완료 · 쿠폰: MOBILE2026",
+    "accent": "emerald"
+  },
+  "events": {
+    "name": "모바일 런칭 라이브 서버",
+    "goldMult": 1.0,
+    "gemMult": 1.0,
+    "shardMult": 1.0
+  },
+  "coupons": {
+    "MOBILE2026": {
+      "gold": 2000,
+      "gems": 30,
+      "shards": 20,
+      "label": "모바일 게임 런칭 기념 선물"
+    },
+    "LIVEUPDATE": {
+      "gold": 1500,
+      "gems": 20,
+      "shards": 15,
+      "label": "실시간 업데이트 연동 기념 보상"
+    }
+  }
+}

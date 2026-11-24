@@ -1,0 +1,8 @@
+{
+  "buildId": "2026.11.24-mobile-live-v7",
+  "commit": "local",
+  "cacheName": "rcd-offline-v7",
+  "deployedAt": "2026-11-24T00:00:00Z",
+  "notes": "모바일 게임 앱(PWA+APK) 패키지, 실시간 OTA 업데이트 & 라이브 이벤트 엔진 적용",
+  "forceReload": false
+}

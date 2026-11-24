@@ -1,9 +1,14 @@
-// Random Character Defense — Auto-Sync Offline Service Worker (v6)
-const CACHE_NAME = 'rcd-offline-v6';
+// Random Character Defense — Mobile Game Real-Time OTA & Offline Service Worker (v7)
+const CACHE_NAME = 'rcd-offline-v7';
 const CORE_ASSETS = [
   './',
   './index.html',
-  './random_character_defense.html'
+  './random_character_defense.html',
+  './manifest.webmanifest',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -27,14 +32,43 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  const type = event.data && event.data.type;
+  if (type === 'SKIP_WAITING') {
     self.skipWaiting();
+  } else if (type === 'PURGE_CACHE') {
+    event.waitUntil(
+      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+    );
   }
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const req = event.request;
+  const url = new URL(req.url);
+
+  // 실시간 버전 체크(version.json)는 항상 네트워크 직접 조회 (캐시 우회)
+  if (url.pathname.endsWith('/version.json')) {
+    event.respondWith(fetch(req, { cache: 'no-store' }));
+    return;
+  }
+
+  // 실시간 라이브 설정(live_config.json)은 Network-First + 오프라인 폴백
+  if (url.pathname.endsWith('/live_config.json')) {
+    event.respondWith(
+      fetch(req, { cache: 'no-store' })
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put('./live_config.json', copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match('./live_config.json'))
+    );
+    return;
+  }
+
   const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
 
   // HTML 문서는 항상 Network-First (cache: 'no-store')로 최신 배포본 즉시 동기화, 오프라인 시 캐시 폴백
@@ -44,16 +78,22 @@ self.addEventListener('fetch', (event) => {
         .then((res) => {
           if (res && res.ok) {
             const copy = res.clone();
-            caches.open(CACHE_NAME).then((c) => c.put(req, copy));
+            caches.open(CACHE_NAME).then((c) => {
+              c.put(req, copy.clone());
+              c.put('./index.html', copy);
+            });
           }
           return res;
         })
-        .catch(() => caches.match(req).then((m) => m || caches.match('./random_character_defense.html') || caches.match('./index.html')))
+        .catch(() =>
+          caches.match(req)
+            .then((m) => m || caches.match('./index.html') || caches.match('./random_character_defense.html') || caches.match('./'))
+        )
     );
     return;
   }
 
-  // 정적 리소스는 Stale-While-Revalidate
+  // 정적 리소스(아이콘, 매니페스트 등)는 Stale-While-Revalidate
   event.respondWith(
     caches.match(req).then((cached) => {
       const netFetch = fetch(req)

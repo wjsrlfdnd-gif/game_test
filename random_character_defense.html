@@ -8,7 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="랜덤디펜스" />
-  <meta name="screen-orientation" content="landscape" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
   <title>랜덤 캐릭터 디펜스 (Random Character Defense)</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -1163,6 +1165,7 @@
       #lobbyTabBar > button { padding: 0.14rem 0.36rem !important; font-size: 0.62rem !important; }
       #lobbyStageHeaderStrip { display: none !important; }
       #lobbyBossPatternBox { display: none !important; }
+      #liveEventBar { display: none !important; }
       #lobbyTabStage:not(.hidden) { padding: 0.2rem 0.34rem !important; gap: 0.14rem !important; }
       #worldSliderOverlay { padding: 0.16rem 0.34rem !important; gap: 0.08rem !important; }
       #worldArrowRow { min-height: 16px; }
@@ -1171,16 +1174,47 @@
       #btnStartStageBattle { padding: 0.26rem 0.72rem !important; font-size: 0.7rem !important; }
       #battleSynergyBar { display: none !important; }
     }
+    @keyframes splashPulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.45)); }
+      50% { transform: scale(1.04); filter: drop-shadow(0 0 22px rgba(244, 63, 94, 0.7)); }
+    }
+    #mobileSplashOverlay {
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+    #mobileSplashOverlay.splash-done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body class="min-h-[100dvh] flex flex-col">
-  <!-- Auto-Sync Update Notification Banner (shown if new version arrives during active battle) -->
-  <div id="appUpdateBanner" class="hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-50 px-3.5 py-2 rounded-2xl bg-slate-900/95 border border-emerald-400/70 shadow-2xl backdrop-blur-md flex items-center gap-3 max-w-[94vw]">
-    <span class="text-xs font-extrabold text-emerald-300">✨ 새 업데이트가 감지되었습니다!</span>
-    <button id="btnApplyAppUpdate" class="game-btn px-3 py-1 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shrink-0">
-      지금 동기화
+  <!-- Mobile Game Boot Splash Overlay (smoothly fades out when assets finish loading) -->
+  <div id="mobileSplashOverlay" class="fixed inset-0 z-[70] bg-slate-950 flex flex-col items-center justify-center gap-3.5 px-6 text-center" style="background:radial-gradient(circle at 50% 35%, #1e293b 0%, #070b14 75%);">
+    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-300 via-rose-500 to-purple-600 p-1 shadow-2xl flex items-center justify-center" style="animation:splashPulse 1.8s ease-in-out infinite;">
+      <div class="w-full h-full rounded-xl bg-slate-950/90 flex items-center justify-center font-black text-2xl text-amber-300 tracking-tight">RCD</div>
+    </div>
+    <div>
+      <div class="text-lg font-black text-white tracking-tight">랜덤 캐릭터 디펜스</div>
+      <div id="splashStatusText" class="text-[11px] text-amber-300/90 font-semibold mt-0.5">2.5D HD-2D 모바일 에디션 로딩 중...</div>
+    </div>
+    <div class="w-48 h-1.5 rounded-full bg-slate-800 overflow-hidden border border-slate-700/70">
+      <div id="splashProgressBar" class="h-full w-1/3 bg-gradient-to-r from-amber-400 via-rose-500 to-cyan-400 transition-all duration-300"></div>
+    </div>
+    <div id="splashVersionLbl" class="text-[10px] text-slate-500 font-bold tracking-wider">v7 LIVE</div>
+  </div>
+
+  <!-- Real-Time OTA Update Notification Banner -->
+  <div id="appUpdateBanner" class="hidden fixed top-[max(0.75rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-[95] px-3.5 py-2 rounded-2xl bg-slate-900/95 border border-emerald-400/80 shadow-[0_12px_36px_rgba(2,6,23,0.9)] backdrop-blur-md flex items-center gap-2.5 w-[min(94vw,440px)]">
+    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0"></span>
+    <div class="min-w-0 flex-1">
+      <div class="text-xs font-extrabold text-emerald-300 truncate">✨ 실시간 새 업데이트 도착!</div>
+      <div id="appUpdateMsg" class="text-[10px] text-slate-300 truncate">최신 패치를 즉시 적용할 수 있습니다 (세이브 자동 유지)</div>
+    </div>
+    <button id="btnApplyAppUpdate" class="game-btn px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shrink-0">
+      지금 적용
     </button>
-    <button id="btnDismissAppUpdate" class="text-slate-400 hover:text-white text-xs font-bold px-1">✕</button>
+    <button id="btnDismissAppUpdate" class="text-slate-400 hover:text-white text-xs font-bold px-1 shrink-0">✕</button>
   </div>
 
   <!-- Top Navigation & Resource Bar -->
@@ -1273,6 +1307,16 @@
           🧬 <span class="portrait-label-hide">특성 </span>연구소
         </button>
       </div>
+    </div>
+
+    <!-- Real-Time Live Announcement & Hot-Event Multiplier Strip (powered by live_config.json) -->
+    <div id="liveEventBar" class="hidden panel-glass border border-emerald-500/45 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 text-[11px] shadow">
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+        <span id="liveEventText" class="text-emerald-200 font-bold truncate"></span>
+        <span id="liveEventMultBadges" class="hidden sm:inline-flex items-center gap-1 shrink-0"></span>
+      </div>
+      <button id="btnDismissLiveBanner" type="button" class="text-slate-400 hover:text-white text-xs font-bold px-1 shrink-0" title="닫기">✕</button>
     </div>
 
     <!-- TAB 1: STAGE SELECT (Unified Map-Integrated Info & Bottom Start Button) -->
@@ -2127,23 +2171,27 @@
       </div>
   </div>
 
-  <!-- PWA App Install & Mobile Landscape Guide Modal -->
+  <!-- Mobile Game App Install (PWA + Android APK) Guide Modal -->
   <div id="installAppModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
     <div class="bg-slate-900 border border-emerald-500/50 rounded-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto shadow-2xl">
       <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-950/70 sticky top-0">
-        <h3 class="text-sm sm:text-base font-extrabold text-emerald-300">📲 앱 설치 & 가로모드 최적화</h3>
+        <h3 class="text-sm sm:text-base font-extrabold text-emerald-300">📲 모바일 게임 앱 설치 (PWA · APK)</h3>
         <button id="btnCloseInstallModal" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">닫기</button>
       </div>
       <div class="p-4 flex flex-col gap-3 text-xs text-slate-200 leading-relaxed">
         <div id="installStatusBadge" class="px-3 py-2 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 font-semibold">
-          가로모드 전용(Landscape) 독립 앱 설정이 적용되어 있습니다.
+          세로·가로 자동 최적화 + 재설치 없는 실시간 자동 업데이트가 적용되어 있습니다.
         </div>
 
+        <a id="btnDownloadAndroidApk" href="https://github.com/wjsrlfdnd-gif/game_test/releases/latest" target="_blank" rel="noopener noreferrer" class="game-btn w-full py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-slate-950 font-black text-xs text-center shadow-lg flex items-center justify-center gap-2">
+          <span>🤖 Android 설치 앱 (APK) 바로 다운로드</span>
+        </a>
+
         <div class="space-y-2 bg-slate-950/70 border border-slate-800 rounded-xl p-3">
-          <div class="font-extrabold text-amber-300">기기별 홈 화면 앱 설치 방법</div>
-          <div><span class="font-bold text-sky-300">• Android (Chrome / 삼성 인터넷):</span> 상단/하단 메뉴(⋮) → <b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 선택하세요.</div>
-          <div><span class="font-bold text-rose-300">• iPhone / iPad (Safari):</span> 하단 공유 버튼(□↑) → <b>홈 화면에 추가</b>를 선택하세요.</div>
-          <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-800/80">※ 브라우저 보안상 로컬 파일(file://)이나 카톡/네이버 인앱 브라우저에서는 앱 설치가 제한됩니다. Chrome/Safari에서 <b>HTTPS 웹 주소</b>로 열면 바로 설치할 수 있으며, 직접 호스팅 시 같은 폴더에 <b>sw.js</b>를 함께 두면 원클릭 설치 팝업이 활성화됩니다.</div>
+          <div class="font-extrabold text-amber-300">홈 화면 바로 설치 (PWA · 안드로이드 / 아이폰)</div>
+          <div><span class="font-bold text-sky-300">• Android (Chrome / 삼성 인터넷):</span> 아래 <b>[설치 팝업 실행]</b> 또는 브라우저 메뉴(⋮) → <b>앱 설치</b></div>
+          <div><span class="font-bold text-rose-300">• iPhone / iPad (Safari):</span> 하단 공유 버튼(□↑) → <b>홈 화면에 추가</b></div>
+          <div class="text-[11px] text-emerald-300/90 pt-1 border-t border-slate-800/80">⚡ PWA·APK 모두 GitHub 배포 시 30초 내 실시간 자동 업데이트되며 세이브 데이터가 그대로 유지됩니다.</div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 pt-1">
@@ -2155,7 +2203,7 @@
           </button>
         </div>
         <button id="btnDownloadSwJs" class="game-btn w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[11px] font-bold text-slate-200">
-          💾 자체 호스팅용 sw.js 다운로드 (원클릭 설치 지원)
+          💾 자체 호스팅용 sw.js 다운로드
         </button>
       </div>
     </div>
@@ -2200,15 +2248,18 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
-          <button id="btnPause" class="game-btn px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+          <button id="btnPause" class="game-btn px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200">
             일시정지
           </button>
-          <button id="btnSound" class="game-btn px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-emerald-300">
+          <button id="btnSound" class="game-btn px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-emerald-300">
             효과음: ON
           </button>
-          <button id="btnBgmToggle" class="game-btn px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-cyan-300">
+          <button id="btnBgmToggle" class="game-btn px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-cyan-300">
             배경음: ON
+          </button>
+          <button id="btnHapticToggle" class="game-btn px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-amber-300">
+            📳 진동: ON
           </button>
         </div>
 
@@ -2231,7 +2282,7 @@
 
         <div class="grid grid-cols-2 gap-2">
           <button id="btnModalInstallApp" class="game-btn px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-extrabold text-white shadow">
-            📲 앱 설치 (가로모드)
+            📲 앱 설치 (PWA · APK)
           </button>
           <button id="btnModalLandscapeFs" class="game-btn px-3 py-2 rounded-lg bg-sky-700 hover:bg-sky-600 text-xs font-bold text-white shadow">
             📱 가로모드 전체화면
@@ -2244,6 +2295,33 @@
           </button>
           <button id="btnRestart" class="game-btn px-3 py-2 rounded-lg bg-rose-700 hover:bg-rose-600 text-xs font-bold text-white">
             재시작
+          </button>
+        </div>
+
+        <!-- Real-Time Live Coupon Redemption -->
+        <div class="pt-2 border-t border-slate-800 flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-fuchsia-300">🎁 실시간 이벤트 쿠폰 입력</span>
+            <span class="text-[10px] text-slate-500">live_config.json 연동</span>
+          </div>
+          <div class="flex gap-1.5">
+            <input id="txtCouponCode" type="text" placeholder="쿠폰 코드 입력 (예: MOBILE2026)" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-100 uppercase focus:outline-none focus:border-fuchsia-400" />
+            <button id="btnRedeemCoupon" class="game-btn px-3 py-1.5 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-[11px] font-extrabold text-white shrink-0">보상 받기</button>
+          </div>
+          <div id="lblCouponStatus" class="hidden text-[10px] font-bold"></div>
+        </div>
+
+        <!-- Real-Time OTA Version Status & Manual Sync -->
+        <div class="p-2.5 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div class="text-[10px] font-extrabold text-emerald-300 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>실시간 자동 업데이트 (30초 동기화)</span>
+            </div>
+            <div id="lblLiveVersionInfo" class="text-[10px] text-slate-400 truncate mt-0.5 tabular-nums">빌드: 2026.11.24-mobile-live-v7</div>
+          </div>
+          <button id="btnCheckUpdateNow" class="game-btn px-2.5 py-1.5 rounded-lg bg-emerald-600/25 hover:bg-emerald-600/40 border border-emerald-400/50 text-[11px] font-bold text-emerald-200 shrink-0">
+            🔄 업데이트 확인
           </button>
         </div>
 
@@ -3573,6 +3651,26 @@
         return false;
       }
 
+      let hapticOn = true;
+      let claimedCoupons = [];
+      let liveConfig = {
+        configVersion: 0,
+        updatedAt: '',
+        maintenanceNotice: '',
+        banner: null,
+        events: { name: '', goldMult: 1, gemMult: 1, shardMult: 1 },
+        coupons: {}
+      };
+      function getLiveEventMultipliers() {
+        const ev = (liveConfig && liveConfig.events) ? liveConfig.events : {};
+        return {
+          name: ev.name || '',
+          goldMult: Math.max(0.5, Math.min(10, Number(ev.goldMult) || 1)),
+          gemMult: Math.max(0.5, Math.min(10, Number(ev.gemMult) || 1)),
+          shardMult: Math.max(0.5, Math.min(10, Number(ev.shardMult) || 1))
+        };
+      }
+
       function saveGameData() {
         try {
           const payload = {
@@ -3601,6 +3699,8 @@
             talents,
             soundOn: typeof soundOn === 'boolean' ? soundOn : true,
             bgmOn: typeof bgmOn === 'boolean' ? bgmOn : true,
+            hapticOn: typeof hapticOn === 'boolean' ? hapticOn : true,
+            claimedCoupons: Array.isArray(claimedCoupons) ? claimedCoupons : [],
             sfxVolume,
             bgmVolume,
             autoMergeOn: typeof autoMergeOn === 'boolean' ? autoMergeOn : false
@@ -3661,6 +3761,8 @@
           }
           if (typeof data.bgmOn === 'boolean') bgmOn = data.bgmOn;
           if (typeof data.soundOn === 'boolean') soundOn = data.soundOn;
+          if (typeof data.hapticOn === 'boolean') hapticOn = data.hapticOn;
+          if (Array.isArray(data.claimedCoupons)) claimedCoupons = data.claimedCoupons.slice(0, 128);
           if (typeof data.sfxVolume === 'number') sfxVolume = Math.max(0, Math.min(1, data.sfxVolume));
           if (typeof data.bgmVolume === 'number') bgmVolume = Math.max(0, Math.min(1, data.bgmVolume));
           if (typeof data.autoMergeOn === 'boolean') autoMergeOn = data.autoMergeOn;
@@ -4536,7 +4638,31 @@
         srcNode.stop(startT + dur + 0.02);
       }
 
+      let _lastHapticMs = 0;
+      function triggerHaptic(kind) {
+        if (!hapticOn || typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
+        const patterns = {
+          summon: 14,
+          merge: [14, 22, 18],
+          mythic: [24, 30, 32, 30, 48],
+          ult: [22, 20, 42],
+          bossWarn: [32, 38, 32],
+          victory: [20, 30, 20, 30, 55],
+          defeat: [45, 35, 65],
+          enhance: 12,
+          click: 7
+        };
+        const pat = patterns[kind];
+        if (!pat) return;
+        const nowMs = performance.now();
+        const minGap = kind === 'click' ? 45 : 70;
+        if (nowMs - _lastHapticMs < minGap) return;
+        _lastHapticMs = nowMs;
+        try { navigator.vibrate(pat); } catch (_) {}
+      }
+
       function playSound(kind, opt = {}) {
+        triggerHaptic(kind);
         if (!soundOn) return;
         try {
           if (!ensureAudioGraph()) return;
@@ -4866,21 +4992,22 @@
         const recKey = `${mapKey}_${subLv}`;
         const isFirstClear = !(stageRecords[recKey] && stageRecords[recKey].cleared);
 
+        const ev = getLiveEventMultipliers();
         const midGold = Math.round(220 * battleScale);
-        const midAccGold = Math.round(260 * econScale);
-        const midGems = 2 + Math.floor(wNum / 3) + Math.floor(subLv / 4);
+        const midAccGold = Math.round(260 * econScale * ev.goldMult);
+        const midGems = Math.max(1, Math.round((2 + Math.floor(wNum / 3) + Math.floor(subLv / 4)) * ev.gemMult));
 
         const mainGold = Math.round(480 * battleScale);
-        const mainAccGold = Math.round(620 * econScale);
-        const mainGems = 5 + Math.floor(wNum / 2) + Math.floor(subLv / 3);
+        const mainAccGold = Math.round(620 * econScale * ev.goldMult);
+        const mainGems = Math.max(1, Math.round((5 + Math.floor(wNum / 2) + Math.floor(subLv / 3)) * ev.gemMult));
 
         const bountyGold = Math.round(180 * battleScale);
-        const bountyAccGold = Math.round(180 * econScale);
-        const bountyGems = 2 + Math.floor(wNum / 4);
+        const bountyAccGold = Math.round(180 * econScale * ev.goldMult);
+        const bountyGems = Math.max(1, Math.round((2 + Math.floor(wNum / 4)) * ev.gemMult));
 
-        const baseClearGold = Math.round(780 * econScale);
-        const baseClearGems = 7 + Math.floor(wNum * 0.9) + subLv;
-        const baseClearShards = 8 + wNum * 2 + Math.floor(subLv * 0.8);
+        const baseClearGold = Math.round(780 * econScale * ev.goldMult);
+        const baseClearGems = Math.max(1, Math.round((7 + Math.floor(wNum * 0.9) + subLv) * ev.gemMult));
+        const baseClearShards = Math.max(1, Math.round((8 + wNum * 2 + Math.floor(subLv * 0.8)) * ev.shardMult));
         const clearGold = isFirstClear ? baseClearGold * 2 : baseClearGold;
         const clearGems = isFirstClear ? baseClearGems * 2 : baseClearGems;
         const clearShards = isFirstClear ? baseClearShards * 2 : baseClearShards;
@@ -6981,13 +7108,16 @@
         updateBgmGain();
         questStats.clears++;
         if (gameMode === 'trial_gold') {
-          accountGold += 2400;
+          const ev = getLiveEventMultipliers();
+          const tGold = Math.round(2400 * ev.goldMult);
+          const tShards = Math.round(15 * ev.shardMult);
+          accountGold += tGold;
           consumables.goldPotion += 2;
-          accountShards += 15;
+          accountShards += tShards;
           playSound('victory');
           document.getElementById('gameOverTitle').textContent = '🪙 황금 고블린 소굴 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-amber-300 mb-2';
-          document.getElementById('gameOverSub').textContent = '시련 보상: +2,400 금화 · +15✨ 마력 파편 · 황금 비약 +2개 지급 완료!';
+          document.getElementById('gameOverSub').textContent = `시련 보상: +${tGold.toLocaleString()} 금화 · +${tShards}✨ 마력 파편 · 황금 비약 +2개 지급 완료!`;
           document.getElementById('btnModalNextStage').classList.add('hidden');
           renderGameOverSummary();
           document.getElementById('gameOverModal').classList.remove('hidden');
@@ -6996,13 +7126,17 @@
           return;
         }
         if (gameMode === 'trial_shard') {
-          accountShards += 45;
-          accountGems += 12;
-          accountGold += 600;
+          const ev = getLiveEventMultipliers();
+          const tShards = Math.round(45 * ev.shardMult);
+          const tGems = Math.round(12 * ev.gemMult);
+          const tGold = Math.round(600 * ev.goldMult);
+          accountShards += tShards;
+          accountGems += tGems;
+          accountGold += tGold;
           playSound('victory');
           document.getElementById('gameOverTitle').textContent = '✨ 마력 수정 균열 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-fuchsia-300 mb-2';
-          document.getElementById('gameOverSub').textContent = '시련 보상: +45✨ 마력 파편 · +12💎 보석 · +600 금화 지급 완료!';
+          document.getElementById('gameOverSub').textContent = `시련 보상: +${tShards}✨ 마력 파편 · +${tGems}💎 보석 · +${tGold.toLocaleString()} 금화 지급 완료!`;
           document.getElementById('btnModalNextStage').classList.add('hidden');
           renderGameOverSummary();
           document.getElementById('gameOverModal').classList.remove('hidden');
@@ -11162,144 +11296,390 @@
       });
 
       // =====================================================================
-      // PWA App Installation & Mobile Landscape Fullscreen Optimization
+      // Mobile Game Runtime (PWA + Android APK) & Real-Time OTA / Live-Ops
       // =====================================================================
+      const APP_BUILD_ID = '2026.11.24-mobile-live-v7';
       let deferredInstallPrompt = null;
+      let pwaSwRegistered = false;
+      let swRegistrationRef = null;
+      let pendingUpdateReload = false;
+      let loadedCommitSha = null;
+      let loadedDeployedAt = null;
+      let latestRemoteVersion = null;
+      let screenWakeLock = null;
+      let lastBackPressMs = 0;
+
+      function isNativeApkRuntime() {
+        return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
+          || /[?&]source=apk\b/i.test(location.search);
+      }
 
       function isStandalonePWA() {
-        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        return isNativeApkRuntime()
+          || window.matchMedia('(display-mode: standalone)').matches
+          || window.matchMedia('(display-mode: fullscreen)').matches
+          || window.navigator.standalone === true;
       }
 
-      function makeRcdIconDataUrl(sz) {
-        const c = document.createElement('canvas');
-        c.width = sz;
-        c.height = sz;
-        const g = c.getContext('2d');
-        const grad = g.createLinearGradient(0, 0, sz, sz);
-        grad.addColorStop(0, '#fbbf24');
-        grad.addColorStop(0.5, '#f43f5e');
-        grad.addColorStop(1, '#7c3aed');
-        g.fillStyle = '#0f172a';
-        g.fillRect(0, 0, sz, sz);
-        const pad = Math.round(sz * 0.07);
-        const rad = Math.round(sz * 0.19);
-        g.fillStyle = grad;
-        g.beginPath();
-        if (g.roundRect) g.roundRect(pad, pad, sz - pad * 2, sz - pad * 2, rad);
-        else g.rect(pad, pad, sz - pad * 2, sz - pad * 2);
-        g.fill();
-        g.fillStyle = '#0f172a';
-        g.font = `900 ${Math.round(sz * 0.33)}px Inter, sans-serif`;
-        g.textAlign = 'center';
-        g.textBaseline = 'middle';
-        g.fillText('RCD', sz / 2, sz * 0.52);
-        return c.toDataURL('image/png');
-      }
-
-      let pwaSwRegistered = false;
-      function initPWAManifestAndIcon() {
+      // Wake Lock: 전투 중 화면 꺼짐 방지 (로비·일시정지·백그라운드 시 자동 해제)
+      async function syncScreenWakeLock() {
         try {
-          if (document.querySelector('link[rel="manifest"]')) return;
-          const icon192 = makeRcdIconDataUrl(192);
-          const icon512 = makeRcdIconDataUrl(512);
-          const addLink = (rel, href, sizes) => {
-            const link = document.createElement('link');
-            link.rel = rel;
-            link.href = href;
-            if (sizes) link.sizes = sizes;
-            document.head.appendChild(link);
-          };
-          addLink('icon', icon192, '192x192');
-          addLink('apple-touch-icon', icon512, '512x512');
-
-          const isHttpOrigin = /^https?:$/i.test(location.protocol);
-          const startUrl = isHttpOrigin ? location.href.split('#')[0] : './random_character_defense.html';
-          const scopeUrl = isHttpOrigin ? new URL('.', location.href).href : './';
-          const manifestObj = {
-            id: startUrl,
-            name: '랜덤 캐릭터 디펜스 (Random Character Defense)',
-            short_name: '랜덤디펜스',
-            description: '모바일 가로모드 최적화 랜덤 캐릭터 디펜스',
-            start_url: startUrl,
-            scope: scopeUrl,
-            display: 'standalone',
-            orientation: 'landscape',
-            background_color: '#070b14',
-            theme_color: '#0f172a',
-            icons: [
-              { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
-              { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-              { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any' },
-              { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
-            ]
-          };
-          const manifestUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
-          addLink('manifest', manifestUrl);
-
-          const APP_BUILD_ID = '2026.11.24-mobile-ui-v6';
-          let pendingUpdateReload = false;
-          let swRegistrationRef = null;
-
-          async function applyLatestUpdateNow() {
-            try { saveGameData(); } catch (_) {}
-            try {
-              if ('caches' in window) {
-                const keys = await caches.keys();
-                await Promise.all(keys.map(k => caches.delete(k)));
-              }
-              if (swRegistrationRef && swRegistrationRef.waiting) {
-                swRegistrationRef.waiting.postMessage({ type: 'SKIP_WAITING' });
-              }
-            } catch (_) {}
-            const base = location.href.split('?')[0].split('#')[0];
-            location.replace(`${base}?v=${Date.now()}`);
-          }
-
-          function handleDetectedUpdate() {
-            if (pendingUpdateReload) return;
-            pendingUpdateReload = true;
-            saveGameData();
-            if (inLobby || gameOver) {
-              showToast('✨ 최신 업데이트 감지! 자동 동기화 중...');
-              setTimeout(applyLatestUpdateNow, 900);
-            } else {
-              const banner = document.getElementById('appUpdateBanner');
-              if (banner) banner.classList.remove('hidden');
+          const shouldHold = !document.hidden && !inLobby && !gameOver && !paused;
+          if (shouldHold) {
+            if (!screenWakeLock && navigator.wakeLock && navigator.wakeLock.request) {
+              screenWakeLock = await navigator.wakeLock.request('screen');
+              screenWakeLock.addEventListener('release', () => { screenWakeLock = null; });
             }
+          } else if (screenWakeLock) {
+            await screenWakeLock.release().catch(() => {});
+            screenWakeLock = null;
           }
+        } catch (_) {}
+      }
 
-          async function checkAppUpdateSync() {
-            if (!(location.protocol === 'https:' || location.hostname === 'localhost')) return;
-            try {
-              if (swRegistrationRef) await swRegistrationRef.update().catch(() => {});
-              const res = await fetch(location.href.split('?')[0].split('#')[0], { cache: 'no-store' });
-              if (!res || !res.ok) return;
-              const etag = res.headers.get('etag') || res.headers.get('last-modified') || '';
-              if (etag) {
-                const prevTag = sessionStorage.getItem('rcd_sync_etag');
-                if (prevTag && prevTag !== etag) {
-                  sessionStorage.setItem('rcd_sync_etag', etag);
-                  handleDetectedUpdate();
-                  return;
-                }
-                sessionStorage.setItem('rcd_sync_etag', etag);
-              }
-              const txt = await res.text();
-              const m = txt.match(/APP_BUILD_ID\s*=\s*'([^']+)'/);
-              if (m && m[1] && m[1] !== APP_BUILD_ID) {
-                handleDetectedUpdate();
-              }
-            } catch (_) {}
+      // Haptic Toggle UI sync
+      function syncHapticBtnUI() {
+        const btn = document.getElementById('btnHapticToggle');
+        if (!btn) return;
+        btn.textContent = hapticOn ? '📳 진동: ON' : '📳 진동: OFF';
+        btn.className = hapticOn
+          ? 'game-btn px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-amber-300'
+          : 'game-btn px-2 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-500';
+      }
+      document.getElementById('btnHapticToggle')?.addEventListener('click', () => {
+        hapticOn = !hapticOn;
+        syncHapticBtnUI();
+        if (hapticOn) triggerHaptic('merge');
+        saveGameData();
+        showToast(hapticOn ? '📳 모바일 진동 피드백 ON' : '📳 모바일 진동 피드백 OFF');
+      });
+
+      // Android Hardware Back-Button & Gesture Guard (전투 중 오작동 앱 종료 방지)
+      function initMobileBackButtonGuard() {
+        if (!/^https?:$/i.test(location.protocol)) return;
+        try {
+          if (!history.state || !history.state.rcdGuard) {
+            history.pushState({ rcdGuard: true }, '', location.href);
           }
+          window.addEventListener('popstate', () => {
+            // 1. 열려있는 모달부터 우선 닫기
+            const modalIds = ['installAppModal', 'codexModal', 'mythicRecipeModal', 'settingsModal', 'exitMainModal'];
+            for (const mid of modalIds) {
+              const el = document.getElementById(mid);
+              if (el && !el.classList.contains('hidden')) {
+                if (mid === 'exitMainModal') closeExitMainModal(true);
+                else el.classList.add('hidden');
+                history.pushState({ rcdGuard: true }, '', location.href);
+                return;
+              }
+            }
+            // 2. 전투 중이면 일시정지 + 메인 복귀 확인 모달 표시
+            if (!inLobby && !gameOver) {
+              openExitMainModal();
+              history.pushState({ rcdGuard: true }, '', location.href);
+              return;
+            }
+            // 3. 로비 서브 탭(상점/장비/퀘스트/연구소)이면 스테이지 탭으로 복귀
+            const stageTab = document.getElementById('lobbyTabStage');
+            if (inLobby && stageTab && stageTab.classList.contains('hidden')) {
+              setLobbyTab('stage');
+              history.pushState({ rcdGuard: true }, '', location.href);
+              return;
+            }
+            // 4. 스테이지 로비에서는 2초 내 두 번 뒤로가기 시 종료 허용
+            const now = Date.now();
+            if (now - lastBackPressMs < 2000) {
+              saveGameData();
+              return;
+            }
+            lastBackPressMs = now;
+            showToast('◀ 한 번 더 뒤로가기를 누르면 종료됩니다.');
+            history.pushState({ rcdGuard: true }, '', location.href);
+          });
+        } catch (_) {}
+      }
 
-          const btnApplyUpd = document.getElementById('btnApplyAppUpdate');
-          if (btnApplyUpd) btnApplyUpd.addEventListener('click', applyLatestUpdateNow);
-          const btnDismissUpd = document.getElementById('btnDismissAppUpdate');
-          if (btnDismissUpd) btnDismissUpd.addEventListener('click', () => {
-            document.getElementById('appUpdateBanner').classList.add('hidden');
+      // Live-Ops Banner & Hot-Event Multipliers Renderer (Zero-Reload!)
+      function renderLiveEventBar() {
+        const bar = document.getElementById('liveEventBar');
+        const txtEl = document.getElementById('liveEventText');
+        const multEl = document.getElementById('liveEventMultBadges');
+        if (!bar || !txtEl) return;
+
+        const banner = liveConfig && liveConfig.banner;
+        const maint = liveConfig && liveConfig.maintenanceNotice;
+        const ev = getLiveEventMultipliers();
+        const hasEventBoost = ev.goldMult > 1.001 || ev.gemMult > 1.001 || ev.shardMult > 1.001;
+        const dismissedId = sessionStorage.getItem('rcd_dismissed_banner_id') || '';
+        const bannerId = (banner && banner.id) || (maint ? 'maint' : (hasEventBoost ? `ev_${ev.goldMult}_${ev.gemMult}_${ev.shardMult}` : ''));
+
+        const shouldShow = Boolean((maint && maint.trim()) || (banner && banner.enabled && banner.text) || hasEventBoost);
+        if (!shouldShow || (!maint && !hasEventBoost && dismissedId && dismissedId === bannerId)) {
+          bar.classList.add('hidden');
+          return;
+        }
+
+        if (maint && maint.trim()) {
+          txtEl.textContent = `🚧 공지: ${maint.trim()}`;
+          bar.className = 'panel-glass border border-rose-500/55 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 text-[11px] shadow';
+          txtEl.className = 'text-rose-200 font-bold truncate';
+        } else {
+          const msg = (banner && banner.enabled && banner.text)
+            ? banner.text
+            : `🔥 실시간 이벤트 진행 중: ${ev.name || '보상 부스트'}`;
+          txtEl.textContent = msg;
+          bar.className = 'panel-glass border border-emerald-500/45 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 text-[11px] shadow';
+          txtEl.className = 'text-emerald-200 font-bold truncate';
+        }
+
+        if (multEl) {
+          const pills = [];
+          if (ev.goldMult > 1.001) pills.push(`<span class="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-400/45 text-[10px] font-black text-amber-300">🪙 x${ev.goldMult}</span>`);
+          if (ev.gemMult > 1.001) pills.push(`<span class="px-1.5 py-0.5 rounded bg-cyan-500/20 border border-cyan-400/45 text-[10px] font-black text-cyan-300">💎 x${ev.gemMult}</span>`);
+          if (ev.shardMult > 1.001) pills.push(`<span class="px-1.5 py-0.5 rounded bg-fuchsia-500/20 border border-fuchsia-400/45 text-[10px] font-black text-fuchsia-300">✨ x${ev.shardMult}</span>`);
+          if (pills.length > 0) {
+            multEl.innerHTML = pills.join('');
+            multEl.classList.remove('hidden');
+          } else {
+            multEl.innerHTML = '';
+            multEl.classList.add('hidden');
+          }
+        }
+        bar.dataset.bannerId = bannerId;
+        bar.classList.remove('hidden');
+      }
+
+      document.getElementById('btnDismissLiveBanner')?.addEventListener('click', () => {
+        const bar = document.getElementById('liveEventBar');
+        if (!bar) return;
+        if (bar.dataset.bannerId) sessionStorage.setItem('rcd_dismissed_banner_id', bar.dataset.bannerId);
+        bar.classList.add('hidden');
+      });
+
+      // Live Coupon Redemption (powered by live_config.json without app restart!)
+      function setCouponStatusMsg(msg, tone = 'info') {
+        const el = document.getElementById('lblCouponStatus');
+        if (!el) return;
+        const toneCls = tone === 'ok'
+          ? 'text-emerald-300'
+          : (tone === 'warn' ? 'text-amber-300' : 'text-rose-300');
+        el.className = `text-[10px] font-bold ${toneCls}`;
+        el.textContent = msg;
+      }
+      async function redeemLiveCoupon() {
+        const inp = document.getElementById('txtCouponCode');
+        if (!inp) return;
+        const rawCode = (inp.value || '').trim().toUpperCase();
+        if (!rawCode) {
+          const m = '🎁 쿠폰 코드를 입력해 주세요! (예: MOBILE2026)';
+          setCouponStatusMsg(m, 'warn');
+          showToast(m);
+          return;
+        }
+        // 최신 쿠폰 목록 즉시 재확인
+        await fetchLiveConfig(false);
+        const coupons = (liveConfig && liveConfig.coupons && typeof liveConfig.coupons === 'object') ? liveConfig.coupons : {};
+        const entry = coupons[rawCode];
+        if (!entry) {
+          const m = '❌ 유효하지 않거나 만료된 쿠폰 코드입니다.';
+          setCouponStatusMsg(m, 'err');
+          showToast(m);
+          return;
+        }
+        if (claimedCoupons.includes(rawCode)) {
+          const m = '⚠️ 이미 수령한 쿠폰 코드입니다.';
+          setCouponStatusMsg(m, 'warn');
+          showToast(m);
+          return;
+        }
+        const g = Math.max(0, Math.floor(Number(entry.gold) || 0));
+        const gem = Math.max(0, Math.floor(Number(entry.gems) || 0));
+        const sh = Math.max(0, Math.floor(Number(entry.shards) || 0));
+        accountGold += g;
+        accountGems += gem;
+        accountShards += sh;
+        claimedCoupons.push(rawCode);
+        inp.value = '';
+        playSound('victory');
+        saveGameData();
+        renderLobbyAll();
+        syncUI();
+        const parts = [];
+        if (g > 0) parts.push(`+${g.toLocaleString()}G`);
+        if (gem > 0) parts.push(`+${gem}💎`);
+        if (sh > 0) parts.push(`+${sh}✨`);
+        const okMsg = `🎁 [${entry.label || rawCode}] 수령 완료! (${parts.join(' · ')})`;
+        setCouponStatusMsg(okMsg, 'ok');
+        showToast(okMsg);
+      }
+      document.getElementById('btnRedeemCoupon')?.addEventListener('click', redeemLiveCoupon);
+      document.getElementById('txtCouponCode')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') redeemLiveCoupon();
+      });
+
+      function updateLiveVersionLabel(extraNote = '') {
+        const el = document.getElementById('lblLiveVersionInfo');
+        const spl = document.getElementById('splashVersionLbl');
+        const shaTag = loadedCommitSha && loadedCommitSha !== 'local' ? ` (#${loadedCommitSha})` : '';
+        const modeTag = isNativeApkRuntime() ? 'APK' : (isStandalonePWA() ? 'PWA' : 'WEB');
+        if (el) {
+          const nowStr = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          el.textContent = `[${modeTag}] ${APP_BUILD_ID}${shaTag}${extraNote ? ` · ${extraNote}` : ` · 동기화 ${nowStr}`}`;
+        }
+        if (spl) spl.textContent = `${modeTag} · ${APP_BUILD_ID}${shaTag}`;
+      }
+
+      async function fetchLiveConfig(showDiffToast = true) {
+        if (!/^https?:$/i.test(location.protocol)) return false;
+        try {
+          const res = await fetch(`./live_config.json?t=${Date.now()}`, { cache: 'no-store' });
+          if (!res || !res.ok) return false;
+          const nextCfg = await res.json();
+          if (!nextCfg || typeof nextCfg !== 'object') return false;
+          const prevEv = getLiveEventMultipliers();
+          const prevVer = liveConfig.configVersion || 0;
+          liveConfig = Object.assign({ configVersion: 1, events: { goldMult: 1, gemMult: 1, shardMult: 1 }, coupons: {} }, nextCfg);
+          const nextEv = getLiveEventMultipliers();
+          renderLiveEventBar();
+          const multChanged = prevEv.goldMult !== nextEv.goldMult || prevEv.gemMult !== nextEv.gemMult || prevEv.shardMult !== nextEv.shardMult;
+          if (multChanged) {
+            if (inLobby) renderLobbyStageTab();
+            if (showDiffToast && prevVer > 0) {
+              showToast(`🔥 실시간 이벤트 배율 적용! (${nextEv.name || '라이브 부스트'})`);
+            }
+          } else if (showDiffToast && prevVer > 0 && nextCfg.configVersion && nextCfg.configVersion !== prevVer) {
+            showToast('📡 실시간 공지·쿠폰 설정이 업데이트되었습니다!');
+          }
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      async function applyLatestUpdateNow() {
+        try { saveGameData(); } catch (_) {}
+        try {
+          if (swRegistrationRef && swRegistrationRef.waiting) {
+            swRegistrationRef.waiting.postMessage({ type: 'SKIP_WAITING' });
+          } else if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'PURGE_CACHE' });
+          }
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          }
+        } catch (_) {}
+        const url = new URL(location.href);
+        url.searchParams.set('v', String(Date.now()));
+        location.replace(url.toString());
+      }
+
+      function handleDetectedUpdate(remoteInfo = null) {
+        if (pendingUpdateReload) return;
+        pendingUpdateReload = true;
+        latestRemoteVersion = remoteInfo;
+        saveGameData();
+
+        const notes = (remoteInfo && remoteInfo.notes)
+          ? remoteInfo.notes
+          : '최신 패치를 즉시 적용할 수 있습니다 (세이브 자동 유지)';
+        const msgEl = document.getElementById('appUpdateMsg');
+        if (msgEl) msgEl.textContent = notes;
+
+        const hasOpenModal = ['settingsModal', 'codexModal', 'mythicRecipeModal', 'installAppModal']
+          .some(id => {
+            const el = document.getElementById(id);
+            return el && !el.classList.contains('hidden');
           });
 
-          if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+        const banner = document.getElementById('appUpdateBanner');
+        if (banner) banner.classList.remove('hidden');
+        updateLiveVersionLabel('새 버전 준비됨!');
+
+        // 로비 대기 상태(모달 미열림) 또는 강제 업데이트 플래그 시 자동 동기화
+        if ((inLobby && !hasOpenModal) || (remoteInfo && remoteInfo.forceReload)) {
+          showToast(`✨ 새 업데이트(${remoteInfo?.commit || '최신'}) 감지! 자동 적용 중...`);
+          setTimeout(applyLatestUpdateNow, 1200);
+        } else {
+          showToast('✨ 새 버전이 도착했습니다! 전투 후 [지금 적용]을 눌러주세요.');
+        }
+      }
+
+      // Ultra-Light 200-byte Real-Time Update Check (version.json + sw.js + live_config.json)
+      async function checkAppUpdateSync(manual = false) {
+        if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          if (manual) showToast('💡 실시간 업데이트는 HTTPS 웹/모바일 앱에서 동작합니다.');
+          return;
+        }
+        try {
+          if (swRegistrationRef) await swRegistrationRef.update().catch(() => {});
+          await fetchLiveConfig(!manual);
+
+          const res = await fetch(`./version.json?t=${Date.now()}`, { cache: 'no-store' });
+          if (res && res.ok) {
+            const info = await res.json();
+            const remoteBuild = info && info.buildId ? String(info.buildId) : '';
+            const remoteCommit = info && info.commit ? String(info.commit) : '';
+            const remoteAt = info && info.deployedAt ? String(info.deployedAt) : '';
+
+            // 1) 빌드 ID가 다르면 즉시 업데이트 감지!
+            if (remoteBuild && remoteBuild !== APP_BUILD_ID) {
+              handleDetectedUpdate(info);
+              return;
+            }
+            // 2) 같은 빌드 ID여도 Git 커밋 SHA 또는 배포 시각이 바뀌면 즉시 실시간 감지!
+            if (remoteCommit) {
+              if (!loadedCommitSha) {
+                loadedCommitSha = remoteCommit;
+                loadedDeployedAt = remoteAt || null;
+                sessionStorage.setItem('rcd_loaded_commit', remoteCommit);
+                if (remoteAt) sessionStorage.setItem('rcd_loaded_deployed_at', remoteAt);
+              } else if (loadedCommitSha !== remoteCommit || (loadedDeployedAt && remoteAt && loadedDeployedAt !== remoteAt)) {
+                handleDetectedUpdate(info);
+                return;
+              }
+            }
+            updateLiveVersionLabel();
+            if (manual) showToast(`✅ 최신 버전입니다! (${APP_BUILD_ID}${loadedCommitSha && loadedCommitSha !== 'local' ? ' #' + loadedCommitSha : ''})`);
+            return;
+          }
+          if (manual) showToast('✅ 현재 최신 버전을 사용 중입니다.');
+        } catch (_) {
+          if (manual) showToast('⚠️ 오프라인 상태이거나 서버에 연결할 수 없습니다.');
+        }
+      }
+
+      function initRealtimeLiveEngine() {
+        try {
+          // file:// 로컬 실행 시에만 동적 매니페스트 폴백
+          if (!/^https?:$/i.test(location.protocol) && !document.querySelector('link[rel="manifest"]')) {
+            const mf = {
+              name: '랜덤 캐릭터 디펜스',
+              short_name: '랜덤디펜스',
+              start_url: './random_character_defense.html',
+              display: 'standalone',
+              background_color: '#070b14',
+              theme_color: '#0f172a'
+            };
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(mf));
+            document.head.appendChild(link);
+          }
+
+          document.getElementById('btnApplyAppUpdate')?.addEventListener('click', applyLatestUpdateNow);
+          document.getElementById('btnDismissAppUpdate')?.addEventListener('click', () => {
+            document.getElementById('appUpdateBanner')?.classList.add('hidden');
+            pendingUpdateReload = false;
+          });
+          document.getElementById('btnCheckUpdateNow')?.addEventListener('click', () => {
+            playSound('click');
+            checkAppUpdateSync(true);
+          });
+
+          if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+            // 첫 방문 시 clients.claim()으로 인한 불필요한 새로고침 방지
+            const hadInitialController = Boolean(navigator.serviceWorker.controller);
             navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' })
               .then((reg) => {
                 pwaSwRegistered = true;
@@ -11308,8 +11688,8 @@
                   const nw = reg.installing;
                   if (!nw) return;
                   nw.addEventListener('statechange', () => {
-                    if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-                      handleDetectedUpdate();
+                    if (nw.state === 'installed' && hadInitialController && navigator.serviceWorker.controller) {
+                      handleDetectedUpdate(latestRemoteVersion);
                     }
                   });
                 });
@@ -11317,13 +11697,13 @@
               .catch(() => { pwaSwRegistered = false; });
 
             navigator.serviceWorker.addEventListener('controllerchange', () => {
-              if (!pendingUpdateReload && (inLobby || gameOver)) {
-                handleDetectedUpdate();
+              if (hadInitialController && !pendingUpdateReload && (inLobby || gameOver)) {
+                handleDetectedUpdate(latestRemoteVersion);
               }
             });
           }
 
-          // 포그라운드 복귀 시 자동 일시정지 해제 안내 + 최신 업데이트 자동 동기화 체크
+          // 포그라운드 복귀·네트워크 재연결 시 즉시 실시간 동기화 + Wake Lock 재획득
           document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
               saveGameData();
@@ -11333,16 +11713,35 @@
                 if (pBtn) pBtn.textContent = '재개';
               }
               updateBgmGain();
+              syncScreenWakeLock();
             } else {
               updateBgmGain();
-              checkAppUpdateSync();
+              syncScreenWakeLock();
+              checkAppUpdateSync(false);
             }
           });
-          setInterval(checkAppUpdateSync, 5 * 60 * 1000);
-          setTimeout(checkAppUpdateSync, 4000);
+          window.addEventListener('online', () => {
+            showToast('📡 네트워크 재연결! 실시간 업데이트 확인 중...');
+            checkAppUpdateSync(false);
+          });
+
+          // 부팅 즉시 live_config + version 기준선 확보 후 30초 간격 초경량 실시간 동기화
+          updateLiveVersionLabel();
+          checkAppUpdateSync(false);
+          setInterval(() => {
+            if (!document.hidden) checkAppUpdateSync(false);
+          }, 30 * 1000);
         } catch (_) {}
       }
-      initPWAManifestAndIcon();
+      initRealtimeLiveEngine();
+      initMobileBackButtonGuard();
+
+      // switchScreen / pause 시 Wake Lock 상태 자동 동기화
+      const _origSwitchScreen = switchScreen;
+      switchScreen = function (toLobby) {
+        _origSwitchScreen(toLobby);
+        syncScreenWakeLock();
+      };
 
       async function enterLandscapeFullscreen() {
         try {
@@ -11364,22 +11763,10 @@
         }
       }
 
-      async function triggerAppInstall() {
+      function openInstallAppModal() {
         if (isStandalonePWA()) {
-          showToast('✅ 이미 앱으로 설치되어 실행 중입니다!');
+          showToast(isNativeApkRuntime() ? '✅ Android 모바일 게임 앱으로 실행 중입니다!' : '✅ 이미 홈 화면 앱으로 설치되어 실행 중입니다!');
           return;
-        }
-        if (deferredInstallPrompt) {
-          try {
-            deferredInstallPrompt.prompt();
-            const choice = await deferredInstallPrompt.userChoice;
-            deferredInstallPrompt = null;
-            if (choice && choice.outcome === 'accepted') {
-              showToast('🎉 앱 설치가 완료되었습니다! 홈 화면에서 가로모드로 실행하세요.');
-              document.getElementById('installAppModal').classList.add('hidden');
-              return;
-            }
-          } catch (_) {}
         }
         const badge = document.getElementById('installStatusBadge');
         if (badge) {
@@ -11388,18 +11775,41 @@
           const isLocalFile = location.protocol === 'file:' || location.protocol === 'content:' || location.protocol === 'blob:';
           const isIOS = /iPhone|iPad|iPod/i.test(ua);
           if (deferredInstallPrompt) {
-            badge.textContent = '✅ 원클릭 앱 설치가 준비되었습니다! 아래 [설치 팝업 실행]을 눌러주세요.';
+            badge.textContent = '✅ 원클릭 PWA 앱 설치 준비 완료! 아래 [설치 팝업 실행] 또는 [Android APK]를 선택하세요.';
           } else if (isInApp) {
-            badge.textContent = '⚠️ 인앱 브라우저에서는 앱 설치가 차단됩니다. 메뉴에서 [Chrome/Safari로 열기] 후 설치해 주세요.';
+            badge.textContent = '⚠️ 인앱 브라우저에서는 앱 설치가 제한됩니다. [Chrome/Safari로 열기] 또는 아래 Android APK를 다운로드해 주세요.';
           } else if (isLocalFile) {
-            badge.textContent = '⚠️ 현재 로컬 파일로 열려 있어 원클릭 앱 설치가 제한됩니다. HTTPS 웹 호스팅에서 열거나 브라우저 메뉴 → [홈 화면에 추가]를 이용해 주세요.';
+            badge.textContent = '⚠️ 로컬 파일 실행 중입니다. HTTPS 배포 주소 또는 Android APK로 설치하면 실시간 업데이트가 활성화됩니다.';
           } else if (isIOS) {
-            badge.textContent = '📱 iOS Safari: 하단 공유 버튼(□↑) → [홈 화면에 추가]로 앱처럼 설치할 수 있습니다.';
+            badge.textContent = '📱 iPhone / iPad Safari: 하단 공유(□↑) → [홈 화면에 추가]로 앱처럼 설치할 수 있습니다.';
           } else {
-            badge.textContent = '💡 브라우저 우측 상단 메뉴(⋮) → [앱 설치] 또는 [홈 화면에 추가]를 선택해 주세요.';
+            badge.textContent = '📲 Android APK를 직접 설치하거나 Chrome 메뉴(⋮) → [앱 설치]를 선택하세요. (실시간 자동 업데이트 지원)';
           }
         }
         document.getElementById('installAppModal').classList.remove('hidden');
+      }
+
+      async function runNativePwaInstallPrompt() {
+        if (isStandalonePWA()) {
+          showToast(isNativeApkRuntime() ? '✅ Android 모바일 게임 앱으로 실행 중입니다!' : '✅ 이미 홈 화면 앱으로 설치되어 실행 중입니다!');
+          return;
+        }
+        if (deferredInstallPrompt) {
+          try {
+            await deferredInstallPrompt.prompt();
+            const choice = await deferredInstallPrompt.userChoice;
+            deferredInstallPrompt = null;
+            if (choice && choice.outcome === 'accepted') {
+              showToast('🎉 앱 설치 완료! 홈 화면 아이콘으로 전체화면 실행하세요.');
+              document.getElementById('installAppModal').classList.add('hidden');
+              return;
+            }
+          } catch (_) {
+            showToast('💡 브라우저 메뉴(⋮ 또는 공유)에서 [앱 설치 / 홈 화면에 추가]를 선택해 주세요.');
+          }
+        } else {
+          showToast('💡 브라우저 메뉴(⋮ 또는 공유)에서 [홈 화면에 추가]를 선택해 주세요.');
+        }
       }
 
       window.addEventListener('beforeinstallprompt', (e) => {
@@ -11411,29 +11821,33 @@
 
       window.addEventListener('appinstalled', () => {
         deferredInstallPrompt = null;
-        showToast('🎉 랜덤 캐릭터 디펜스 앱이 설치되었습니다!');
+        showToast('🎉 랜덤 캐릭터 디펜스 모바일 앱이 설치되었습니다!');
         const btn = document.getElementById('btnInstallApp');
-        if (btn) btn.innerHTML = '✅<span class="mobile-label-hide"> 설치됨</span>';
+        if (btn) btn.innerHTML = '✅<span class="mobile-label-hide"> 앱 실행중</span>';
       });
 
-      document.getElementById('btnInstallApp').addEventListener('click', triggerAppInstall);
+      document.getElementById('btnInstallApp').addEventListener('click', openInstallAppModal);
       document.getElementById('btnModalInstallApp').addEventListener('click', () => {
         document.getElementById('settingsModal').classList.add('hidden');
-        triggerAppInstall();
+        openInstallAppModal();
       });
-      document.getElementById('btnGuidePromptInstall').addEventListener('click', () => {
-        if (deferredInstallPrompt) triggerAppInstall();
-        else showToast('💡 브라우저 메뉴(⋮ 또는 공유)에서 [홈 화면에 추가]를 선택해 주세요.');
-      });
-      document.getElementById('btnDownloadSwJs').addEventListener('click', () => {
-        const swContent = "const CACHE_NAME = 'rcd-offline-v4';\nconst CORE_ASSETS = [\n  './',\n  './index.html',\n  './random_character_defense.html'\n];\n\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_NAME).then((cache) =>\n      Promise.allSettled(CORE_ASSETS.map((url) => cache.add(url)))\n    ).then(() => self.skipWaiting())\n  );\n});\n\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys()\n      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))\n      .then(() => self.clients.claim())\n  );\n});\n\nself.addEventListener('fetch', (event) => {\n  if (event.request.method !== 'GET') return;\n  const req = event.request;\n  const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');\n\n  if (isNav) {\n    event.respondWith(\n      fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => caches.match(req).then((m) => m || caches.match('./index.html') || caches.match('./random_character_defense.html')))\n    );\n    return;\n  }\n\n  event.respondWith(\n    caches.match(req).then((cached) => {\n      const netFetch = fetch(req)\n        .then((res) => {\n          if (res && res.ok) {\n            const copy = res.clone();\n            caches.open(CACHE_NAME).then((c) => c.put(req, copy));\n          }\n          return res;\n        })\n        .catch(() => cached);\n      return cached || netFetch;\n    })\n  );\n});\n";
+      document.getElementById('btnGuidePromptInstall').addEventListener('click', runNativePwaInstallPrompt);
+      document.getElementById('btnDownloadSwJs').addEventListener('click', async () => {
+        let swContent = '';
+        try {
+          const r = await fetch('./sw.js', { cache: 'no-store' });
+          if (r && r.ok) swContent = await r.text();
+        } catch (_) {}
+        if (!swContent) {
+          swContent = "const CACHE_NAME = 'rcd-offline-v7';\nself.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));\n";
+        }
         const blob = new Blob([swContent], { type: 'application/javascript' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'sw.js';
         a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-        showToast('💾 sw.js 다운로드 완료! HTML 파일과 같은 폴더에 업로드하면 원클릭 설치가 활성화됩니다.');
+        showToast('💾 sw.js 다운로드 완료!');
       });
       document.getElementById('btnCloseInstallModal').addEventListener('click', () => {
         document.getElementById('installAppModal').classList.add('hidden');
@@ -11454,17 +11868,33 @@
         enterLandscapeFullscreen();
       });
 
+      function finishBootSplash() {
+        const bar = document.getElementById('splashProgressBar');
+        const txt = document.getElementById('splashStatusText');
+        const splash = document.getElementById('mobileSplashOverlay');
+        if (bar) bar.style.width = '100%';
+        if (txt) txt.textContent = '준비 완료! 실시간 라이브 서버 연결됨';
+        setTimeout(() => {
+          if (splash) splash.classList.add('splash-done');
+        }, 260);
+      }
+
       window.onload = () => {
-        initPWAManifestAndIcon();
+        const bar = document.getElementById('splashProgressBar');
+        if (bar) bar.style.width = '68%';
+        syncHapticBtnUI();
         if (isStandalonePWA()) {
           const btn = document.getElementById('btnInstallApp');
-          if (btn) btn.innerHTML = '✅<span class="mobile-label-hide"> 앱 실행중</span>';
+          if (btn) btn.innerHTML = isNativeApkRuntime()
+            ? '🤖<span class="mobile-label-hide"> 앱 실행중</span>'
+            : '✅<span class="mobile-label-hide"> 앱 실행중</span>';
         }
         buildCodex();
         loadAssets(() => {
           resetGame();
           renderLobbyAll();
           switchScreen(true); // Open on Main Lobby so user can inspect n-1~n-10, Shop, and Equipment Forge immediately
+          finishBootSplash();
           requestAnimationFrame(gameLoop);
         });
       };
