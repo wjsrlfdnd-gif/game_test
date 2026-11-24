@@ -2373,7 +2373,7 @@
             <span id="lblCloudStatus" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">확인 중...</span>
           </div>
           <div class="flex items-center justify-between gap-2">
-            <span id="lblCloudUid" class="text-[10px] text-slate-400 truncate">클라우드 연결 상태를 확인 중입니다...</span>
+            <span id="lblCloudUid" class="text-[10px] text-slate-400 leading-tight break-words min-w-0 flex-1">클라우드 연결 상태를 확인 중입니다...</span>
             <button id="btnCloudSyncNow" type="button" class="game-btn px-2.5 py-1 rounded-lg bg-sky-700 hover:bg-sky-600 text-[10px] font-extrabold text-white shrink-0">지금 동기화</button>
           </div>
           <div class="grid grid-cols-2 gap-1.5">
@@ -12122,6 +12122,28 @@
         } catch (_) { return '-'; }
       }
 
+      let fbLastAuthError = '';
+
+      function formatFbAuthErr(err) {
+        const code = String(err?.code || '');
+        if (code === 'auth/operation-not-allowed' || code === 'auth/admin-restricted-operation') {
+          return '❌ 익명 로그인 꺼짐 (Auth → Sign-in method → [익명] 사용 설정 필요)';
+        }
+        if (code === 'auth/configuration-not-found') {
+          return '❌ Auth 미시작 (Firebase 콘솔 → Authentication → [시작하기] 및 [익명] 활성화 필요)';
+        }
+        if (code === 'auth/api-key-not-valid' || code === 'auth/invalid-api-key') {
+          return '❌ Firebase API Key 오류 (firebase-config.js 확인 필요)';
+        }
+        if (code === 'auth/unauthorized-domain') {
+          return `❌ 도메인 미허용 (승인된 도메인에 ${location.hostname} 추가 필요)`;
+        }
+        if (code === 'auth/network-request-failed') {
+          return '❌ 네트워크 오류 (방화벽·광고차단 또는 인터넷 연결 확인)';
+        }
+        return `❌ 인증 실패 (${code || err?.message || '알 수 없는 오류'})`;
+      }
+
       function updateCloudAccountUI(customNote = '') {
         const badge = document.getElementById('lblCloudStatus');
         const uidEl = document.getElementById('lblCloudUid');
@@ -12144,16 +12166,20 @@
           return;
         }
         if (!fbReady || !fbAuth) {
-          badge.textContent = '연결 중...';
-          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/70 text-amber-300';
-          uidEl.textContent = customNote || 'Firebase 서버에 연결하고 있습니다...';
+          badge.textContent = fbLastAuthError ? '연결 실패' : '연결 중...';
+          badge.className = fbLastAuthError
+            ? 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-950/80 text-rose-300 border border-rose-500/40'
+            : 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/70 text-amber-300';
+          uidEl.textContent = customNote || fbLastAuthError || 'Firebase 서버에 연결하고 있습니다...';
           return;
         }
         const u = fbAuth.currentUser;
         if (!u) {
-          badge.textContent = '로그인 대기';
-          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300';
-          uidEl.textContent = customNote || '인증 대기 중입니다.';
+          badge.textContent = fbLastAuthError ? '인증 실패 (재시도 가능)' : '로그인 대기';
+          badge.className = fbLastAuthError
+            ? 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-950/80 text-rose-300 border border-rose-500/40'
+            : 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300';
+          uidEl.textContent = customNote || fbLastAuthError || '인증 대기 중입니다. ([지금 동기화]를 눌러 재시도)';
           if (outBtn) outBtn.classList.add('hidden');
           return;
         }
@@ -12244,6 +12270,10 @@
           return true;
         } catch (err) {
           console.warn('[Cloud Save Push]', err);
+          if (err?.code === 'permission-denied') {
+            fbLastAuthError = '⚠️ 인증됨 · Firestore 보안 규칙(firestore.rules)을 게시하세요';
+            updateCloudAccountUI(fbLastAuthError);
+          }
           return false;
         }
       }
@@ -12297,6 +12327,10 @@
           return true;
         } catch (err) {
           console.warn('[Cloud Save Pull]', err);
+          if (err?.code === 'permission-denied') {
+            fbLastAuthError = '⚠️ 인증됨 · Firestore 보안 규칙(firestore.rules)을 게시하세요';
+            updateCloudAccountUI(fbLastAuthError);
+          }
           return false;
         }
       }
@@ -12340,8 +12374,8 @@
         }, () => {});
       }
 
-      async function initFirebaseBackend() {
-        if (fbBootStarted) return;
+      async function initFirebaseBackend(forceRetry = false) {
+        if (fbBootStarted && !forceRetry) return;
         fbBootStarted = true;
         syncLocalMetaFromStorage();
         updateCloudAccountUI();
@@ -12351,44 +12385,52 @@
           return;
         }
         try {
-          const [appMod, authMod, fsMod] = await Promise.all([
-            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
-            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
-            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js')
-          ]);
-          fbMod = Object.assign({}, appMod, authMod, fsMod);
-          fbApp = appMod.getApps().length ? appMod.getApps()[0] : appMod.initializeApp(window.RCD_FIREBASE_CONFIG);
-          fbAuth = authMod.getAuth(fbApp);
-          fbDb = fsMod.getFirestore(fbApp);
-          fbReady = true;
-          updateCloudAccountUI();
+          if (!fbReady) {
+            const [appMod, authMod, fsMod] = await Promise.all([
+              import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
+              import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
+              import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js')
+            ]);
+            fbMod = Object.assign({}, appMod, authMod, fsMod);
+            fbApp = appMod.getApps().length ? appMod.getApps()[0] : appMod.initializeApp(window.RCD_FIREBASE_CONFIG);
+            fbAuth = authMod.getAuth(fbApp);
+            fbDb = fsMod.getFirestore(fbApp);
+            fbReady = true;
+            updateCloudAccountUI();
+          }
 
           if (!fbLiveCfgUnsub) {
-            fbLiveCfgUnsub = fsMod.onSnapshot(fsMod.doc(fbDb, 'liveConfig', 'current'), (snap) => {
+            fbLiveCfgUnsub = fbMod.onSnapshot(fbMod.doc(fbDb, 'liveConfig', 'current'), (snap) => {
               if (snap.exists()) applyFirebaseLiveConfigDoc(snap.data());
             }, () => {});
           }
 
           let anonAttempted = false;
-          authMod.onAuthStateChanged(fbAuth, async (user) => {
+          fbMod.onAuthStateChanged(fbAuth, async (user) => {
             if (!user) {
               updateCloudAccountUI();
               if (!anonAttempted) {
                 anonAttempted = true;
-                try { await authMod.signInAnonymously(fbAuth); } catch (e) {
+                try {
+                  fbLastAuthError = '';
+                  await fbMod.signInAnonymously(fbAuth);
+                } catch (e) {
                   console.warn('[Firebase Anon Auth]', e);
-                  updateCloudAccountUI('익명 인증 실패 (Firebase 콘솔에서 익명 로그인을 켜세요)');
+                  fbLastAuthError = formatFbAuthErr(e);
+                  updateCloudAccountUI(fbLastAuthError);
                 }
               }
               return;
             }
+            fbLastAuthError = '';
             updateCloudAccountUI();
             attachUserCloudListeners(user);
             await pullSaveFromCloud(false);
           });
         } catch (err) {
           console.warn('[Firebase Init Fallback]', err);
-          updateCloudAccountUI('클라우드 연결 실패 (로컬 저장소 모드로 동작 중)');
+          fbLastAuthError = `클라우드 연결 실패 (${err?.code || err?.message || 'SDK 로드 실패'})`;
+          updateCloudAccountUI(fbLastAuthError);
         }
       }
 
@@ -12501,11 +12543,36 @@
 
       // Cloud Account Settings Listeners
       document.getElementById('btnCloudSyncNow')?.addEventListener('click', async () => {
-        if (!fbReady || !fbAuth?.currentUser) return showToast('Firebase 미연결 상태입니다. firebase-config.js를 확인하세요.');
+        const configured = (typeof window.RCD_IS_FIREBASE_READY === 'function') && window.RCD_IS_FIREBASE_READY();
+        if (!configured) return showToast('firebase-config.js가 설정되지 않았습니다.');
+        if (!fbReady || !fbAuth || !fbMod) {
+          await initFirebaseBackend(true);
+        }
+        if (!fbReady || !fbAuth || !fbMod) {
+          return showToast(fbLastAuthError || 'Firebase SDK 연결에 실패했습니다. 네트워크를 확인하세요.');
+        }
+        if (!fbAuth.currentUser) {
+          showToast('🔄 익명 게스트 인증을 다시 시도하는 중...');
+          try {
+            fbLastAuthError = '';
+            await fbMod.signInAnonymously(fbAuth);
+          } catch (e) {
+            console.warn('[Firebase Retry Anon Auth]', e);
+            const msg = formatFbAuthErr(e);
+            fbLastAuthError = msg;
+            updateCloudAccountUI(msg);
+            showToast(msg);
+            return;
+          }
+        }
         showToast('☁️ 클라우드와 동기화 중...');
-        await pullSaveFromCloud(false);
-        await pushSaveToCloud(true);
-        showToast('✅ 클라우드 동기화가 완료되었습니다!');
+        const pulled = await pullSaveFromCloud(false);
+        const pushed = await pushSaveToCloud(true);
+        if (pulled || pushed) {
+          showToast('✅ 클라우드 동기화가 완료되었습니다!');
+        } else if (fbLastAuthError) {
+          showToast(fbLastAuthError);
+        }
       });
 
       document.getElementById('btnCloudLinkEmail')?.addEventListener('click', async () => {
