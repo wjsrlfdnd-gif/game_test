@@ -1,5 +1,5 @@
-// Random Character Defense — Auto-Sync Offline Service Worker (v4)
-const CACHE_NAME = 'rcd-offline-v4';
+// Random Character Defense — Auto-Sync Offline Service Worker (v5)
+const CACHE_NAME = 'rcd-offline-v5';
 const CORE_ASSETS = [
   './',
   './index.html',

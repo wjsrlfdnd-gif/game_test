@@ -75,6 +75,14 @@
       100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
     }
     .mythic-banner-pop { animation: mythicPop 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    /* Local 2.5D HD-2D UI Cohesion */
+    .hd2d-sprite, #previewMidBossImg, #previewMainBossImg, #forgeCharImg {
+      filter: drop-shadow(0 2px 3px rgba(2, 6, 23, 0.88)) drop-shadow(0 0 1px rgba(2, 6, 23, 0.96)) contrast(1.06) saturate(1.08);
+    }
+    .hd2d-map-slide {
+      filter: contrast(1.06) saturate(1.10);
+      transform: scale(1.02);
+    }
     /* Mobile Portrait, Landscape & Standalone PWA Safe-Area Optimization */
     html, body {
       max-width: 100vw;
@@ -1754,8 +1762,11 @@
       const ctx = canvas.getContext('2d');
       const W = 800;
       const H = 450;
-      canvas.width = W;
-      canvas.height = H;
+      const CANVAS_DPR = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+      canvas.width = Math.round(W * CANVAS_DPR);
+      canvas.height = Math.round(H * CANVAS_DPR);
+      ctx.imageSmoothingEnabled = true;
+      if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
 
       // All Asset Paths (10 maps, 20 bosses, 18 units, 6 regular mobs, 6 VFX sheets)
       const ASSET_PATHS = {
@@ -5536,9 +5547,12 @@
             }
           });
         } else {
+          const pStartX = u.x + nx * 12;
+          const pStartY = u.y - 14 + ny * 6;
           projectiles.push({
-            x: u.x + nx * 12,
-            y: u.y - 14 + ny * 6,
+            x: pStartX,
+            y: pStartY,
+            startDist: Math.max(24, Math.hypot(target.x - pStartX, (target.y - 12) - pStartY)),
             target,
             attacker: u,
             style: atkStyle,
@@ -5771,7 +5785,7 @@
             imgFrame.style.boxShadow = `0 0 14px ${tMeta.color}44`;
           }
           imgEl.src = ASSET_PATHS[`u_t${selUnit.tier}_${selUnit.sub}`];
-          imgEl.className = 'w-12 h-12 object-contain opacity-100';
+          imgEl.className = 'w-12 h-12 object-contain opacity-100 hd2d-sprite';
           nameEl.textContent = `${db.name}${selUnit.locked ? ' (잠금)' : ''}`;
           roleEl.textContent = `${db.role} · ${db.skill}`;
           statsEl.textContent = `공격력: ${getUnitDamage(selUnit)}${aura.atkBonus > 0 ? `(버프+${aura.atkBonus}%)` : ''} | 주기: ${getUnitCooldown(selUnit).toFixed(2)}s`;
@@ -6327,7 +6341,7 @@
             <span class="text-amber-300">총 피해량: ${totalDmg.toLocaleString()}</span>
           </div>
           <div class="flex items-center gap-2.5 p-2 rounded-lg bg-slate-950/90 border border-amber-500/40 mb-2">
-            <img src="${ASSET_PATHS[`u_t${mvp.tier}_${mvp.sub}`] || ''}" alt="${mvpInfo.name}" class="w-10 h-10 rounded object-contain bg-slate-900 shrink-0" />
+            <img src="${ASSET_PATHS[`u_t${mvp.tier}_${mvp.sub}`] || ''}" alt="${mvpInfo.name}" class="w-10 h-10 rounded object-contain bg-slate-900 shrink-0 hd2d-sprite" />
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5">
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-slate-950">👑 MVP</span>
@@ -6458,66 +6472,684 @@
         syncUI();
       }
 
+      // =====================================================================
+      // LOCAL 2.5D HD-2D REMASTER ENGINE (All 10 Worlds + All 64 Sprites)
+      // =====================================================================
+      const WORLD_25D_THEMES = {
+        meadow: {
+          pedTop: '#cbd5e1', pedSide: '#475569', pedRim: '#f8fafc',
+          sunX: 90, sunY: 28, sunRadius: 440, sunColor: 'rgba(254, 243, 199, 0.17)',
+          topVig: 'rgba(15, 36, 22, 0.14)', botVig: 'rgba(2, 6, 23, 0.30)',
+          shadowDx: 8, shadowDy: 3, shadowTilt: 0.14,
+          mapFilter: 'contrast(1.06) saturate(1.10) brightness(1.02)',
+          particle: { kind: 'pollen', colors: ['#fef08a', '#dcfce7', '#ffffff'], vx: 14, vy: -7, minR: 1.2, maxR: 2.6 }
+        },
+        desert: {
+          pedTop: '#e6c286', pedSide: '#8c5321', pedRim: '#fef3c7',
+          sunX: 84, sunY: 22, sunRadius: 470, sunColor: 'rgba(253, 186, 116, 0.20)',
+          topVig: 'rgba(92, 45, 12, 0.14)', botVig: 'rgba(28, 12, 4, 0.32)',
+          shadowDx: 10, shadowDy: 3.5, shadowTilt: 0.18,
+          mapFilter: 'contrast(1.07) saturate(1.10) brightness(1.02)',
+          particle: { kind: 'sand', colors: ['#fde68a', '#fed7aa', '#fef3c7'], vx: 38, vy: 5, minR: 1.0, maxR: 2.2 }
+        },
+        glacier: {
+          pedTop: '#bae6fd', pedSide: '#334155', pedRim: '#f0f9ff',
+          sunX: 400, sunY: -20, sunRadius: 460, sunColor: 'rgba(186, 230, 253, 0.18)',
+          topVig: 'rgba(12, 34, 64, 0.18)', botVig: 'rgba(8, 22, 44, 0.28)',
+          shadowDx: 6, shadowDy: 3, shadowTilt: 0.10,
+          mapFilter: 'contrast(1.06) saturate(1.08) brightness(1.02)',
+          particle: { kind: 'snow', colors: ['#ffffff', '#e0f2fe', '#bae6fd'], vx: -12, vy: 28, minR: 1.3, maxR: 2.8 }
+        },
+        volcano: {
+          pedTop: '#645c58', pedSide: '#1c1917', pedRim: '#fb923c',
+          sunX: 399, sunY: 189, sunRadius: 340, sunColor: 'rgba(251, 146, 60, 0.20)',
+          topVig: 'rgba(18, 6, 4, 0.34)', botVig: 'rgba(12, 4, 2, 0.42)',
+          shadowDx: 5, shadowDy: 3, shadowTilt: 0.08,
+          mapFilter: 'contrast(1.08) saturate(1.12) brightness(1.01)',
+          particle: { kind: 'ember', colors: ['#fb923c', '#fde047', '#f97316'], vx: 9, vy: -32, minR: 1.3, maxR: 2.7 }
+        },
+        forest: {
+          pedTop: '#4e7a5b', pedSide: '#143326', pedRim: '#6ee7b7',
+          sunX: 400, sunY: 10, sunRadius: 420, sunColor: 'rgba(52, 211, 153, 0.16)',
+          topVig: 'rgba(4, 26, 22, 0.26)', botVig: 'rgba(2, 16, 14, 0.38)',
+          shadowDx: 6, shadowDy: 3, shadowTilt: 0.10,
+          mapFilter: 'contrast(1.07) saturate(1.12) brightness(1.02)',
+          particle: { kind: 'firefly', colors: ['#5eead4', '#a7f3d0', '#fef08a'], vx: 8, vy: -9, minR: 1.5, maxR: 3.0 }
+        },
+        atlantis: {
+          pedTop: '#99dce6', pedSide: '#0e5870', pedRim: '#ecfeff',
+          sunX: 430, sunY: -10, sunRadius: 430, sunColor: 'rgba(103, 232, 249, 0.18)',
+          topVig: 'rgba(6, 30, 52, 0.22)', botVig: 'rgba(3, 18, 34, 0.34)',
+          shadowDx: 6, shadowDy: 3.5, shadowTilt: 0.10,
+          mapFilter: 'contrast(1.06) saturate(1.12) brightness(1.02)',
+          particle: { kind: 'bubble', colors: ['#cffafe', '#67e8f9', '#ffffff'], vx: 4, vy: -24, minR: 1.6, maxR: 3.6 }
+        },
+        graveyard: {
+          pedTop: '#6e5e80', pedSide: '#1e162e', pedRim: '#c084fc',
+          sunX: 620, sunY: 20, sunRadius: 420, sunColor: 'rgba(192, 132, 252, 0.15)',
+          topVig: 'rgba(15, 8, 28, 0.30)', botVig: 'rgba(6, 4, 16, 0.42)',
+          shadowDx: -7, shadowDy: 3.5, shadowTilt: -0.14,
+          mapFilter: 'contrast(1.08) saturate(1.10) brightness(1.03)',
+          particle: { kind: 'wisp', colors: ['#c084fc', '#a5f3fc', '#e879f9'], vx: -7, vy: -14, minR: 1.6, maxR: 3.2 }
+        },
+        sky: {
+          pedTop: '#f5efcf', pedSide: '#8c99a8', pedRim: '#ffffff',
+          sunX: 650, sunY: 18, sunRadius: 480, sunColor: 'rgba(254, 249, 195, 0.22)',
+          topVig: 'rgba(56, 98, 148, 0.12)', botVig: 'rgba(15, 23, 42, 0.22)',
+          shadowDx: -8, shadowDy: 3, shadowTilt: -0.14,
+          mapFilter: 'contrast(1.05) saturate(1.08) brightness(1.01)',
+          particle: { kind: 'feather', colors: ['#fef08a', '#ffffff', '#e0f2fe'], vx: -16, vy: 8, minR: 1.5, maxR: 3.0 }
+        },
+        clockwork: {
+          pedTop: '#b47a3c', pedSide: '#3f1d0b', pedRim: '#fcd34d',
+          sunX: 666, sunY: 120, sunRadius: 360, sunColor: 'rgba(251, 191, 36, 0.18)',
+          topVig: 'rgba(18, 12, 8, 0.28)', botVig: 'rgba(8, 6, 12, 0.38)',
+          shadowDx: -6, shadowDy: 3, shadowTilt: -0.10,
+          mapFilter: 'contrast(1.08) saturate(1.10) brightness(1.02)',
+          particle: { kind: 'spark', colors: ['#fcd34d', '#38bdf8', '#fb923c'], vx: -10, vy: -22, minR: 1.2, maxR: 2.5 }
+        },
+        void: {
+          pedTop: '#6d39c4', pedSide: '#1b0f36', pedRim: '#c4b5fd',
+          sunX: 400, sunY: 220, sunRadius: 360, sunColor: 'rgba(167, 139, 250, 0.18)',
+          topVig: 'rgba(10, 4, 24, 0.30)', botVig: 'rgba(4, 2, 16, 0.40)',
+          shadowDx: 5, shadowDy: 3, shadowTilt: 0.08,
+          mapFilter: 'contrast(1.08) saturate(1.14) brightness(1.03)',
+          particle: { kind: 'star', colors: ['#e9d5ff', '#67e8f9', '#fef08a'], vx: 6, vy: -6, minR: 1.1, maxR: 2.6 }
+        }
+      };
+
+      const WORLD_25D_PARTICLES = Array.from({ length: 36 }, (_, i) => ({
+        sx: ((i * 73.13 + 17) % 100) / 100,
+        sy: ((i * 41.71 + 29) % 100) / 100,
+        sp: 0.68 + ((i * 19.3) % 100) / 150,
+        sz: ((i * 31.7) % 100) / 100,
+        ph: i * 1.17,
+        ci: i % 3
+      }));
+
+      const HD2D_MAP_CACHE = Object.create(null);
+      const HD2D_SPRITE_CACHE = Object.create(null);
+      let _hd2dScratchA = null;
+      let _hd2dScratchB = null;
+
+      function getDepthScale25D(y) {
+        return 0.88 + Math.max(0, Math.min(1, y / H)) * 0.24;
+      }
+
+      function getWorld25DTheme(mapKey) {
+        return WORLD_25D_THEMES[mapKey] || WORLD_25D_THEMES.meadow;
+      }
+
+      function getHd2dMapCanvas(mapKey, img) {
+        if (HD2D_MAP_CACHE[mapKey]) return HD2D_MAP_CACHE[mapKey];
+        const iw = img && (img.naturalWidth || img.width);
+        const ih = img && (img.naturalHeight || img.height);
+        if (!iw || !ih) return img;
+        const th = getWorld25DTheme(mapKey);
+        const off = document.createElement('canvas');
+        off.width = W;
+        off.height = H;
+        const octx = off.getContext('2d');
+        octx.imageSmoothingEnabled = true;
+        if ('imageSmoothingQuality' in octx) octx.imageSmoothingQuality = 'high';
+        if ('filter' in octx && th.mapFilter) {
+          octx.filter = th.mapFilter;
+        }
+        octx.drawImage(img, 0, 0, W, H);
+        if ('filter' in octx) octx.filter = 'none';
+
+        // Baked directional ambient key-light matching world diorama
+        const amb = octx.createRadialGradient(th.sunX, th.sunY, 12, th.sunX, th.sunY, th.sunRadius);
+        amb.addColorStop(0, th.sunColor);
+        amb.addColorStop(1, 'rgba(0,0,0,0)');
+        octx.fillStyle = amb;
+        octx.fillRect(0, 0, W, H);
+
+        // Subtle miniature diorama top/bottom framing baked once
+        const vig = octx.createLinearGradient(0, 0, 0, H);
+        vig.addColorStop(0, th.topVig);
+        vig.addColorStop(0.16, 'rgba(0,0,0,0)');
+        vig.addColorStop(0.84, 'rgba(0,0,0,0)');
+        vig.addColorStop(1, th.botVig);
+        octx.fillStyle = vig;
+        octx.fillRect(0, 0, W, H);
+
+        HD2D_MAP_CACHE[mapKey] = off;
+        return off;
+      }
+
+      function getHd2dSprite(cacheKey, img, opts) {
+        if (HD2D_SPRITE_CACHE[cacheKey]) return HD2D_SPRITE_CACHE[cacheKey];
+        const iw = img && (img.naturalWidth || img.width);
+        const ih = img && (img.naturalHeight || img.height);
+        if (!iw || !ih) return null;
+
+        const isSheet = !!(opts && opts.isSheet);
+        const frames = isSheet ? 4 : 1;
+        const srcW = iw / frames;
+        const srcH = ih;
+        const pad = Math.max(5, Math.round(srcH * 0.055));
+        const cellW = Math.ceil(srcW + pad * 2);
+        const cellH = Math.ceil(srcH + pad * 2);
+
+        const out = document.createElement('canvas');
+        out.width = cellW * frames;
+        out.height = cellH;
+        const octx = out.getContext('2d');
+        octx.imageSmoothingEnabled = true;
+
+        if (!_hd2dScratchA) _hd2dScratchA = document.createElement('canvas');
+        if (!_hd2dScratchB) _hd2dScratchB = document.createElement('canvas');
+        if (_hd2dScratchA.width < cellW || _hd2dScratchA.height < cellH) {
+          _hd2dScratchA.width = Math.max(_hd2dScratchA.width, cellW);
+          _hd2dScratchA.height = Math.max(_hd2dScratchA.height, cellH);
+        }
+        if (_hd2dScratchB.width < cellW || _hd2dScratchB.height < cellH) {
+          _hd2dScratchB.width = Math.max(_hd2dScratchB.width, cellW);
+          _hd2dScratchB.height = Math.max(_hd2dScratchB.height, cellH);
+        }
+        const sa = _hd2dScratchA.getContext('2d');
+        const sb = _hd2dScratchB.getContext('2d');
+
+        const outlineR = Math.max(1.6, Math.min(3.4, srcH * 0.0155));
+        const rimColor = (opts && opts.rimColor) || '';
+        const rimAlpha = (opts && opts.rimAlpha) || 0.42;
+        const dirs = [
+          [-1, 0], [1, 0], [0, -1], [0, 1],
+          [-0.71, -0.71], [0.71, -0.71], [-0.71, 0.71], [0.71, 0.71]
+        ];
+
+        for (let f = 0; f < frames; f++) {
+          const sx = f * srcW;
+          const dxBase = f * cellW;
+
+          // Build clean dark contour silhouette for this frame only
+          sa.clearRect(0, 0, cellW, cellH);
+          sa.globalCompositeOperation = 'source-over';
+          sa.drawImage(img, sx, 0, srcW, srcH, pad, pad, srcW, srcH);
+          sa.globalCompositeOperation = 'source-in';
+          sa.fillStyle = '#090d16';
+          sa.fillRect(0, 0, cellW, cellH);
+          sa.globalCompositeOperation = 'source-over';
+
+          octx.save();
+          octx.beginPath();
+          octx.rect(dxBase, 0, cellW, cellH);
+          octx.clip();
+
+          // Pass 1: Crisp dark 2.5D contour outline (separates character cleanly from diorama floor)
+          octx.globalAlpha = 0.88;
+          for (let d = 0; d < dirs.length; d++) {
+            octx.drawImage(
+              _hd2dScratchA, 0, 0, cellW, cellH,
+              dxBase + dirs[d][0] * outlineR, dirs[d][1] * outlineR, cellW, cellH
+            );
+          }
+
+          // Pass 2: Optional Tier / Boss directional rim highlight
+          if (rimColor) {
+            sb.clearRect(0, 0, cellW, cellH);
+            sb.globalCompositeOperation = 'source-over';
+            sb.drawImage(img, sx, 0, srcW, srcH, pad, pad, srcW, srcH);
+            sb.globalCompositeOperation = 'source-in';
+            sb.fillStyle = rimColor;
+            sb.fillRect(0, 0, cellW, cellH);
+            sb.globalCompositeOperation = 'source-over';
+
+            octx.globalAlpha = rimAlpha;
+            const rimR = outlineR * 1.15;
+            octx.drawImage(_hd2dScratchB, 0, 0, cellW, cellH, dxBase - rimR * 0.9, -rimR * 0.95, cellW, cellH);
+            octx.drawImage(_hd2dScratchB, 0, 0, cellW, cellH, dxBase, -rimR * 1.1, cellW, cellH);
+          }
+
+          // Pass 3: Enhanced foreground sprite + subtle top-left directional key-light shading
+          sb.clearRect(0, 0, cellW, cellH);
+          sb.globalCompositeOperation = 'source-over';
+          if ('filter' in sb) sb.filter = 'contrast(1.06) saturate(1.09)';
+          sb.drawImage(img, sx, 0, srcW, srcH, pad, pad, srcW, srcH);
+          if ('filter' in sb) sb.filter = 'none';
+
+          sb.globalCompositeOperation = 'source-atop';
+          const shade = sb.createLinearGradient(pad, pad, pad + srcW, pad + srcH);
+          shade.addColorStop(0, 'rgba(255, 252, 232, 0.16)');
+          shade.addColorStop(0.42, 'rgba(255, 255, 255, 0)');
+          shade.addColorStop(1, 'rgba(6, 12, 28, 0.16)');
+          sb.fillStyle = shade;
+          sb.fillRect(pad, pad, srcW, srcH);
+          sb.globalCompositeOperation = 'source-over';
+
+          octx.globalAlpha = 1;
+          octx.drawImage(_hd2dScratchB, 0, 0, cellW, cellH, dxBase, 0, cellW, cellH);
+          octx.restore();
+        }
+
+        const baked = { canvas: out, frames, cellW, cellH, padRatio: pad / srcH };
+        HD2D_SPRITE_CACHE[cacheKey] = baked;
+        return baked;
+      }
+
+      function drawHd2dBakedFrame(targetCtx, baked, frameIdx, drawSize) {
+        const fi = baked.frames > 1 ? (frameIdx % baked.frames) : 0;
+        const padPx = drawSize * baked.padRatio;
+        targetCtx.drawImage(
+          baked.canvas,
+          fi * baked.cellW, 0, baked.cellW, baked.cellH,
+          -drawSize / 2 - padPx, -drawSize * 0.85 - padPx,
+          drawSize + padPx * 2, drawSize + padPx * 2
+        );
+      }
+
+      function drawWorld25DGroundFX(ctx, mapKey, t) {
+        ctx.save();
+        if (mapKey === 'meadow') {
+          // Animated sparkling river current glints along exact meadow river channel
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          ctx.moveTo(458, 12);
+          ctx.quadraticCurveTo(476, 55, 533, 160);
+          ctx.quadraticCurveTo(598, 222, 579, 265);
+          ctx.quadraticCurveTo(517, 300, 482, 405);
+          ctx.lineTo(455, 448);
+          ctx.strokeStyle = 'rgba(224, 242, 254, 0.34)';
+          ctx.lineWidth = 3.2;
+          ctx.setLineDash([12, 22]);
+          ctx.lineDashOffset = -t * 28;
+          ctx.stroke();
+          ctx.strokeStyle = 'rgba(125, 211, 252, 0.22)';
+          ctx.lineWidth = 7;
+          ctx.setLineDash([7, 30]);
+          ctx.lineDashOffset = -t * 19 + 14;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        } else if (mapKey === 'desert') {
+          // Shimmering turquoise ripples on exact desert oasis (515, 139)
+          const p1 = (t * 0.45) % 1;
+          const p2 = (t * 0.45 + 0.5) % 1;
+          [p1, p2].forEach(p => {
+            ctx.beginPath();
+            ctx.ellipse(515, 139, 12 + p * 36, 7 + p * 20, -0.08, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(224, 242, 254, ${(0.42 * (1 - p)).toFixed(2)})`;
+            ctx.lineWidth = 1.6;
+            ctx.stroke();
+          });
+          // Sun glint sparkles on oasis surface
+          for (let i = 0; i < 4; i++) {
+            const gx = 490 + i * 17 + Math.sin(t * 2.2 + i * 2) * 5;
+            const gy = 132 + (i % 2) * 14;
+            const a = 0.25 + 0.45 * Math.max(0, Math.sin(t * 4.5 + i * 1.9));
+            ctx.fillStyle = `rgba(255, 255, 255, ${a.toFixed(2)})`;
+            ctx.beginPath();
+            ctx.arc(gx, gy, 1.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else if (mapKey === 'glacier') {
+          // Shimmering frozen waterfall mist at top canyon (400, 72) + icy track glints
+          const mistPulse = 0.72 + Math.sin(t * 2.2) * 0.28;
+          const mg = ctx.createRadialGradient(400, 82, 6, 400, 82, 64);
+          mg.addColorStop(0, `rgba(224, 242, 254, ${(0.24 * mistPulse).toFixed(2)})`);
+          mg.addColorStop(1, 'rgba(186, 230, 253, 0)');
+          ctx.fillStyle = mg;
+          ctx.fillRect(320, 15, 160, 130);
+          for (let i = 0; i < 6; i++) {
+            const sx = 175 + i * 88;
+            const sy = 150 + Math.sin(i * 1.2) * 145;
+            const a = Math.max(0, Math.sin(t * 3.8 + i * 1.7));
+            if (a > 0.25) {
+              ctx.fillStyle = `rgba(255, 255, 255, ${(a * 0.55).toFixed(2)})`;
+              ctx.beginPath();
+              ctx.arc(sx, sy, 2.2, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        } else if (mapKey === 'volcano') {
+          // Breathing molten magma aura around core crystal (399, 189) + outer caldera pulse
+          const pulse = 0.5 + 0.5 * Math.sin(t * 3.1);
+          const cg = ctx.createRadialGradient(399, 189, 4, 399, 189, 74 + pulse * 14);
+          cg.addColorStop(0, `rgba(253, 224, 71, ${(0.28 + pulse * 0.14).toFixed(2)})`);
+          cg.addColorStop(0.45, `rgba(249, 115, 22, ${(0.18 + pulse * 0.10).toFixed(2)})`);
+          cg.addColorStop(1, 'rgba(249, 115, 22, 0)');
+          ctx.fillStyle = cg;
+          ctx.beginPath();
+          ctx.ellipse(399, 189, 88, 52, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Localized pulsing heat blooms along the actual caldera molten moat fissures
+          [[216, 224, 56], [586, 220, 56], [398, 110, 52], [400, 324, 62]].forEach(([lx, ly, lr], idx) => {
+            const lp = 0.5 + 0.5 * Math.sin(t * 2.6 + idx * 1.5);
+            const lg = ctx.createRadialGradient(lx, ly, 4, lx, ly, lr);
+            lg.addColorStop(0, `rgba(251, 146, 60, ${(0.18 + lp * 0.14).toFixed(2)})`);
+            lg.addColorStop(1, 'rgba(249, 115, 22, 0)');
+            ctx.fillStyle = lg;
+            ctx.beginPath();
+            ctx.ellipse(lx, ly, lr, lr * 0.56, 0, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        } else if (mapKey === 'forest') {
+          // Bioluminescent glow halos pulsing over the 4 real glowing mushroom clusters
+          const clusters = [[149, 139], [109, 308], [630, 138], [679, 303]];
+          clusters.forEach(([mx, my], idx) => {
+            const p = 0.55 + 0.45 * Math.sin(t * 2.4 + idx * 1.6);
+            const g = ctx.createRadialGradient(mx, my, 3, mx, my, 46);
+            g.addColorStop(0, `rgba(94, 234, 212, ${(0.26 * p).toFixed(2)})`);
+            g.addColorStop(1, 'rgba(52, 211, 153, 0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(mx, my, 46, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        } else if (mapKey === 'atlantis') {
+          // Animated underwater caustic light bands drifting across sunken marble
+          ctx.globalCompositeOperation = 'screen';
+          for (let i = 0; i < 4; i++) {
+            const yBase = 115 + i * 68;
+            ctx.beginPath();
+            for (let x = 150; x <= 650; x += 28) {
+              const wy = yBase + Math.sin(x * 0.022 + t * 1.7 + i * 1.4) * 11;
+              if (x === 150) ctx.moveTo(x, wy); else ctx.lineTo(x, wy);
+            }
+            ctx.strokeStyle = 'rgba(103, 232, 249, 0.12)';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+          }
+        } else if (mapKey === 'graveyard') {
+          // Flickering violet crypt lantern glow around center mausoleum
+          const flk = 0.72 + Math.sin(t * 5.2) * 0.16 + Math.sin(t * 9.3) * 0.12;
+          [[376, 183], [430, 198]].forEach(([lx, ly]) => {
+            const lg = ctx.createRadialGradient(lx, ly, 4, lx, ly, 62);
+            lg.addColorStop(0, `rgba(192, 132, 252, ${(0.26 * flk).toFixed(2)})`);
+            lg.addColorStop(1, 'rgba(139, 92, 246, 0)');
+            ctx.fillStyle = lg;
+            ctx.beginPath();
+            ctx.arc(lx, ly, 62, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        } else if (mapKey === 'sky') {
+          // Sparkling cloud waterfall mist & celestial floor shimmer
+          [[158, 326], [228, 368]].forEach(([wx, wy], idx) => {
+            const p = 0.65 + 0.35 * Math.sin(t * 3.1 + idx * 2.1);
+            const wg = ctx.createRadialGradient(wx, wy, 4, wx, wy, 42);
+            wg.addColorStop(0, `rgba(255, 255, 255, ${(0.34 * p).toFixed(2)})`);
+            wg.addColorStop(1, 'rgba(224, 242, 254, 0)');
+            ctx.fillStyle = wg;
+            ctx.beginPath();
+            ctx.arc(wx, wy, 42, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        } else if (mapKey === 'clockwork') {
+          // Pulsing electric-cyan energy current along figure-8 conduit + warm furnace flicker
+          const pts = MAPS.clockwork.path;
+          ctx.beginPath();
+          for (let i = 0; i < pts.length; i++) {
+            if (i === 0) ctx.moveTo(pts[i].x, pts[i].y); else ctx.lineTo(pts[i].x, pts[i].y);
+          }
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.32)';
+          ctx.lineWidth = 3.5;
+          ctx.setLineDash([18, 42]);
+          ctx.lineDashOffset = -t * 58;
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          const fp = 0.72 + Math.sin(t * 6.4) * 0.20;
+          const fg = ctx.createRadialGradient(666, 134, 6, 666, 134, 86);
+          fg.addColorStop(0, `rgba(251, 146, 60, ${(0.28 * fp).toFixed(2)})`);
+          fg.addColorStop(1, 'rgba(251, 146, 60, 0)');
+          ctx.fillStyle = fg;
+          ctx.beginPath();
+          ctx.arc(666, 134, 86, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (mapKey === 'void') {
+          // Slow rotating cosmic nebula spiral sheen at (400, 220)
+          ctx.translate(400, 220);
+          ctx.scale(1, 0.58);
+          ctx.rotate(t * 0.22);
+          const gg = ctx.createRadialGradient(0, 0, 8, 0, 0, 118);
+          gg.addColorStop(0, 'rgba(233, 213, 255, 0.22)');
+          gg.addColorStop(0.55, 'rgba(139, 92, 246, 0.12)');
+          gg.addColorStop(1, 'rgba(139, 92, 246, 0)');
+          ctx.fillStyle = gg;
+          ctx.beginPath();
+          ctx.arc(0, 0, 118, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(196, 181, 253, 0.24)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([14, 20]);
+          ctx.beginPath();
+          ctx.arc(0, 0, 178, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.restore();
+      }
+
+      function drawWorld25DAtmosphereFX(ctx, mapKey, t) {
+        const th = getWorld25DTheme(mapKey);
+        const pc = th.particle;
+        ctx.save();
+
+        // Diagonal subtle god-rays for sunny / forest / underwater worlds
+        if (mapKey === 'meadow' || mapKey === 'forest' || mapKey === 'atlantis' || mapKey === 'sky') {
+          const rayCol = mapKey === 'forest'
+            ? 'rgba(110, 231, 183, 0.055)'
+            : (mapKey === 'atlantis' ? 'rgba(165, 243, 252, 0.065)' : 'rgba(254, 249, 195, 0.065)');
+          ctx.fillStyle = rayCol;
+          for (let r = 0; r < 3; r++) {
+            const rx = 120 + r * 220 + Math.sin(t * 0.4 + r) * 18;
+            ctx.beginPath();
+            ctx.moveTo(rx, 0);
+            ctx.lineTo(rx + 68, 0);
+            ctx.lineTo(rx + 170, H);
+            ctx.lineTo(rx + 92, H);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+
+        // Lightweight deterministic world particles (zero per-frame allocations)
+        for (let i = 0; i < WORLD_25D_PARTICLES.length; i++) {
+          const p = WORLD_25D_PARTICLES[i];
+          const px = ((p.sx * W + t * pc.vx * p.sp + Math.sin(t * 1.4 + p.ph) * 10) % W + W) % W;
+          const py = ((p.sy * H + t * pc.vy * p.sp + Math.cos(t * 1.1 + p.ph) * 6) % H + H) % H;
+          const r = pc.minR + p.sz * (pc.maxR - pc.minR);
+          const twinkle = 0.42 + 0.52 * Math.sin(t * 3.1 + p.ph);
+          const col = pc.colors[p.ci];
+
+          ctx.globalAlpha = Math.max(0.12, twinkle * 0.72);
+          if (pc.kind === 'bubble') {
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(px, py, r, 0, Math.PI * 2);
+            ctx.stroke();
+          } else if (pc.kind === 'sand') {
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px + r * 4.5, py + 1.2);
+            ctx.stroke();
+          } else if (pc.kind === 'firefly' || pc.kind === 'wisp' || pc.kind === 'ember') {
+            ctx.fillStyle = col;
+            ctx.beginPath();
+            ctx.arc(px, py, r * 1.65, 0, Math.PI * 2);
+            ctx.globalAlpha = Math.max(0.06, twinkle * 0.24);
+            ctx.fill();
+            ctx.globalAlpha = Math.max(0.25, twinkle * 0.85);
+            ctx.beginPath();
+            ctx.arc(px, py, r * 0.78, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillStyle = col;
+            ctx.beginPath();
+            ctx.arc(px, py, r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawPedestal25D(ctx, slot, idx, occUnit, isSel, isMoveTarget, isDragHover, theme, t) {
+        const ds = getDepthScale25D(slot.y);
+        const rx = (isDragHover ? 22 : 19.5) * ds;
+        const ry = (isDragHover ? 11.5 : 10.2) * ds;
+        const cy = slot.y + 4;
+        const tierColor = occUnit ? TIER_META[occUnit.tier].color : null;
+        const isElevated = !!(occUnit || isSel || isDragHover);
+
+        ctx.save();
+        if (!isElevated) {
+          // Empty slot: sleek recessed 2.5D carved rune socket (keeps detailed diorama stonework visible)
+          const ext = 2.4 * ds;
+          ctx.fillStyle = 'rgba(2, 6, 23, 0.30)';
+          ctx.beginPath();
+          ctx.ellipse(slot.x + 1, cy + ext, rx * 0.94, ry * 0.94, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.ellipse(slot.x, cy, rx * 0.9, ry * 0.9, 0, 0, Math.PI * 2);
+          ctx.fillStyle = isMoveTarget ? 'rgba(56, 189, 248, 0.24)' : 'rgba(15, 23, 42, 0.32)';
+          ctx.fill();
+          ctx.lineWidth = isMoveTarget ? 2.1 : 1.25;
+          ctx.strokeStyle = isMoveTarget
+            ? '#38bdf8'
+            : (idx < 12 ? 'rgba(251, 191, 36, 0.36)' : 'rgba(226, 232, 240, 0.24)');
+          ctx.stroke();
+
+          // Subtle engraved inner rune ring
+          ctx.beginPath();
+          ctx.ellipse(slot.x, cy, rx * 0.56, ry * 0.56, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = isMoveTarget
+            ? `rgba(125, 211, 252, ${(0.55 + Math.sin(t * 5) * 0.25).toFixed(2)})`
+            : (idx < 12 ? 'rgba(253, 224, 71, 0.20)' : 'rgba(255, 255, 255, 0.14)');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.restore();
+          return;
+        }
+
+        // Occupied / Selected / Drag-Hover: Elevated 3D Beveled Stone/Marble/Obsidian Rune Pedestal
+        const extrude = (isDragHover ? 7.2 : 5.8) * ds;
+
+        // Contact AO shadow beneath pedestal
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.52)';
+        ctx.beginPath();
+        ctx.ellipse(slot.x + theme.shadowDx * 0.22, cy + extrude + 1.5, rx * 1.07, ry * 1.08, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Extruded 3D side base
+        ctx.beginPath();
+        ctx.ellipse(slot.x, cy + extrude, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fillStyle = theme.pedSide;
+        ctx.fill();
+        ctx.fillRect(slot.x - rx, cy, rx * 2, extrude);
+        ctx.strokeStyle = 'rgba(2, 6, 23, 0.72)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Top beveled plate with directional key-light gradient
+        ctx.beginPath();
+        ctx.ellipse(slot.x, cy, rx, ry, 0, 0, Math.PI * 2);
+        const topGrad = ctx.createLinearGradient(slot.x - rx, cy - ry, slot.x + rx, cy + ry);
+        topGrad.addColorStop(0, isDragHover ? (occUnit ? '#fde047' : '#7dd3fc') : theme.pedRim);
+        topGrad.addColorStop(0.55, isDragHover ? (occUnit ? '#d97706' : '#0284c7') : theme.pedTop);
+        topGrad.addColorStop(1, theme.pedSide);
+        ctx.fillStyle = topGrad;
+        ctx.fill();
+
+        ctx.lineWidth = (isDragHover || isSel) ? 2.4 : 1.55;
+        ctx.strokeStyle = isDragHover
+          ? (occUnit ? '#fef08a' : '#bae6fd')
+          : (isSel ? '#fde047' : (isMoveTarget ? '#38bdf8' : (tierColor || 'rgba(255,255,255,0.45)')));
+        ctx.stroke();
+
+        // Inner pulsing tier/selection rune ring
+        if (tierColor || isSel) {
+          ctx.beginPath();
+          ctx.ellipse(slot.x, cy, rx * 0.70, ry * 0.70, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = isSel ? '#fef08a' : tierColor;
+          ctx.globalAlpha = isSel ? 0.92 : (0.48 + Math.sin(t * 4.2 + idx) * 0.16);
+          ctx.lineWidth = (occUnit && occUnit.tier >= 5) ? 1.8 : 1.3;
+          ctx.stroke();
+        }
+
+        if (isDragHover) {
+          ctx.globalAlpha = 1;
+          ctx.font = 'bold 10px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = 'rgba(2, 6, 23, 0.9)';
+          ctx.strokeText(occUnit ? '교체' : '이동', slot.x, slot.y - 12);
+          ctx.fillStyle = occUnit ? '#fef08a' : '#e0f2fe';
+          ctx.fillText(occUnit ? '교체' : '이동', slot.x, slot.y - 12);
+        }
+        ctx.restore();
+      }
+
       function renderGame(t) {
         ctx.save();
+        ctx.setTransform(CANVAS_DPR, 0, 0, CANVAS_DPR, 0, 0);
         if (screenShake > 0) {
           ctx.translate((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8);
         }
 
         const mapObj = MAPS[currentMap];
         const mapImg = IMGS[mapObj.imgKey];
+        const worldTheme = getWorld25DTheme(currentMap);
         if (mapImg) {
-          ctx.drawImage(mapImg, 0, 0, W, H);
+          const bakedMap = getHd2dMapCanvas(currentMap, mapImg);
+          ctx.drawImage(bakedMap, 0, 0, W, H);
         } else {
           ctx.fillStyle = '#0f172a';
           ctx.fillRect(0, 0, W, H);
         }
 
+        // World-Specific Living 2.5D Ground FX (water glints, oasis ripples, magma pulse, caustics, galaxy)
+        drawWorld25DGroundFX(ctx, currentMap, t);
+
+        // 3D Extruded Beveled Pedestals & Recessed Empty Rune Sockets
         mapObj.slots.forEach((slot, idx) => {
           const isSel = idx === selectedSlotIdx;
           const occUnit = units.find(u => u.slotIdx === idx);
           const isMoveTarget = (moveModeSlotIdx !== null && moveModeSlotIdx !== idx) || (isDraggingUnit && dragSourceSlotIdx !== null && dragSourceSlotIdx !== idx);
           const isDragHover = isDraggingUnit && dragHoverSlotIdx === idx && dragSourceSlotIdx !== idx;
 
-          ctx.save();
-          ctx.beginPath();
-          ctx.ellipse(slot.x, slot.y + 4, isDragHover ? 22 : 19, isDragHover ? 12 : 10, 0, 0, Math.PI * 2);
-          ctx.fillStyle = isDragHover
-            ? (occUnit ? 'rgba(251, 191, 36, 0.48)' : 'rgba(56, 189, 248, 0.48)')
-            : (isSel
-              ? 'rgba(251, 191, 36, 0.35)'
-              : (isMoveTarget ? 'rgba(56, 189, 248, 0.24)' : 'rgba(15, 23, 42, 0.38)'));
-          ctx.fill();
-          ctx.lineWidth = (isDragHover || isSel || isMoveTarget) ? 2.4 : 1.2;
-          ctx.strokeStyle = isDragHover
-            ? (occUnit ? '#fde047' : '#7dd3fc')
-            : (isSel
-              ? '#fbbf24'
-              : (isMoveTarget ? '#38bdf8' : (occUnit ? TIER_META[occUnit.tier].color : (idx < 12 ? 'rgba(251, 191, 36, 0.28)' : 'rgba(255,255,255,0.20)'))));
-          ctx.stroke();
-          if (isDragHover) {
-            ctx.fillStyle = occUnit ? '#fef08a' : '#e0f2fe';
-            ctx.font = 'bold 10px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(occUnit ? '교체' : '이동', slot.x, slot.y - 12);
-          }
-          ctx.restore();
+          drawPedestal25D(ctx, slot, idx, occUnit, isSel, isMoveTarget, isDragHover, worldTheme, t);
 
           if (isSel && occUnit) {
             const range = UNIT_DB[occUnit.tier][occUnit.sub].range;
+            const ds = getDepthScale25D(slot.y);
             ctx.save();
+            // Accurate gameplay range circle with sleek 2.5D tactical radial fill + marching perimeter
+            const rg = ctx.createRadialGradient(slot.x, slot.y, range * 0.2, slot.x, slot.y, range);
+            rg.addColorStop(0, 'rgba(56, 189, 248, 0.02)');
+            rg.addColorStop(0.82, 'rgba(56, 189, 248, 0.07)');
+            rg.addColorStop(1, 'rgba(125, 211, 252, 0.16)');
             ctx.beginPath();
             ctx.arc(slot.x, slot.y, range, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(56, 189, 248, 0.06)';
+            ctx.fillStyle = rg;
             ctx.fill();
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
-            ctx.setLineDash([5, 5]);
-            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(125, 211, 252, 0.62)';
+            ctx.setLineDash([7, 5]);
+            ctx.lineDashOffset = -t * 16;
+            ctx.lineWidth = 1.6;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 2.5D Isometric Rotating Selection Rune Ring around Pedestal
+            ctx.translate(slot.x, slot.y + 4);
+            ctx.scale(1, 0.52);
+            ctx.rotate(t * 1.4);
+            ctx.strokeStyle = 'rgba(253, 224, 71, 0.75)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 8]);
+            ctx.beginPath();
+            ctx.arc(0, 0, 27 * ds, 0, Math.PI * 2);
             ctx.stroke();
             ctx.restore();
           }
         });
 
+        // Strict Y-Depth Sorting for 2.5D Overlap Realism
         const entities = [
           ...mobs.map(m => ({ type: 'mob', y: m.y, obj: m })),
           ...units.map(u => ({ type: 'unit', y: u.y, obj: u }))
@@ -6528,7 +7160,7 @@
           else drawUnitSprite(ent.obj, t);
         }
 
-        // 실시간 드래그 배치 미리보기 (고스트 유닛 + 사거리 원 + 이동 경로선)
+        // 실시간 드래그 배치 미리보기 (2.5D 고스트 유닛 + 사거리 원 + 이동 경로선)
         if (isDraggingUnit && dragSourceSlotIdx !== null) {
           const dragU = units.find(u => u.slotIdx === dragSourceSlotIdx);
           if (dragU) {
@@ -6538,37 +7170,66 @@
             const meta = TIER_META[dragU.tier];
             const range = UNIT_DB[dragU.tier][dragU.sub].range;
             const gImg = IMGS[`u_t${dragU.tier}_${dragU.sub}`];
+            const ds = getDepthScale25D(targetPt.y);
 
             ctx.save();
             ctx.beginPath();
             ctx.arc(targetPt.x, targetPt.y, range, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
             ctx.fill();
-            ctx.strokeStyle = 'rgba(125, 211, 252, 0.55)';
-            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = 'rgba(125, 211, 252, 0.58)';
+            ctx.setLineDash([6, 5]);
             ctx.lineWidth = 1.6;
             ctx.stroke();
 
             ctx.beginPath();
             ctx.moveTo(dragU.x, dragU.y);
             ctx.lineTo(targetPt.x, targetPt.y);
-            ctx.strokeStyle = 'rgba(251, 191, 36, 0.8)';
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
             ctx.setLineDash([4, 4]);
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.setLineDash([]);
 
             if (gImg) {
-              ctx.globalAlpha = 0.72;
-              ctx.drawImage(gImg, targetPt.x - meta.size / 2, targetPt.y - meta.size * 0.85, meta.size, meta.size);
+              const ghostBaked = getHd2dSprite(`u_t${dragU.tier}_${dragU.sub}`, gImg, {
+                isSheet: false,
+                rimColor: dragU.tier >= 2 ? meta.color : '',
+                rimAlpha: 0.42
+              });
+              ctx.globalAlpha = 0.78;
+              ctx.translate(targetPt.x, targetPt.y - 4);
+              if (ghostBaked) {
+                drawHd2dBakedFrame(ctx, ghostBaked, 0, meta.size * ds);
+              } else {
+                const sz = meta.size * ds;
+                ctx.drawImage(gImg, -sz / 2, -sz * 0.85, sz, sz);
+              }
             }
             ctx.restore();
           }
         }
 
+        // 2.5D Parabolic Projectiles + Ground Shadows
         for (const p of projectiles) {
           const st = p.style || 'arrow';
           const ang = p.angle || 0;
+          const remDist = p.target ? Math.hypot(p.target.x - p.x, (p.target.y - 12) - p.y) : 0;
+          const totalDist = p.startDist || 120;
+          const progArc = Math.max(0, Math.min(1, 1 - remDist / totalDist));
+          const peakH = (st === 'cannon') ? 30 : (st === 'frost' ? 16 : (st === 'arrow' ? 13 : 7));
+          const zArc = Math.sin(progArc * Math.PI) * peakH;
+          const pyElev = p.y - zArc;
+
+          // Subtle 2.5D ground shadow gliding below airborne projectile
+          ctx.save();
+          const shR = Math.max(2.2, (st === 'cannon' ? 5.6 : 4.0) * (1 - zArc / 85));
+          ctx.fillStyle = 'rgba(2, 6, 23, 0.34)';
+          ctx.beginPath();
+          ctx.ellipse(p.x, p.y + 12, shR * 1.25, shR * 0.52, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
           if (p.trail && p.trail.length > 1) {
             ctx.save();
             ctx.lineCap = 'round';
@@ -6576,19 +7237,21 @@
               const tp = p.trail[k];
               const nextP = (k === p.trail.length - 1) ? p : p.trail[k + 1];
               const ratio = (k + 1) / (p.trail.length + 1);
-              ctx.globalAlpha = ratio * 0.45;
+              const tz1 = zArc * Math.max(0.25, ratio * 0.92);
+              const tz2 = (k === p.trail.length - 1) ? zArc : (zArc * Math.min(1, ((k + 2) / (p.trail.length + 1)) * 0.95));
+              ctx.globalAlpha = ratio * 0.50;
               ctx.strokeStyle = p.color;
-              ctx.lineWidth = Math.max(1.2, (2.2 + p.tier * 0.4) * ratio);
+              ctx.lineWidth = Math.max(1.2, (2.3 + p.tier * 0.4) * ratio);
               ctx.beginPath();
-              ctx.moveTo(tp.x, tp.y);
-              ctx.lineTo(nextP.x, nextP.y);
+              ctx.moveTo(tp.x, tp.y - tz1);
+              ctx.lineTo(nextP.x, nextP.y - tz2);
               ctx.stroke();
             }
             ctx.restore();
           }
 
           ctx.save();
-          ctx.translate(p.x, p.y);
+          ctx.translate(p.x, pyElev);
           ctx.rotate(ang);
           ctx.shadowColor = p.color;
           ctx.shadowBlur = 10;
@@ -6874,13 +7537,18 @@
           ctx.restore();
         }
 
+        // World-Specific Living 2.5D Atmospheric Lighting & Weather Particles
+        drawWorld25DAtmosphereFX(ctx, currentMap, t);
+
         for (const ft of floatTexts) {
           ctx.save();
           ctx.globalAlpha = Math.max(0, ft.life / ft.maxLife);
           ctx.font = ft.big ? '800 15px Inter, sans-serif' : '700 12px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillStyle = '#000000';
-          ctx.fillText(ft.text, ft.x + 1, ft.y + 1);
+          ctx.lineJoin = 'round';
+          ctx.lineWidth = ft.big ? 3.2 : 2.5;
+          ctx.strokeStyle = 'rgba(2, 6, 23, 0.9)';
+          ctx.strokeText(ft.text, ft.x, ft.y);
           ctx.fillStyle = ft.color;
           ctx.fillText(ft.text, ft.x, ft.y);
           ctx.restore();
@@ -6894,8 +7562,11 @@
         const img = IMGS[`u_t${u.tier}_${u.sub}`];
         if (!img) return;
 
+        const ds = getDepthScale25D(u.y);
+        const drawSz = meta.size * ds;
+        const worldTheme = getWorld25DTheme(currentMap);
         const breath = Math.sin(t * 4.5 + u.phase) * 0.04;
-        const baseFloat = Math.sin(t * 3.0 + u.phase) * meta.floatY;
+        const baseFloat = Math.sin(t * 3.0 + u.phase) * meta.floatY * ds;
         const spawnScale = u.pop > 0 ? (1 - u.pop * 0.35) : 1;
         const style = u.atkStyle || 'slash';
         const charge = u.atkCount % 5;
@@ -6999,29 +7670,63 @@
         const drawX = u.x + u.lungeX * 0.35 + atkShiftX;
         const drawY = u.y + u.lungeY * 0.35 + floatOff;
 
-        // 3D 피규어 동적 바닥 그림자 (점프/부양 높이에 따라 축소·흐려짐)
+        // 2.5D Dual-Layer Ground Shadow (Directional World Cast Shadow + Tight Contact AO)
         ctx.save();
-        const jumpFactor = Math.max(0.52, 1 + atkJumpY / 42);
+        const liftH = Math.max(0, -(baseFloat + atkJumpY));
+        const jumpFactor = Math.max(0.50, 1 - liftH / 46);
+        const shBaseX = u.x + u.lungeX * 0.35 + atkShiftX;
+        const shBaseY = u.y + u.lungeY * 0.35 + atkShiftY + 4;
+        // Directional cast shadow matching current world's sun angle
         ctx.beginPath();
         ctx.ellipse(
-          u.x + u.lungeX * 0.35 + atkShiftX,
-          u.y + u.lungeY * 0.35 + atkShiftY + 4,
-          meta.size * 0.28 * jumpFactor,
-          meta.size * 0.11 * jumpFactor,
+          shBaseX + worldTheme.shadowDx * ds * 0.85,
+          shBaseY + worldTheme.shadowDy * ds * 0.65,
+          drawSz * 0.30 * jumpFactor,
+          drawSz * 0.10 * jumpFactor,
+          worldTheme.shadowTilt, 0, Math.PI * 2
+        );
+        ctx.fillStyle = `rgba(2, 6, 23, ${(0.24 * jumpFactor).toFixed(2)})`;
+        ctx.fill();
+        // Tight contact ambient occlusion shadow on pedestal surface
+        ctx.beginPath();
+        ctx.ellipse(
+          shBaseX,
+          shBaseY,
+          drawSz * 0.23 * jumpFactor,
+          drawSz * 0.095 * jumpFactor,
           0, 0, Math.PI * 2
         );
-        ctx.fillStyle = `rgba(2, 6, 23, ${(0.42 * jumpFactor).toFixed(2)})`;
+        ctx.fillStyle = `rgba(2, 6, 23, ${(0.44 * jumpFactor).toFixed(2)})`;
         ctx.fill();
         ctx.restore();
 
+        // Tier 2+ Ground Resonance Ring & Mythic/Transcendent 2.5D Rotating Celestial Halo
         if (u.tier >= 2) {
           ctx.save();
-          ctx.beginPath();
-          ctx.ellipse(u.x, u.y + 3, meta.size * 0.30, meta.size * 0.13, 0, 0, Math.PI * 2);
-          ctx.strokeStyle = meta.color;
-          ctx.globalAlpha = u.tier >= 6 ? 0.78 + Math.sin(t * 6) * 0.18 : 0.55;
-          ctx.lineWidth = u.tier >= 6 ? 3 : 2;
-          ctx.stroke();
+          if (u.tier >= 5) {
+            ctx.translate(u.x, u.y + 3);
+            ctx.scale(1, 0.48);
+            ctx.rotate((u.tier >= 6 ? 1.5 : 1.0) * t + u.phase);
+            ctx.strokeStyle = meta.color;
+            ctx.globalAlpha = 0.52 + Math.sin(t * 5 + u.phase) * 0.18;
+            ctx.lineWidth = u.tier >= 6 ? 2.4 : 1.8;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.arc(0, 0, drawSz * 0.35, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.arc(0, 0, drawSz * 0.26, 0, Math.PI * 2);
+            ctx.globalAlpha = 0.40;
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.ellipse(u.x, u.y + 3, drawSz * 0.28, drawSz * 0.12, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = meta.color;
+            ctx.globalAlpha = 0.48;
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+          }
           ctx.restore();
         }
 
@@ -7034,7 +7739,7 @@
           ctx.strokeStyle = style === 'frost' ? '#7dd3fc' : '#facc15';
           ctx.globalAlpha = strikePeak * 0.85;
           ctx.lineWidth = u.atkIsSkill ? 3 : 2;
-          const rCast = meta.size * (0.34 + strikePeak * (u.atkIsSkill ? 0.34 : 0.20));
+          const rCast = drawSz * (0.34 + strikePeak * (u.atkIsSkill ? 0.34 : 0.20));
           ctx.beginPath();
           ctx.arc(0, 0, rCast, 0, Math.PI * 2);
           ctx.stroke();
@@ -7055,17 +7760,17 @@
           ctx.lineWidth = 2;
           ctx.setLineDash([6, 4]);
           ctx.beginPath();
-          ctx.arc(0, 0, meta.size * 0.42, 0, Math.PI * 2);
+          ctx.arc(0, 0, drawSz * 0.40, 0, Math.PI * 2);
           ctx.stroke();
           ctx.fillStyle = '#fde047';
           ctx.beginPath();
-          ctx.arc(Math.cos(0) * meta.size * 0.42, 0, 3.2, 0, Math.PI * 2);
-          ctx.arc(Math.cos(Math.PI) * meta.size * 0.42, 0, 3.2, 0, Math.PI * 2);
+          ctx.arc(Math.cos(0) * drawSz * 0.40, 0, 3.0, 0, Math.PI * 2);
+          ctx.arc(Math.cos(Math.PI) * drawSz * 0.40, 0, 3.0, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         }
 
-        // 4프레임 공격 스프라이트 시트 지원 (u_tX_Y_anim 존재 시 자동 프레임 재생)
+        // 4프레임 공격 스프라이트 시트 지원 + 로컬 HD-2D 2.5D 외곽선·림라이트 베이크 캐시
         const animSheet = IMGS[`u_t${u.tier}_${u.sub}_anim`];
         const hasAnimSheet = !!(animSheet && animSheet.width >= animSheet.height * 3.2);
         let sheetFrame = 0;
@@ -7074,13 +7779,21 @@
           else if (animP < 0.68) sheetFrame = 2;  // 타격 / 발사 / 시전
           else sheetFrame = 3;                    // 마무리 / 복귀
         }
+        const unitRimColor = u.tier >= 2 ? meta.color : '';
+        const unitRimAlpha = u.tier >= 5 ? 0.56 : (u.tier >= 3 ? 0.42 : 0.28);
+        const bakedSprite = hasAnimSheet
+          ? getHd2dSprite(`u_t${u.tier}_${u.sub}_anim`, animSheet, { isSheet: true, rimColor: unitRimColor, rimAlpha: unitRimAlpha })
+          : getHd2dSprite(`u_t${u.tier}_${u.sub}`, img, { isSheet: false, rimColor: unitRimColor, rimAlpha: unitRimAlpha });
+
         const drawSpriteFrame = (targetCtx) => {
-          if (hasAnimSheet) {
+          if (bakedSprite) {
+            drawHd2dBakedFrame(targetCtx, bakedSprite, sheetFrame, drawSz);
+          } else if (hasAnimSheet) {
             const fw = animSheet.width / 4;
             const fh = animSheet.height;
-            targetCtx.drawImage(animSheet, sheetFrame * fw, 0, fw, fh, -meta.size / 2, -meta.size * 0.85, meta.size, meta.size);
+            targetCtx.drawImage(animSheet, sheetFrame * fw, 0, fw, fh, -drawSz / 2, -drawSz * 0.85, drawSz, drawSz);
           } else {
-            targetCtx.drawImage(img, -meta.size / 2, -meta.size * 0.85, meta.size, meta.size);
+            targetCtx.drawImage(img, -drawSz / 2, -drawSz * 0.85, drawSz, drawSz);
           }
         };
 
@@ -7109,14 +7822,14 @@
           }
         }
 
-        // 메인 3D 유닛 스프라이트 렌더링
+        // 메인 HD-2D 2.5D 유닛 스프라이트 렌더링
         ctx.save();
         ctx.translate(effDrawX, effDrawY);
         ctx.rotate(effRot);
         ctx.scale(u.facing * (1 - breath) * effSx * spawnScale, (1 + breath) * effSy * spawnScale);
         if (strikePeak > 0.25) {
           ctx.shadowColor = u.atkIsSkill ? meta.color : '#ffffff';
-          ctx.shadowBlur = u.atkIsSkill ? 18 : 7;
+          ctx.shadowBlur = u.atkIsSkill ? 18 : 8;
         }
         drawSpriteFrame(ctx);
         ctx.restore();
@@ -7125,11 +7838,11 @@
         if (strikePeak > 0.15) {
           const ang = u.atkAngle || 0;
           ctx.save();
-          ctx.translate(drawX, drawY - meta.size * 0.36);
+          ctx.translate(drawX, drawY - drawSz * 0.36);
           ctx.rotate(ang);
           ctx.globalAlpha = strikePeak * 0.92;
           if (style === 'slash') {
-            const arcR = meta.size * (u.atkIsSkill ? 0.62 : 0.48);
+            const arcR = drawSz * (u.atkIsSkill ? 0.62 : 0.48);
             ctx.strokeStyle = u.atkIsSkill ? meta.color : '#fef08a';
             ctx.lineWidth = u.atkIsSkill ? 6 : 3.5;
             ctx.lineCap = 'round';
@@ -7142,7 +7855,7 @@
             ctx.arc(0, 0, arcR - 2, -0.85 * swingSign, 0.85 * swingSign, swingSign < 0);
             ctx.stroke();
           } else if (style === 'thrust') {
-            const len = meta.size * (u.atkIsSkill ? 0.82 : 0.58);
+            const len = drawSz * (u.atkIsSkill ? 0.82 : 0.58);
             const grad = ctx.createLinearGradient(0, 0, len, 0);
             grad.addColorStop(0, 'rgba(255,255,255,0)');
             grad.addColorStop(0.65, u.atkIsSkill ? meta.color : '#bae6fd');
@@ -7155,7 +7868,7 @@
             ctx.closePath();
             ctx.fill();
           } else if (style === 'arrow' || style === 'cannon') {
-            const muzzleX = meta.size * 0.38;
+            const muzzleX = drawSz * 0.38;
             const flashR = (style === 'cannon' ? 13 : 8) * (u.atkIsSkill ? 1.45 : 1) * strikePeak;
             ctx.fillStyle = style === 'cannon' ? '#fb923c' : '#fef08a';
             ctx.beginPath();
@@ -7170,117 +7883,187 @@
           ctx.restore();
         }
 
-        // Skill Charge Pips (5-hit cadence indicator)
+        // Skill Charge Pips (5-hit cadence indicator seated cleanly on pedestal rim)
         ctx.save();
-        const pipGap = 6;
+        const pipGap = 5.8 * ds;
         const pipBaseX = u.x - (pipGap * 4) / 2;
-        const pipY = u.y + 9;
+        const pipY = u.y + 10 * ds;
         for (let p = 0; p < 5; p++) {
           ctx.beginPath();
-          ctx.arc(pipBaseX + p * pipGap, pipY, charge === 4 && p <= charge ? 2.4 : 1.8, 0, Math.PI * 2);
-          ctx.fillStyle = p < charge ? (charge === 4 ? '#38bdf8' : '#fde047') : 'rgba(148, 163, 184, 0.38)';
+          ctx.arc(pipBaseX + p * pipGap, pipY, charge === 4 && p <= charge ? 2.3 : 1.75, 0, Math.PI * 2);
+          ctx.fillStyle = p < charge ? (charge === 4 ? '#38bdf8' : '#fde047') : 'rgba(15, 23, 42, 0.55)';
           ctx.fill();
+          ctx.strokeStyle = 'rgba(2, 6, 23, 0.75)';
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
         }
         ctx.restore();
 
+        // Crisp Outlined Star Rank & Status Tag
         ctx.save();
-        ctx.fillStyle = meta.color;
         ctx.font = 'bold 9px Inter, sans-serif';
         ctx.textAlign = 'center';
+        ctx.lineJoin = 'round';
         const lockTag = u.locked
           ? '🔒'
           : (isTranscendRecipeMaterial(u.tier, u.sub) ? '👑' : (autoProtectMythicMats && isMythicRecipeMaterial(u.tier, u.sub) ? '🛡️' : ''));
         const debuffTag = (u.empTimer && u.empTimer > 0) ? '⚡EMP ' : ((u.blindTimer && u.blindTimer > 0) ? '✨둔화 ' : '');
-        ctx.fillText(debuffTag + lockTag + '★'.repeat(Math.min(7, u.tier + 1)), u.x, u.y - meta.size * 0.82 + floatOff);
+        const starText = debuffTag + lockTag + '★'.repeat(Math.min(7, u.tier + 1));
+        const starY = u.y - drawSz * 0.84 + floatOff;
+        ctx.lineWidth = 2.6;
+        ctx.strokeStyle = 'rgba(2, 6, 23, 0.92)';
+        ctx.strokeText(starText, u.x, starY);
+        ctx.fillStyle = meta.color;
+        ctx.fillText(starText, u.x, starY);
         ctx.restore();
       }
 
       const MOB_SPRITE_CACHE = Object.create(null);
-      function getMobSpriteVariant(imgKey, img, variant) {
-        if (!variant) return img;
-        const cacheKey = `${imgKey}_${variant}`;
+      function getMobSpriteVariant(baseKey, bakedObj, variant) {
+        if (!variant || !bakedObj) return bakedObj;
+        const cacheKey = `${baseKey}_${variant}`;
         if (MOB_SPRITE_CACHE[cacheKey]) return MOB_SPRITE_CACHE[cacheKey];
-        const w = img.naturalWidth || img.width || 128;
-        const h = img.naturalHeight || img.height || 128;
-        if (!w || !h) return img;
+        const srcCanvas = bakedObj.canvas;
+        const w = srcCanvas.width;
+        const h = srcCanvas.height;
+        if (!w || !h) return bakedObj;
         const off = document.createElement('canvas');
         off.width = w;
         off.height = h;
         const octx = off.getContext('2d');
-        octx.drawImage(img, 0, 0, w, h);
+        octx.drawImage(srcCanvas, 0, 0, w, h);
         octx.globalCompositeOperation = 'source-atop';
         if (variant === 'hit') {
-          octx.fillStyle = 'rgba(255, 255, 255, 0.62)';
+          octx.fillStyle = 'rgba(255, 255, 255, 0.60)';
           octx.fillRect(0, 0, w, h);
         } else if (variant === 'slow') {
-          octx.fillStyle = 'rgba(56, 189, 248, 0.45)';
+          octx.fillStyle = 'rgba(56, 189, 248, 0.44)';
           octx.fillRect(0, 0, w, h);
         }
         octx.globalCompositeOperation = 'source-over';
-        MOB_SPRITE_CACHE[cacheKey] = off;
-        return off;
+        const wrapped = { ...bakedObj, canvas: off };
+        MOB_SPRITE_CACHE[cacheKey] = wrapped;
+        return wrapped;
       }
 
       function drawMob(m, t) {
         const img = IMGS[m.imgKey];
         if (!img) return;
 
+        const ds = getDepthScale25D(m.y);
+        const drawSz = m.size * ds;
+        const worldTheme = getWorld25DTheme(currentMap);
         const mobAnimImg = IMGS[`${m.imgKey}_anim`];
         const hasMobAnim = !!(mobAnimImg && mobAnimImg.width >= mobAnimImg.height * 3.2);
         const isFlyingMob = (m.imgKey === 'm_inter_2' || m.imgKey === 'mb_08' || m.imgKey === 'mb_10' || m.imgKey === 'bb_03' || m.imgKey === 'bb_07' || m.imgKey === 'bb_08' || m.imgKey === 'bb_10');
         const effSpd = m.stunTimer > 0 ? 0 : (m.slowTimer > 0 ? m.speed * 0.55 : m.speed);
         const cycle = t * (effSpd * 0.15) + m.phase;
-        const hop = hasMobAnim
-          ? (isFlyingMob ? (6 + Math.sin(t * 7 + m.phase) * 4.5) : Math.abs(Math.sin(cycle)) * 2.4)
-          : Math.abs(Math.sin(cycle)) * (m.isBoss ? 5 : 8);
+        const hop = (hasMobAnim
+          ? (isFlyingMob ? (7 + Math.sin(t * 7 + m.phase) * 4.5) : Math.abs(Math.sin(cycle)) * 2.4)
+          : Math.abs(Math.sin(cycle)) * (m.isBoss ? 5 : 8)) * ds;
         const tilt = hasMobAnim ? Math.sin(cycle) * 0.025 : Math.sin(cycle) * 0.06;
 
-        // 1.2s Boss Pattern Pre-Warning Ring
+        // 2.5D Tilted Boss Pattern Pre-Warning Ring (1.2s before cast)
         if (m.isBoss && m.patternTimer > 0 && m.patternTimer <= 1.2) {
           const warnRatio = m.patternTimer / 1.2;
           ctx.save();
+          ctx.translate(m.x, m.y + 2);
+          ctx.scale(1, 0.52);
+          const warnR = drawSz * (0.48 + warnRatio * 0.36);
           ctx.beginPath();
-          ctx.arc(m.x, m.y - hop, m.size * (0.48 + warnRatio * 0.35), 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(244, 63, 94, ${(0.55 + Math.sin(t * 18) * 0.35).toFixed(2)})`;
-          ctx.lineWidth = 3;
+          ctx.arc(0, 0, warnR, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(244, 63, 94, 0.14)';
+          ctx.fill();
+          ctx.strokeStyle = `rgba(244, 63, 94, ${(0.60 + Math.sin(t * 18) * 0.35).toFixed(2)})`;
+          ctx.lineWidth = 3.2;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 2.5D Boss Ground Aura Ring
+        if (m.isBoss) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.ellipse(m.x, m.y + 3, drawSz * 0.34, drawSz * 0.14, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = m.imgKey.startsWith('bb_') ? 'rgba(251, 113, 133, 0.55)' : 'rgba(251, 191, 36, 0.50)';
+          ctx.lineWidth = 2;
           ctx.stroke();
           ctx.restore();
         }
 
         ctx.save();
-        const shadowScale = isFlyingMob ? 0.78 : Math.max(0.82, 1 - hop / 32);
+        // Dual-Layer 2.5D Cast Shadow + Contact AO
+        const shadowScale = isFlyingMob ? 0.74 : Math.max(0.80, 1 - hop / 36);
         ctx.beginPath();
-        ctx.ellipse(m.x, m.y + 2, m.size * 0.26 * shadowScale, m.size * 0.10 * shadowScale, 0, 0, Math.PI * 2);
-        ctx.fillStyle = isFlyingMob ? 'rgba(0,0,0,0.32)' : 'rgba(0,0,0,0.45)';
+        ctx.ellipse(
+          m.x + worldTheme.shadowDx * ds * (isFlyingMob ? 1.1 : 0.8),
+          m.y + 3 + worldTheme.shadowDy * ds * 0.65,
+          drawSz * 0.28 * shadowScale,
+          drawSz * 0.10 * shadowScale,
+          worldTheme.shadowTilt, 0, Math.PI * 2
+        );
+        ctx.fillStyle = isFlyingMob ? 'rgba(2, 6, 23, 0.20)' : 'rgba(2, 6, 23, 0.26)';
         ctx.fill();
 
+        ctx.beginPath();
+        ctx.ellipse(m.x, m.y + 2, drawSz * 0.22 * shadowScale, drawSz * 0.088 * shadowScale, 0, 0, Math.PI * 2);
+        ctx.fillStyle = isFlyingMob ? 'rgba(2, 6, 23, 0.28)' : 'rgba(2, 6, 23, 0.46)';
+        ctx.fill();
+
+        // Baked HD-2D Monster / Boss Sprite (Preserves 4-Frame Walk + Hit/Slow Variants)
         ctx.translate(m.x, m.y - hop);
         ctx.rotate(tilt);
         ctx.scale(m.facing, 1);
         const mobVariant = m.hitFlash > 0.2 ? 'hit' : (m.slowTimer > 0 ? 'slow' : '');
+        const rimCol = m.isBoss
+          ? (m.imgKey.startsWith('bb_') ? '#fb7185' : '#fbbf24')
+          : (m.isSpecial ? '#fde047' : '');
+        const rimTierTag = m.isBoss ? (m.imgKey.startsWith('bb_') ? 'bb' : 'mb') : (m.isSpecial ? 'sp' : 'nm');
+
         if (hasMobAnim) {
-          const animSprite = getMobSpriteVariant(`${m.imgKey}_anim`, mobAnimImg, mobVariant);
-          const fw = animSprite.width / 4;
-          const fh = animSprite.height;
+          const baseKey = `${m.imgKey}_anim_${rimTierTag}`;
+          const baseBaked = getHd2dSprite(baseKey, mobAnimImg, { isSheet: true, rimColor: rimCol, rimAlpha: m.isBoss ? 0.50 : 0.42 });
+          const finalBaked = getMobSpriteVariant(baseKey, baseBaked, mobVariant);
           const animRate = Math.max(4.5, effSpd * 0.16);
           const frameIdx = m.stunTimer > 0 ? 0 : Math.floor((t * animRate + m.phase * 4) % 4);
-          ctx.drawImage(animSprite, frameIdx * fw, 0, fw, fh, -m.size / 2, -m.size * 0.85, m.size, m.size);
+          if (finalBaked) {
+            drawHd2dBakedFrame(ctx, finalBaked, frameIdx, drawSz);
+          } else {
+            const fw = mobAnimImg.width / 4;
+            const fh = mobAnimImg.height;
+            ctx.drawImage(mobAnimImg, frameIdx * fw, 0, fw, fh, -drawSz / 2, -drawSz * 0.85, drawSz, drawSz);
+          }
         } else {
-          const mobSprite = getMobSpriteVariant(m.imgKey, img, mobVariant);
-          ctx.drawImage(mobSprite, -m.size / 2, -m.size * 0.85, m.size, m.size);
+          const baseKey = `${m.imgKey}_${rimTierTag}`;
+          const baseBaked = getHd2dSprite(baseKey, img, { isSheet: false, rimColor: rimCol, rimAlpha: m.isBoss ? 0.50 : 0.42 });
+          const finalBaked = getMobSpriteVariant(baseKey, baseBaked, mobVariant);
+          if (finalBaked) {
+            drawHd2dBakedFrame(ctx, finalBaked, 0, drawSz);
+          } else {
+            ctx.drawImage(img, -drawSz / 2, -drawSz * 0.85, drawSz, drawSz);
+          }
         }
         ctx.restore();
 
-        const bw = m.size * 0.65;
+        // Crisp Beveled HP & Shield Bars
+        const bw = drawSz * 0.65;
+        const bh = m.isBoss ? 6 : 4;
         const bx = m.x - bw / 2;
-        const by = m.y - m.size * 0.92 - hop;
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-        ctx.fillRect(bx, by, bw, m.isBoss ? 6 : 4);
+        const by = m.y - drawSz * 0.92 - hop;
+        const hpRatio = Math.max(0, Math.min(1, m.hp / m.maxHp));
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.88)';
+        ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
         ctx.fillStyle = m.isBoss ? '#fb7185' : (m.isSpecial ? '#facc15' : '#22c55e');
-        ctx.fillRect(bx, by, bw * Math.max(0, m.hp / m.maxHp), m.isBoss ? 6 : 4);
+        ctx.fillRect(bx, by, bw * hpRatio, bh);
+        if (hpRatio > 0.02) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+          ctx.fillRect(bx, by, bw * hpRatio, Math.max(1, bh * 0.32));
+        }
         if (m.shieldHp && m.shieldHp > 0 && m.maxShieldHp > 0) {
+          ctx.fillStyle = 'rgba(2, 6, 23, 0.82)';
+          ctx.fillRect(bx - 1, by - 5, bw + 2, 4);
           ctx.fillStyle = '#38bdf8';
-          ctx.fillRect(bx, by - 4, bw * Math.min(1, m.shieldHp / m.maxShieldHp), 3);
+          ctx.fillRect(bx, by - 4, bw * Math.min(1, m.shieldHp / m.maxShieldHp), 2.5);
         }
 
         const statusTags = [];
@@ -7297,15 +8080,29 @@
         if (m.stunTimer > 0) statusTags.push('⚡기절');
         if (m.shredTimer > 0) statusTags.push(`방깎-${Math.round(m.shredPct * 100)}%`);
         if (m.isBoss) {
-          ctx.fillStyle = (m.patternTimer > 0 && m.patternTimer <= 1.2) ? '#fb7185' : '#fde047';
+          ctx.save();
           ctx.font = 'bold 10px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(`${m.name} [방어 ${m.def}] ${statusTags.join(' ')}`, m.x, by - 4);
+          ctx.lineJoin = 'round';
+          const lbl = `${m.name} [방어 ${m.def}]${statusTags.length ? ' ' + statusTags.join(' ') : ''}`;
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = 'rgba(2, 6, 23, 0.92)';
+          ctx.strokeText(lbl, m.x, by - 5);
+          ctx.fillStyle = (m.patternTimer > 0 && m.patternTimer <= 1.2) ? '#fb7185' : '#fde047';
+          ctx.fillText(lbl, m.x, by - 5);
+          ctx.restore();
         } else if (statusTags.length > 0) {
-          ctx.fillStyle = m.stunTimer > 0 ? '#fde047' : (m.isSpecial ? '#fcd34d' : '#fb923c');
+          ctx.save();
           ctx.font = 'bold 9px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(statusTags.join(' '), m.x, by - 3);
+          ctx.lineJoin = 'round';
+          const lbl = statusTags.join(' ');
+          ctx.lineWidth = 2.6;
+          ctx.strokeStyle = 'rgba(2, 6, 23, 0.90)';
+          ctx.strokeText(lbl, m.x, by - 4);
+          ctx.fillStyle = m.stunTimer > 0 ? '#fde047' : (m.isSpecial ? '#fcd34d' : '#fb923c');
+          ctx.fillText(lbl, m.x, by - 4);
+          ctx.restore();
         }
       }
 
@@ -7388,10 +8185,12 @@
               if (stageRecords[`${key}_${s}`] && stageRecords[`${key}_${s}`].cleared) clearedCnt++;
             }
             const slide = document.createElement('div');
-            slide.className = 'min-w-full h-full relative';
+            const wTheme = getWorld25DTheme(key);
+            slide.className = 'min-w-full h-full relative overflow-hidden';
             slide.innerHTML = `
-              <img src="${ASSET_PATHS[m.imgKey]}" alt="${m.title}" class="w-full h-full object-cover object-center" />
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/45 to-slate-950/65 pointer-events-none"></div>
+              <img src="${ASSET_PATHS[m.imgKey]}" alt="${m.title}" class="w-full h-full object-cover object-center hd2d-map-slide" />
+              <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at ${Math.round((wTheme.sunX / W) * 100)}% ${Math.round((wTheme.sunY / H) * 100)}%, ${wTheme.sunColor}, transparent 62%);"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/42 to-slate-950/62 pointer-events-none"></div>
             `;
             track.appendChild(slide);
           });
@@ -8029,7 +8828,7 @@
               card.title = `[${tMeta.name}] ${uInfo.name}`;
               card.innerHTML = `
                 ${cnt > 0 ? `<span class="absolute top-1 right-1 px-1 rounded text-[9px] font-bold bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 leading-tight">${cnt}</span>` : ''}
-                <img src="${ASSET_PATHS[k] || ''}" alt="${uInfo.name}" class="w-9 h-9 object-contain" />
+                <img src="${ASSET_PATHS[k] || ''}" alt="${uInfo.name}" class="w-9 h-9 object-contain hd2d-sprite" />
                 <span class="text-[10px] font-semibold truncate w-full leading-tight" style="color:${isSel ? '#ffffff' : tMeta.color}">${uInfo.name}</span>
               `;
               card.addEventListener('click', () => {
@@ -8461,7 +9260,7 @@
               card.style.borderLeftColor = meta.color;
               card.innerHTML = `
                 <div class="item-icon-wrap w-12 h-12 rounded-xl border-2 p-1 shrink-0" style="border-color:${meta.color};background:radial-gradient(circle at 50% 40%, ${meta.badgeBg}, #090d1a);">
-                  <img src="${ASSET_PATHS[`u_t${t}_${s}`]}" alt="${u.name}" class="w-full h-full object-contain" />
+                  <img src="${ASSET_PATHS[`u_t${t}_${s}`]}" alt="${u.name}" class="w-full h-full object-contain hd2d-sprite" />
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 min-w-0">
@@ -9804,7 +10603,7 @@
           const manifestUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
           addLink('manifest', manifestUrl);
 
-          const APP_BUILD_ID = '2026.11.23-mobile-v4';
+          const APP_BUILD_ID = '2026.11.24-hd2d-v5';
           let pendingUpdateReload = false;
           let swRegistrationRef = null;
 
