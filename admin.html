@@ -2156,13 +2156,26 @@
       }
 
       async function verifyAdminDocForUser(user) {
-        if (!user || !fbDb || !fbMod) return false;
+        if (!user || !fbDb || !fbMod) return { ok: false, reason: 'not_ready', code: '' };
         try {
           const snap = await fbMod.getDoc(fbMod.doc(fbDb, 'admins', user.uid));
-          return snap.exists();
-        } catch (_) {
-          return false;
+          return { ok: snap.exists(), reason: snap.exists() ? 'ok' : 'missing', code: '' };
+        } catch (err) {
+          return { ok: false, reason: err?.code === 'permission-denied' ? 'permission' : 'error', code: err?.code || err?.message || '' };
         }
+      }
+
+      function showAdminErrorReason(errBox, user, res) {
+        if (!errBox || !user) return;
+        errBox.classList.remove('hidden');
+        if (res.reason === 'permission') {
+          errBox.innerHTML = `❌ Firestore 규칙 차단(permission-denied): Firestore → 규칙 탭에 <code>firestore.rules</code>를 붙여넣고 <strong>게시</strong>했는지 확인하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
+        } else if (res.reason === 'missing') {
+          errBox.innerHTML = `❌ Firestore <code>admins/${user.uid}</code> 문서가 없습니다. 데이터 탭에서 컬렉션 <code>admins</code> / 문서 ID에 UID를 추가하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
+        } else {
+          errBox.innerHTML = `❌ Firestore 조회 오류(${res.code || 'unknown'}): Firestore 데이터베이스가 생성되어 있는지 확인하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
+        }
+        document.getElementById('btnCopyMissingAdminUid')?.addEventListener('click', () => copyText(user.uid, '운영자 UID가 복사되었습니다!'));
       }
 
       function renderFbCouponsList() {
@@ -2345,15 +2358,11 @@
               renderFbSavesList();
               return;
             }
-            const ok = await verifyAdminDocForUser(user);
-            if (!ok) {
+            const res = await verifyAdminDocForUser(user);
+            if (!res.ok) {
               fbIsAdmin = false;
               fbAdminUser = null;
-              if (errBox) {
-                errBox.classList.remove('hidden');
-                errBox.innerHTML = `❌ 운영자 권한 없음: Firestore <code>admins/${user.uid}</code> 문서를 생성한 뒤 다시 로그인하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
-                document.getElementById('btnCopyMissingAdminUid')?.addEventListener('click', () => copyText(user.uid, '운영자 UID가 복사되었습니다!'));
-              }
+              showAdminErrorReason(errBox, user, res);
               updateAdminCloudBadges();
               renderFbCouponsList();
               renderFbSavesList();
@@ -2392,12 +2401,8 @@
         try {
           if (errBox) errBox.classList.add('hidden');
           const cred = await fbMod.signInWithEmailAndPassword(fbAuth, email, pass);
-          const ok = await verifyAdminDocForUser(cred.user);
-          if (!ok && errBox) {
-            errBox.classList.remove('hidden');
-            errBox.innerHTML = `❌ admins/${cred.user.uid} 문서가 없습니다. Firestore에 문서를 추가하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
-            document.getElementById('btnCopyMissingAdminUid')?.addEventListener('click', () => copyText(cred.user.uid, '운영자 UID가 복사되었습니다!'));
-          }
+          const res = await verifyAdminDocForUser(cred.user);
+          if (!res.ok) showAdminErrorReason(errBox, cred.user, res);
         } catch (err) {
           if (errBox) {
             errBox.classList.remove('hidden');
