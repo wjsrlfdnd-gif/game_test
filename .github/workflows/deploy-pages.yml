@@ -34,6 +34,7 @@ jobs:
           [ -f sw.js ] && cp sw.js _site/sw.js || true
           [ -f manifest.webmanifest ] && cp manifest.webmanifest _site/manifest.webmanifest || true
           [ -f live_config.json ] && cp live_config.json _site/live_config.json || true
+          [ -f firebase-config.js ] && cp firebase-config.js _site/firebase-config.js || true
           [ -d icons ] && cp -r icons _site/icons || true
           touch _site/.nojekyll
 

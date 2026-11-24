@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
+  <script src="./firebase-config.js"></script>
   <title>RCD 운영자 관리 콘솔 (Random Character Defense Admin)</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -52,9 +53,21 @@
 
       <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300 leading-relaxed">
         <div class="font-bold text-amber-300 mb-1">🔐 운영자 인증 안내</div>
-        초기 기본 패스코드는 <code class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-200 font-bold">rcd-admin-2026</code> 입니다.<br/>
-        로그인 후 <strong>[마스터 · 보안 설정]</strong> 탭에서 패스코드 및 쿠폰 서명 키를 변경할 수 있습니다.
+        <div id="lblLoginModeNote" class="text-sky-300 font-semibold mb-1.5">연결 상태를 확인 중입니다...</div>
+        오프라인/로컬 초기 패스코드는 <code class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-200 font-bold">rcd-admin-2026</code> 입니다.
       </div>
+
+      <form id="fbLoginForm" class="p-3 rounded-xl bg-slate-950/75 border border-emerald-500/35 flex flex-col gap-2">
+        <div class="text-xs font-black text-emerald-300">🔥 Firebase 운영자 계정 로그인 (클라우드 DB 관리용)</div>
+        <input id="txtAdminEmail" type="email" autocomplete="username" placeholder="운영자 이메일 (Firebase Auth)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400" />
+        <input id="txtAdminFbPass" type="password" autocomplete="current-password" placeholder="운영자 비밀번호" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400" />
+        <div id="lblFbLoginError" class="hidden text-[11px] font-bold text-rose-400 break-all"></div>
+        <button type="submit" class="btn-press w-full py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs shadow">
+          Firebase 운영자 로그인
+        </button>
+      </form>
+
+      <div class="text-center text-[10px] text-slate-500 font-bold">— 또는 오프라인 / 로컬 패스코드 잠금 해제 —</div>
 
       <form id="loginForm" class="flex flex-col gap-2.5">
         <label class="flex flex-col gap-1">
@@ -91,6 +104,7 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
+        <span id="lblAdminCloudBadge" class="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300">⚡ 로컬 모드</span>
         <a href="./random_character_defense.html" class="btn-press px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow">
           🎮 게임 실행
         </a>
@@ -199,6 +213,16 @@
             </label>
           </div>
 
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-emerald-300">🔥 서버 쿠폰 선착순 수량 (0 = 무제한)</span>
+              <input id="cpnMaxUses" type="number" min="0" value="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-400" />
+            </label>
+            <button id="btnPublishFbCoupon" type="button" class="btn-press py-2 px-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs shadow-lg">
+              🔥 Firestore 서버 쿠폰 즉시 발급
+            </button>
+          </div>
+
           <div class="flex flex-wrap gap-2">
             <button id="btnIssueSignedCoupon" type="button" class="btn-press flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow-lg">
               ✨ 서명 쿠폰 발급하기
@@ -269,6 +293,26 @@
             </div>
 
             <div id="couponTableList" class="flex flex-col gap-1.5 max-h-[190px] overflow-y-auto pr-1"></div>
+
+            <div class="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <span class="text-[11px] font-bold text-sky-300">🔥 Firestore 실시간 공지·배율 연동</span>
+              <div class="flex gap-1.5">
+                <button id="btnFetchFbLiveConfig" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200">DB 불러오기</button>
+                <button id="btnPublishFbLiveConfig" type="button" class="btn-press px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[11px] font-extrabold text-white shadow">🔥 Firestore 실시간 반영</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Firestore Live Coupons Manager -->
+          <div id="fbCouponsPanel" class="panel-glass border border-emerald-500/30 rounded-2xl p-4 flex flex-col gap-2.5">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div>
+                <h2 class="text-sm font-black text-emerald-300">🔥 Firestore 서버 쿠폰 목록 (1인 1회 · 선착순)</h2>
+                <div id="lblFbCouponsStatus" class="text-[10px] text-slate-400">Firebase 연결 대기 중...</div>
+              </div>
+              <button id="btnRefreshFbCoupons" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200">🔄 새로고침</button>
+            </div>
+            <div id="fbCouponsList" class="flex flex-col gap-1.5 max-h-[210px] overflow-y-auto pr-1"></div>
           </div>
 
           <!-- Issued History -->
@@ -311,11 +355,27 @@
             <div id="lblEditingSaveInfo" class="text-xs font-bold text-amber-300">편집 중인 데이터가 없습니다. 상단 버튼으로 불러오세요.</div>
             <div class="flex flex-wrap gap-1.5">
               <button id="btnApplyLocalSave" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-black text-slate-950 shadow">💾 현재 브라우저에 저장</button>
+              <button id="btnSaveFbCloudSave" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-black text-white shadow">☁️ 클라우드 DB에 저장</button>
               <button id="btnExportAdminJson" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white">JSON 복사</button>
               <button id="btnExportAdminRcd1" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white">RCD1 코드 복사</button>
               <button id="btnDownloadAdminJson" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200">JSON 다운로드</button>
             </div>
           </div>
+        </div>
+
+        <!-- Firestore Cloud Saves List -->
+        <div id="fbCloudSavesPanel" class="panel-glass border border-sky-500/30 rounded-2xl p-4 flex flex-col gap-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xs font-black text-sky-300 uppercase tracking-wider">☁️ Firebase 클라우드 유저 세이브 목록 (saves 컬렉션)</h3>
+              <div id="lblSelectedCloudUid" class="text-[11px] text-slate-400">선택된 클라우드 계정 없음 (유저 클릭 시 편집기로 로드됨)</div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <input id="txtFbSaveSearch" type="text" placeholder="이메일 또는 UID 검색..." class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white w-48" />
+              <button id="btnLoadFbSaves" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-extrabold text-white">🔄 유저 목록 불러오기</button>
+            </div>
+          </div>
+          <div id="fbSavesList" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[210px] overflow-y-auto pr-1"></div>
         </div>
 
         <!-- Save Editor Panels -->
@@ -547,6 +607,24 @@
           </label>
           <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300">
             본체 반영용 상수: <span id="lblSecretSnippet" class="text-emerald-300 select-all"></span>
+          </div>
+
+          <!-- Firebase Config Setup Helper -->
+          <div id="fbConfigCard" class="mt-2 pt-3 border-t border-slate-800 flex flex-col gap-2">
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-xs font-black text-sky-300">🔥 Firebase 프로젝트 연동 (<code class="text-[10px]">firebase-config.js</code>)</h3>
+              <span id="lblFbConfigStatus" class="text-[11px] font-bold text-amber-300">확인 중...</span>
+            </div>
+            <p class="text-[10px] text-slate-400 leading-relaxed">
+              Firebase 콘솔(프로젝트 설정 → 내 앱 → 웹 앱)에서 받은 <code class="text-slate-200">firebaseConfig</code> 코드 또는 JSON을 붙여넣으세요.
+              브라우저 테스트 적용 또는 <code class="text-slate-200">firebase-config.js</code> 다운로드가 가능합니다.
+            </p>
+            <textarea id="txtFbConfigInput" rows="4" placeholder='{ "apiKey": "...", "authDomain": "...", "projectId": "...", "appId": "..." }' class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-[11px] font-mono text-sky-200 focus:outline-none focus:border-sky-400"></textarea>
+            <div class="flex flex-wrap gap-1.5">
+              <button id="btnSaveFbConfigOverride" type="button" class="btn-press flex-1 py-1.5 px-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-extrabold text-white">⚡ 로컬 테스트 적용</button>
+              <button id="btnDownloadFbConfigJs" type="button" class="btn-press flex-1 py-1.5 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-extrabold text-white">📄 firebase-config.js 저장</button>
+              <button id="btnClearFbConfigOverride" type="button" class="btn-press py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">초기화</button>
+            </div>
           </div>
         </div>
 
@@ -1992,10 +2070,507 @@
       document.getElementById('txtMasterSearch').addEventListener('input', renderMasterData);
       renderMasterData();
 
+      // =====================================================================
+      // FIREBASE ADMIN BACKEND (Auth · Coupons · LiveConfig · Cloud Saves)
+      // =====================================================================
+      let fbApp = null;
+      let fbAuth = null;
+      let fbDb = null;
+      let fbMod = null;
+      let fbAdminReady = false;
+      let fbIsAdmin = false;
+      let fbAdminUser = null;
+      let fbCouponsCache = [];
+      let fbSavesCache = [];
+      let editingCloudUid = '';
+
+      function updateAdminCloudBadges() {
+        const badge = document.getElementById('lblAdminCloudBadge');
+        const modeNote = document.getElementById('lblLoginModeNote');
+        const cfg = (typeof window.RCD_FIREBASE_CONFIG === 'object' && window.RCD_FIREBASE_CONFIG) ? window.RCD_FIREBASE_CONFIG : {};
+        const configured = (typeof window.RCD_IS_FIREBASE_READY === 'function') && window.RCD_IS_FIREBASE_READY();
+
+        const cfgStatus = document.getElementById('lblFbConfigStatus');
+        if (cfgStatus) {
+          cfgStatus.textContent = configured
+            ? `✅ 설정됨 (Project: ${cfg.projectId})`
+            : '미설정 (오프라인/로컬 모드로 동작 중)';
+          cfgStatus.className = configured
+            ? 'text-[11px] font-bold text-emerald-300'
+            : 'text-[11px] font-bold text-amber-300';
+        }
+        if (modeNote) {
+          modeNote.textContent = configured
+            ? `🔥 Firebase 연동 감지 (${cfg.projectId}) · 운영자 이메일로 로그인하거나 오프라인 패스코드를 사용하세요.`
+            : '⚡ firebase-config.js 미설정 상태 · 기본 패스코드로 로그인한 뒤 [마스터·보안 설정]에서 Firebase를 연결할 수 있습니다.';
+        }
+        if (badge) {
+          if (!configured) {
+            badge.textContent = '⚡ 로컬 모드';
+            badge.className = 'px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300';
+          } else if (fbIsAdmin && fbAdminUser) {
+            badge.textContent = `🔥 Firebase Admin (${fbAdminUser.email || fbAdminUser.uid.slice(0, 8)})`;
+            badge.className = 'px-2.5 py-1 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-[11px] font-extrabold text-emerald-300';
+          } else {
+            badge.textContent = '🔒 Firebase 미인증 (읽기전용/로컬)';
+            badge.className = 'px-2.5 py-1 rounded-xl bg-amber-950/80 border border-amber-500/40 text-[11px] font-bold text-amber-300';
+          }
+        }
+      }
+
+      function parseFirebaseConfigSnippet(rawText) {
+        const txt = (rawText || '').trim();
+        if (!txt) throw new Error('설정을 입력하세요.');
+        try {
+          const direct = JSON.parse(txt);
+          if (direct && direct.apiKey && direct.projectId) return direct;
+        } catch (_) {}
+        const keys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'];
+        const out = {};
+        keys.forEach(k => {
+          const re = new RegExp(`(?:["']?${k}["']?)\\s*:\\s*["']([^"']+)["']`);
+          const m = re.exec(txt);
+          if (m && m[1]) out[k] = m[1].trim();
+        });
+        if (!out.apiKey || !out.projectId) {
+          throw new Error('apiKey 또는 projectId를 찾을 수 없습니다.');
+        }
+        return {
+          apiKey: out.apiKey || '',
+          authDomain: out.authDomain || `${out.projectId}.firebaseapp.com`,
+          projectId: out.projectId || '',
+          storageBucket: out.storageBucket || `${out.projectId}.firebasestorage.app`,
+          messagingSenderId: out.messagingSenderId || '',
+          appId: out.appId || ''
+        };
+      }
+
+      function renderFbConfigCard() {
+        const txt = document.getElementById('txtFbConfigInput');
+        if (txt && typeof window.RCD_FIREBASE_CONFIG === 'object' && window.RCD_IS_FIREBASE_READY && window.RCD_IS_FIREBASE_READY()) {
+          if (!txt.value.trim()) {
+            txt.value = JSON.stringify(window.RCD_FIREBASE_CONFIG, null, 2);
+          }
+        }
+        updateAdminCloudBadges();
+      }
+
+      async function verifyAdminDocForUser(user) {
+        if (!user || !fbDb || !fbMod) return false;
+        try {
+          const snap = await fbMod.getDoc(fbMod.doc(fbDb, 'admins', user.uid));
+          return snap.exists();
+        } catch (_) {
+          return false;
+        }
+      }
+
+      function renderFbCouponsList() {
+        const list = document.getElementById('fbCouponsList');
+        const statusEl = document.getElementById('lblFbCouponsStatus');
+        if (!list) return;
+        if (statusEl) {
+          statusEl.textContent = fbIsAdmin
+            ? `총 ${fbCouponsCache.length}개 서버 쿠폰 로드됨`
+            : 'Firebase 운영자 로그인 후 서버 쿠폰 목록이 표시됩니다.';
+        }
+        list.innerHTML = '';
+        if (!fbIsAdmin) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">Firebase 운영자 계정으로 로그인하면 서버 쿠폰과 실시간 사용량(선착순)을 관리할 수 있습니다.</div>';
+          return;
+        }
+        if (!fbCouponsCache.length) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">등록된 Firestore 서버 쿠폰이 없습니다. 왼쪽에서 생성 후 [🔥 Firestore 서버 쿠폰 발급]을 누르세요.</div>';
+          return;
+        }
+        fbCouponsCache.forEach(c => {
+          const code = c.id;
+          const summary = formatCouponSummaryText(c) || '보상 없음';
+          const used = Number(c.usedCount) || 0;
+          const max = Number(c.maxUses) || 0;
+          const quotaText = max > 0 ? `${used}/${max}명` : `${used}회/무제한`;
+          const row = document.createElement('div');
+          row.className = 'p-2.5 rounded-xl bg-slate-950/85 border border-slate-800 flex items-center justify-between gap-2';
+          row.innerHTML = `
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-xs font-black ${c.enabled !== false ? 'text-emerald-300' : 'text-slate-500 line-through'}">${code}</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-amber-200">${quotaText}</span>
+                <span class="text-[10px] text-slate-400">${c.expiresAt || '무기한'}</span>
+              </div>
+              <div class="text-[11px] text-slate-300 truncate">${summary}</div>
+            </div>
+            <div class="flex gap-1 shrink-0">
+              <button type="button" class="btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-amber-200">${c.enabled !== false ? '활성' : '중지'}</button>
+              <button type="button" class="btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-900/70 text-[10px] font-bold text-rose-300">삭제</button>
+            </div>
+          `;
+          const [togBtn, delBtn] = row.querySelectorAll('button');
+          togBtn.addEventListener('click', async () => {
+            try {
+              const nextEnabled = !(c.enabled !== false);
+              await fbMod.setDoc(fbMod.doc(fbDb, 'coupons', code), { enabled: nextEnabled }, { merge: true });
+              c.enabled = nextEnabled;
+              renderFbCouponsList();
+              showToast(`[${code}] 상태가 ${nextEnabled ? '활성화' : '중지'}로 변경되었습니다.`);
+            } catch (err) {
+              showToast(`쿠폰 상태 변경 실패: ${err?.message || '권한 확인'}`);
+            }
+          });
+          delBtn.addEventListener('click', async () => {
+            try {
+              await fbMod.deleteDoc(fbMod.doc(fbDb, 'coupons', code));
+              fbCouponsCache = fbCouponsCache.filter(x => x.id !== code);
+              renderFbCouponsList();
+              showToast(`[${code}] Firestore 쿠폰이 삭제되었습니다.`);
+            } catch (err) {
+              showToast(`쿠폰 삭제 실패: ${err?.message || '권한 확인'}`);
+            }
+          });
+          list.appendChild(row);
+        });
+      }
+
+      async function loadFbCoupons() {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          renderFbCouponsList();
+          return;
+        }
+        try {
+          const snap = await fbMod.getDocs(fbMod.collection(fbDb, 'coupons'));
+          fbCouponsCache = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
+            .sort((a, b) => (Number(b.createdAtMs) || 0) - (Number(a.createdAtMs) || 0));
+          renderFbCouponsList();
+        } catch (err) {
+          console.warn('[Admin Load Coupons]', err);
+          showToast('Firestore 쿠폰 목록 조회에 실패했습니다.');
+        }
+      }
+
+      function renderFbSavesList() {
+        const list = document.getElementById('fbSavesList');
+        if (!list) return;
+        const q = (document.getElementById('txtFbSaveSearch')?.value || '').trim().toLowerCase();
+        list.innerHTML = '';
+        if (!fbIsAdmin) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">Firebase 운영자 로그인 후 클라우드 유저 세이브 목록을 불러올 수 있습니다.</div>';
+          return;
+        }
+        const filtered = fbSavesCache.filter(item => {
+          if (!q) return true;
+          return `${item.uid} ${item.email || ''}`.toLowerCase().includes(q);
+        });
+        if (!filtered.length) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">조회된 클라우드 유저 세이브가 없습니다.</div>';
+          return;
+        }
+        filtered.forEach(item => {
+          const row = document.createElement('div');
+          const active = editingCloudUid === item.uid;
+          row.className = `p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-2 ${active ? 'bg-sky-950/60 border-sky-400' : 'bg-slate-950/85 border-slate-800'}`;
+          const dt = item.updatedAtMs ? new Date(item.updatedAtMs).toLocaleString('ko-KR') : '-';
+          const who = item.email ? `${item.email} (${item.uid.slice(0, 8)}...)` : `게스트 ${item.uid.slice(0, 12)}...`;
+          row.innerHTML = `
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-extrabold text-white truncate">${who}</div>
+              <div class="text-[10px] text-slate-400">${(item.accountGold || 0).toLocaleString()}G · ${item.accountGems || 0}💎 · ${item.accountShards || 0}✨ · 최근 ${dt}</div>
+            </div>
+            <button type="button" class="btn-press px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-[10px] font-extrabold text-white shrink-0">편집기로 열기</button>
+          `;
+          row.querySelector('button').addEventListener('click', () => {
+            try {
+              if (!item.saveJson) return showToast('saveJson 데이터가 비어 있습니다.');
+              editingSave = normalizeSaveObject(JSON.parse(item.saveJson));
+              editingCloudUid = item.uid;
+              const lbl = document.getElementById('lblSelectedCloudUid');
+              if (lbl) lbl.textContent = `☁️ 클라우드 대상: ${item.email || item.uid}`;
+              renderSaveEditor();
+              renderFbSavesList();
+              showToast(`[${item.email || item.uid.slice(0, 10)}] 클라우드 세이브를 불러왔습니다.`);
+            } catch (_) {
+              showToast('클라우드 세이브 JSON 해석에 실패했습니다.');
+            }
+          });
+          list.appendChild(row);
+        });
+      }
+
+      async function loadFbSaves() {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          renderFbSavesList();
+          return;
+        }
+        try {
+          const qRef = fbMod.query(fbMod.collection(fbDb, 'saves'), fbMod.orderBy('updatedAtMs', 'desc'), fbMod.limit(50));
+          const snap = await fbMod.getDocs(qRef);
+          fbSavesCache = snap.docs.map(d => Object.assign({ uid: d.id }, d.data() || {}));
+          renderFbSavesList();
+        } catch (err) {
+          console.warn('[Admin Load Saves]', err);
+          showToast('클라우드 세이브 목록 조회에 실패했습니다.');
+        }
+      }
+
+      async function initAdminFirebase(forceReload = false) {
+        updateAdminCloudBadges();
+        renderFbConfigCard();
+        const isHttp = (location.protocol === 'https:' || location.protocol === 'http:');
+        if (!isHttp || typeof window.RCD_IS_FIREBASE_READY !== 'function' || !window.RCD_IS_FIREBASE_READY()) {
+          renderFbCouponsList();
+          renderFbSavesList();
+          return;
+        }
+        if (fbAdminReady && !forceReload) return;
+        try {
+          const [appMod, authMod, fsMod] = await Promise.all([
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js')
+          ]);
+          fbMod = Object.assign({}, appMod, authMod, fsMod);
+          const appName = forceReload ? `rcd-admin-${Date.now()}` : 'rcd-admin';
+          const existing = appMod.getApps().find(a => a.name === appName);
+          fbApp = existing || appMod.initializeApp(window.RCD_FIREBASE_CONFIG, appName);
+          fbAuth = authMod.getAuth(fbApp);
+          fbDb = fsMod.getFirestore(fbApp);
+          fbAdminReady = true;
+
+          authMod.onAuthStateChanged(fbAuth, async (user) => {
+            const errBox = document.getElementById('lblFbLoginError');
+            if (!user) {
+              fbIsAdmin = false;
+              fbAdminUser = null;
+              updateAdminCloudBadges();
+              renderFbCouponsList();
+              renderFbSavesList();
+              return;
+            }
+            const ok = await verifyAdminDocForUser(user);
+            if (!ok) {
+              fbIsAdmin = false;
+              fbAdminUser = null;
+              if (errBox) {
+                errBox.classList.remove('hidden');
+                errBox.innerHTML = `❌ 운영자 권한 없음: Firestore <code>admins/${user.uid}</code> 문서를 생성한 뒤 다시 로그인하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
+                document.getElementById('btnCopyMissingAdminUid')?.addEventListener('click', () => copyText(user.uid, '운영자 UID가 복사되었습니다!'));
+              }
+              updateAdminCloudBadges();
+              renderFbCouponsList();
+              renderFbSavesList();
+              return;
+            }
+            fbIsAdmin = true;
+            fbAdminUser = user;
+            if (errBox) errBox.classList.add('hidden');
+            sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+            updateAdminCloudBadges();
+            unlockAdminUI();
+            loadFbCoupons();
+            loadFbSaves();
+          });
+        } catch (err) {
+          console.warn('[Admin Firebase Init]', err);
+          showToast('Firebase Admin SDK 초기화에 실패했습니다.');
+        }
+      }
+
+      document.getElementById('fbLoginForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errBox = document.getElementById('lblFbLoginError');
+        if (!window.RCD_IS_FIREBASE_READY || !window.RCD_IS_FIREBASE_READY()) {
+          if (errBox) {
+            errBox.classList.remove('hidden');
+            errBox.textContent = '⚠️ firebase-config.js가 설정되지 않았습니다. 아래 기본 패스코드로 먼저 로그인해 설정하세요.';
+          }
+          return;
+        }
+        await initAdminFirebase();
+        if (!fbAdminReady || !fbAuth || !fbMod) return showToast('Firebase 연결에 실패했습니다.');
+        const email = (document.getElementById('txtAdminEmail')?.value || '').trim();
+        const pass = document.getElementById('txtAdminFbPass')?.value || '';
+        if (!email || !pass) return showToast('이메일과 비밀번호를 입력하세요.');
+        try {
+          if (errBox) errBox.classList.add('hidden');
+          const cred = await fbMod.signInWithEmailAndPassword(fbAuth, email, pass);
+          const ok = await verifyAdminDocForUser(cred.user);
+          if (!ok && errBox) {
+            errBox.classList.remove('hidden');
+            errBox.innerHTML = `❌ admins/${cred.user.uid} 문서가 없습니다. Firestore에 문서를 추가하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
+            document.getElementById('btnCopyMissingAdminUid')?.addEventListener('click', () => copyText(cred.user.uid, '운영자 UID가 복사되었습니다!'));
+          }
+        } catch (err) {
+          if (errBox) {
+            errBox.classList.remove('hidden');
+            errBox.textContent = `❌ 로그인 실패: ${err?.message || err?.code || '이메일/비밀번호를 확인하세요.'}`;
+          }
+        }
+      });
+
+      document.getElementById('btnLockAdmin')?.addEventListener('click', () => {
+        if (fbAuth && fbMod && fbAuth.currentUser) {
+          fbMod.signOut(fbAuth).catch(() => {});
+        }
+      });
+
+      document.getElementById('btnPublishFbCoupon')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          return showToast('🔥 Firebase 운영자 계정으로 로그인해야 서버 쿠폰을 발급할 수 있습니다.');
+        }
+        const d = getCouponFormData();
+        if (!d.couponId) return showToast('쿠폰 식별 ID를 입력하세요.');
+        if (!formatCouponSummaryText(d)) return showToast('보상을 최소 1개 이상 입력하세요.');
+        const maxUses = Math.max(0, Math.floor(Number(document.getElementById('cpnMaxUses')?.value) || 0));
+        try {
+          await fbMod.setDoc(fbMod.doc(fbDb, 'coupons', d.couponId), {
+            gold: d.gold,
+            gems: d.gems,
+            shards: d.shards,
+            goldPotion: d.goldPotion,
+            shockScroll: d.shockScroll,
+            bossBane: d.bossBane,
+            itemId: d.itemId || '',
+            itemLv: d.itemId ? d.itemLv : 0,
+            itemEx: d.itemId ? d.itemEx : 0,
+            expiresAt: d.expiresAt || '',
+            maxUses,
+            usedCount: 0,
+            enabled: true,
+            createdAtMs: Date.now(),
+            createdBy: fbAdminUser?.uid || ''
+          }, { merge: true });
+          showToast(`🔥 [${d.couponId}] Firestore 서버 쿠폰 즉시 발급 완료!`);
+          await loadFbCoupons();
+        } catch (err) {
+          showToast(`서버 쿠폰 발급 실패: ${err?.message || '권한 확인'}`);
+        }
+      });
+
+      document.getElementById('btnRefreshFbCoupons')?.addEventListener('click', loadFbCoupons);
+
+      document.getElementById('btnPublishFbLiveConfig')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          return showToast('🔥 Firebase 운영자 로그인 후 실시간 DB에 발행할 수 있습니다.');
+        }
+        const payload = buildLiveConfigPayload();
+        try {
+          await fbMod.setDoc(fbMod.doc(fbDb, 'liveConfig', 'current'), payload, { merge: true });
+          showToast('🔥 Firestore liveConfig/current 실시간 공지·배율 발행 완료!');
+        } catch (err) {
+          showToast(`실시간 발행 실패: ${err?.message || '권한 확인'}`);
+        }
+      });
+
+      document.getElementById('btnFetchFbLiveConfig')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbDb || !fbMod) {
+          return showToast('Firebase 연결 후 조회할 수 있습니다.');
+        }
+        try {
+          const snap = await fbMod.getDoc(fbMod.doc(fbDb, 'liveConfig', 'current'));
+          if (!snap.exists()) return showToast('아직 Firestore에 liveConfig/current 문서가 없습니다.');
+          const cfg = snap.data() || {};
+          liveConfigDraft = Object.assign(liveConfigDraft, cfg);
+          if (cfg.coupons && typeof cfg.coupons === 'object') {
+            couponTable = cfg.coupons;
+            localStorage.setItem(ADMIN_COUPON_TABLE_KEY, JSON.stringify(couponTable));
+            renderCouponTable();
+          }
+          syncLiveConfigDraftInputs();
+          showToast('🔥 Firestore에서 현재 실시간 공지·배율을 불러왔습니다!');
+        } catch (err) {
+          showToast(`불러오기 실패: ${err?.message || '오류'}`);
+        }
+      });
+
+      document.getElementById('btnLoadFbSaves')?.addEventListener('click', loadFbSaves);
+      document.getElementById('txtFbSaveSearch')?.addEventListener('input', renderFbSavesList);
+
+      document.getElementById('btnSaveFbCloudSave')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          return showToast('🔥 Firebase 운영자 계정으로 로그인해야 클라우드 DB를 수정할 수 있습니다.');
+        }
+        if (!editingSave) return showToast('먼저 편집할 유저 세이브를 불러오세요.');
+        if (!editingCloudUid) return showToast('상단 [클라우드 유저 목록]에서 대상 유저를 선택하세요.');
+        syncEditorFieldsToObj();
+        const now = Date.now();
+        editingSave.adminEditedAt = now;
+        editingSave.saveUpdatedAt = now;
+        try {
+          await fbMod.setDoc(fbMod.doc(fbDb, 'saves', editingCloudUid), {
+            uid: editingCloudUid,
+            saveJson: JSON.stringify(editingSave),
+            accountGold: Number(editingSave.accountGold) || 0,
+            accountGems: Number(editingSave.accountGems) || 0,
+            accountShards: Number(editingSave.accountShards) || 0,
+            updatedAtMs: now,
+            adminEditedAt: now
+          }, { merge: true });
+          showToast(`☁️ [${editingCloudUid.slice(0, 10)}...] 클라우드 DB 저장 완료! 유저 기기에 실시간 반영됩니다.`);
+          await loadFbSaves();
+        } catch (err) {
+          showToast(`클라우드 저장 실패: ${err?.message || '권한 확인'}`);
+        }
+      });
+
+      document.getElementById('btnSaveFbConfigOverride')?.addEventListener('click', async () => {
+        try {
+          const cfg = parseFirebaseConfigSnippet(document.getElementById('txtFbConfigInput')?.value || '');
+          localStorage.setItem('rcd_firebase_config_override', JSON.stringify(cfg));
+          window.RCD_FIREBASE_CONFIG = cfg;
+          window.RCD_IS_FIREBASE_READY = () => !!(cfg.apiKey && cfg.apiKey.length > 8 && cfg.projectId);
+          renderFbConfigCard();
+          await initAdminFirebase(true);
+          showToast(`✅ 브라우저 테스트용 Firebase 설정 적용 (${cfg.projectId})!`);
+        } catch (err) {
+          showToast(`❌ 설정 파싱 실패: ${err?.message || '올바른 firebaseConfig를 붙여넣으세요.'}`);
+        }
+      });
+
+      document.getElementById('btnDownloadFbConfigJs')?.addEventListener('click', () => {
+        try {
+          const cfg = parseFirebaseConfigSnippet(document.getElementById('txtFbConfigInput')?.value || '');
+          const code = [
+            '// Firebase Project Configuration for Random Character Defense (Web + PWA + Android APK)',
+            '(function (global) {',
+            '  const DEFAULT_CONFIG = ' + JSON.stringify(cfg, null, 4).replace(/\n/g, '\n  ') + ';',
+            '',
+            '  let active = Object.assign({}, DEFAULT_CONFIG);',
+            '  try {',
+            '    if (!active.apiKey && global.localStorage) {',
+            "      const ov = global.localStorage.getItem('rcd_firebase_config_override');",
+            '      if (ov) {',
+            '        const parsed = JSON.parse(ov);',
+            "        if (parsed && typeof parsed === 'object' && parsed.apiKey && parsed.projectId) {",
+            '          active = Object.assign({}, DEFAULT_CONFIG, parsed);',
+            '        }',
+            '      }',
+            '    }',
+            '  } catch (_) {}',
+            '',
+            '  global.RCD_FIREBASE_CONFIG = active;',
+            '  global.RCD_IS_FIREBASE_READY = function () {',
+            '    const c = global.RCD_FIREBASE_CONFIG;',
+            "    return !!(c && typeof c.apiKey === 'string' && c.apiKey.trim().length > 8 && typeof c.projectId === 'string' && c.projectId.trim().length > 0);",
+            '  };',
+            "})(typeof window !== 'undefined' ? window : globalThis);",
+            ''
+          ].join('\n');
+          downloadFile('firebase-config.js', code, 'application/javascript');
+          showToast('📄 firebase-config.js 다운로드 완료! 저장소 루트에 덮어쓰고 푸시하세요.');
+        } catch (err) {
+          showToast(`❌ 먼저 유효한 Firebase 설정을 붙여넣으세요: ${err?.message || ''}`);
+        }
+      });
+
+      document.getElementById('btnClearFbConfigOverride')?.addEventListener('click', () => {
+        localStorage.removeItem('rcd_firebase_config_override');
+        showToast('테스트용 로컬 Firebase 설정이 초기화되었습니다. 페이지를 새로고침하세요.');
+      });
+
       // Auto-unlock if active session exists
       if (sessionStorage.getItem(ADMIN_SESSION_KEY) === '1') {
         unlockAdminUI();
       }
+      initAdminFirebase();
     })();
   </script>
 </body>

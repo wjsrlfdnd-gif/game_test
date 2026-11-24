@@ -11,6 +11,7 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
+  <script src="./firebase-config.js"></script>
   <title>랜덤 캐릭터 디펜스 (Random Character Defense)</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -2366,6 +2367,27 @@
           </button>
         </div>
 
+        <div id="cloudAccountSection" class="pt-2 border-t border-slate-800 flex flex-col gap-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-sky-300">☁️ 클라우드 계정 · 자동 동기화</span>
+            <span id="lblCloudStatus" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">확인 중...</span>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <span id="lblCloudUid" class="text-[10px] text-slate-400 truncate">클라우드 연결 상태를 확인 중입니다...</span>
+            <button id="btnCloudSyncNow" type="button" class="game-btn px-2.5 py-1 rounded-lg bg-sky-700 hover:bg-sky-600 text-[10px] font-extrabold text-white shrink-0">지금 동기화</button>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5">
+            <input id="txtCloudEmail" type="email" autocomplete="email" placeholder="이메일 입력" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:border-sky-400" />
+            <input id="txtCloudPass" type="password" autocomplete="current-password" placeholder="비밀번호 (6자+)" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:border-sky-400" />
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button id="btnCloudLinkEmail" type="button" class="game-btn flex-1 px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-[10px] font-extrabold text-white">🔗 게스트에 연동</button>
+            <button id="btnCloudSignInEmail" type="button" class="game-btn flex-1 px-2.5 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-[10px] font-extrabold text-white">🔑 기존 로그인</button>
+            <button id="btnCloudGoogle" type="button" class="game-btn flex-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[10px] font-extrabold text-amber-200">G Google 연동·로그인</button>
+            <button id="btnCloudSignOut" type="button" class="hidden game-btn px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-rose-900/70 border border-slate-700 text-[10px] font-bold text-rose-300">게스트 전환</button>
+          </div>
+        </div>
+
         <div class="pt-2 border-t border-slate-800 flex flex-col gap-1.5">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-slate-400">💾 세이브 데이터 백업 (JSON / 코드 복사·복원)</span>
@@ -3735,6 +3757,8 @@
         };
       }
 
+      let saveUpdatedAt = 0;
+      let lastAdminEditedAt = 0;
       function saveGameData() {
         try {
           const payload = {
@@ -3770,9 +3794,13 @@
             bgmVolume,
             autoMergeOn: typeof autoMergeOn === 'boolean' ? autoMergeOn : false
           };
+          saveUpdatedAt = Date.now();
+          payload.saveUpdatedAt = saveUpdatedAt;
+          if (lastAdminEditedAt > 0) payload.adminEditedAt = lastAdminEditedAt;
           localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
           const el = document.getElementById('lblSaveStatus');
           if (el) el.textContent = '💾 자동저장됨';
+          if (typeof scheduleCloudSavePush === 'function') scheduleCloudSavePush();
         } catch (_) {}
       }
 
@@ -11133,6 +11161,9 @@
         addInventoryItem(SHOP_CATALOG[6], 'u_t1_0');
         updateBgmGain();
         syncAudioButtonsUI();
+        lastAdminEditedAt = 0;
+        saveGameData();
+        if (typeof pushSaveToCloud === 'function') pushSaveToCloud(true, true);
         resetGame();
         renderLobbyAll();
         showToast('🔄 모든 저장 데이터와 클리어 기록이 초기화되었습니다.');
@@ -11350,6 +11381,8 @@
           if (!parsed || typeof parsed !== 'object' || typeof parsed.accountGold !== 'number' || !Array.isArray(parsed.inventory)) {
             return showToast('❌ 올바른 랜덤 캐릭터 디펜스 세이브 형식이 아닙니다.');
           }
+          parsed.saveUpdatedAt = Date.now();
+          saveUpdatedAt = parsed.saveUpdatedAt;
           localStorage.setItem(SAVE_KEY, JSON.stringify(parsed));
           loadGameData();
           syncAudioButtonsUI();
@@ -11357,6 +11390,7 @@
           resetGame();
           renderLobbyAll();
           syncUI();
+          if (typeof pushSaveToCloud === 'function') pushSaveToCloud(true, true);
           showToast('✅ 세이브 데이터를 성공적으로 불러왔습니다!');
         } catch (_) {
           showToast('❌ 세이브 데이터 해석에 실패했습니다. JSON/코드를 확인하세요.');
@@ -12046,6 +12080,512 @@
       }
       initRealtimeLiveEngine();
       initMobileBackButtonGuard();
+
+      // =========================================================================
+      // FIREBASE BACKEND ENGINE (Auth · Cloud Save Sync · Live Config · Coupons)
+      // =========================================================================
+      let fbReady = false;
+      let fbApp = null;
+      let fbAuth = null;
+      let fbDb = null;
+      let fbMod = null;
+      let fbUserSaveUnsub = null;
+      let fbLiveCfgUnsub = null;
+      let fbBootStarted = false;
+      let cloudPushTimer = null;
+      let lastCloudSyncAt = 0;
+      let couponRedeemBusy = false;
+
+      function readLocalSaveRawObj() {
+        try {
+          const raw = localStorage.getItem(SAVE_KEY);
+          if (!raw) return null;
+          const obj = JSON.parse(raw);
+          return (obj && typeof obj === 'object') ? obj : null;
+        } catch (_) { return null; }
+      }
+
+      function syncLocalMetaFromStorage() {
+        const obj = readLocalSaveRawObj();
+        if (!obj) return;
+        const ts = Number(obj.saveUpdatedAt) || 0;
+        const adm = Number(obj.adminEditedAt) || 0;
+        if (ts > saveUpdatedAt) saveUpdatedAt = ts;
+        if (adm > lastAdminEditedAt) lastAdminEditedAt = adm;
+      }
+
+      function formatSyncTimeShort(ms) {
+        if (!ms) return '-';
+        try {
+          const d = new Date(ms);
+          return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+        } catch (_) { return '-'; }
+      }
+
+      function updateCloudAccountUI(customNote = '') {
+        const badge = document.getElementById('lblCloudStatus');
+        const uidEl = document.getElementById('lblCloudUid');
+        const linkBtn = document.getElementById('btnCloudLinkEmail');
+        const loginBtn = document.getElementById('btnCloudSignInEmail');
+        const googleBtn = document.getElementById('btnCloudGoogle');
+        const syncBtn = document.getElementById('btnCloudSyncNow');
+        const outBtn = document.getElementById('btnCloudSignOut');
+        if (!badge || !uidEl) return;
+
+        const isHttp = (location.protocol === 'https:' || location.protocol === 'http:');
+        const configured = (typeof window.RCD_IS_FIREBASE_READY === 'function') && window.RCD_IS_FIREBASE_READY();
+        if (!configured || !isHttp) {
+          badge.textContent = configured ? '로컬 실행 (오프라인 모드)' : '오프라인 / 미연동';
+          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400';
+          uidEl.textContent = customNote || (configured
+            ? '로컬 파일 실행 중 · 배포 URL에서 클라우드 동기화 활성화'
+            : 'firebase-config.js 미설정 · 현재 로컬 저장소로 자동 저장 중');
+          if (outBtn) outBtn.classList.add('hidden');
+          return;
+        }
+        if (!fbReady || !fbAuth) {
+          badge.textContent = '연결 중...';
+          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/70 text-amber-300';
+          uidEl.textContent = customNote || 'Firebase 서버에 연결하고 있습니다...';
+          return;
+        }
+        const u = fbAuth.currentUser;
+        if (!u) {
+          badge.textContent = '로그인 대기';
+          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300';
+          uidEl.textContent = customNote || '인증 대기 중입니다.';
+          if (outBtn) outBtn.classList.add('hidden');
+          return;
+        }
+        const syncSuffix = lastCloudSyncAt ? ` · 동기화 ${formatSyncTimeShort(lastCloudSyncAt)}` : '';
+        if (u.isAnonymous) {
+          badge.textContent = '익명 게스트 연결됨';
+          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-950/80 text-sky-300 border border-sky-500/40';
+          uidEl.textContent = customNote || `게스트 UID: ${u.uid.slice(0, 12)}...${syncSuffix}`;
+          if (linkBtn) linkBtn.classList.remove('hidden');
+          if (loginBtn) loginBtn.classList.remove('hidden');
+          if (googleBtn) googleBtn.textContent = 'G Google 연동·로그인';
+          if (outBtn) outBtn.classList.add('hidden');
+        } else {
+          const providerLabel = u.email || (u.displayName ? `${u.displayName} (Google)` : '계정 연동됨');
+          badge.textContent = `☁️ ${providerLabel}`;
+          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40';
+          uidEl.textContent = customNote || `계정 UID: ${u.uid.slice(0, 12)}...${syncSuffix}`;
+          if (linkBtn) linkBtn.classList.add('hidden');
+          if (loginBtn) loginBtn.classList.remove('hidden');
+          if (googleBtn) googleBtn.textContent = 'G 다른 Google 계정';
+          if (outBtn) outBtn.classList.remove('hidden');
+        }
+        if (syncBtn) syncBtn.disabled = false;
+      }
+
+      function applyRemoteCloudSave(remote, toastText = '') {
+        if (!remote || !remote.saveJson) return false;
+        try {
+          const parsed = JSON.parse(remote.saveJson);
+          if (!parsed || typeof parsed !== 'object' || typeof parsed.accountGold !== 'number' || !Array.isArray(parsed.inventory)) {
+            return false;
+          }
+          const remoteUpdated = Number(remote.updatedAtMs) || Number(parsed.saveUpdatedAt) || Date.now();
+          const remoteAdminAt = Number(remote.adminEditedAt) || Number(parsed.adminEditedAt) || 0;
+          parsed.saveUpdatedAt = remoteUpdated;
+          if (remoteAdminAt > 0) parsed.adminEditedAt = remoteAdminAt;
+          localStorage.setItem(SAVE_KEY, JSON.stringify(parsed));
+          saveUpdatedAt = parsed.saveUpdatedAt;
+          if (remoteAdminAt > 0) lastAdminEditedAt = remoteAdminAt;
+          loadGameData();
+          syncAudioButtonsUI();
+          updateBgmGain();
+          if (typeof inLobby !== 'undefined' && inLobby) {
+            resetGame();
+          }
+          renderLobbyAll();
+          syncUI();
+          lastCloudSyncAt = Date.now();
+          updateCloudAccountUI();
+          if (toastText) showToast(toastText);
+          return true;
+        } catch (err) {
+          console.warn('[Cloud Save Apply]', err);
+          return false;
+        }
+      }
+
+      async function pushSaveToCloud(immediate = false, forceOverwrite = false) {
+        if (!fbReady || !fbDb || !fbMod || !fbAuth || !fbAuth.currentUser) return false;
+        let localObj = readLocalSaveRawObj();
+        if (!localObj && forceOverwrite) {
+          saveGameData();
+          localObj = readLocalSaveRawObj();
+        }
+        if (!localObj) return false;
+        try {
+          const u = fbAuth.currentUser;
+          const updatedMs = Number(localObj.saveUpdatedAt) || saveUpdatedAt || Date.now();
+          const adminMs = Number(localObj.adminEditedAt) || lastAdminEditedAt || 0;
+          await fbMod.setDoc(fbMod.doc(fbDb, 'saves', u.uid), {
+            uid: u.uid,
+            email: u.email || '',
+            isAnonymous: !!u.isAnonymous,
+            saveJson: JSON.stringify(localObj),
+            accountGold: Number(localObj.accountGold) || 0,
+            accountGems: Number(localObj.accountGems) || 0,
+            accountShards: Number(localObj.accountShards) || 0,
+            updatedAtMs: updatedMs,
+            adminEditedAt: adminMs,
+            appVersion: typeof APP_LIVE_VERSION !== 'undefined' ? APP_LIVE_VERSION : ''
+          }, { merge: true });
+          lastCloudSyncAt = Date.now();
+          updateCloudAccountUI();
+          if (immediate) {
+            const el = document.getElementById('lblSaveStatus');
+            if (el) el.textContent = '☁️ 클라우드 동기화됨';
+          }
+          return true;
+        } catch (err) {
+          console.warn('[Cloud Save Push]', err);
+          return false;
+        }
+      }
+
+      function scheduleCloudSavePush() {
+        if (!fbReady || !fbDb || !fbAuth || !fbAuth.currentUser) return;
+        if (cloudPushTimer) clearTimeout(cloudPushTimer);
+        cloudPushTimer = setTimeout(() => {
+          cloudPushTimer = null;
+          pushSaveToCloud(false).catch(() => {});
+        }, 2500);
+      }
+
+      async function pullSaveFromCloud(forcePull = false) {
+        if (!fbReady || !fbDb || !fbMod || !fbAuth || !fbAuth.currentUser) return false;
+        syncLocalMetaFromStorage();
+        const u = fbAuth.currentUser;
+        try {
+          const snap = await fbMod.getDoc(fbMod.doc(fbDb, 'saves', u.uid));
+          if (!snap.exists()) {
+            const hasLocal = !!readLocalSaveRawObj();
+            if (hasLocal) {
+              await pushSaveToCloud(true);
+              updateCloudAccountUI();
+            } else {
+              saveGameData();
+              await pushSaveToCloud(true, true);
+            }
+            return true;
+          }
+          const remote = snap.data() || {};
+          const remoteUpdated = Number(remote.updatedAtMs) || 0;
+          const remoteAdminAt = Number(remote.adminEditedAt) || 0;
+          const adminNewer = remoteAdminAt > (lastAdminEditedAt || 0);
+          const localObj = readLocalSaveRawObj();
+          const cloudNewer = !localObj || (remoteUpdated > (saveUpdatedAt || 0) + 1200);
+          if (forcePull || adminNewer || cloudNewer) {
+            const applied = applyRemoteCloudSave(
+              remote,
+              adminNewer ? '🛠️ 운영자 세이브 수정사항이 클라우드에서 적용되었습니다!' : (forcePull ? '☁️ 클라우드 세이브를 불러왔습니다!' : '')
+            );
+            if (!applied && !forcePull && localObj) {
+              await pushSaveToCloud(true);
+            }
+          } else if ((saveUpdatedAt || 0) > remoteUpdated + 1200) {
+            await pushSaveToCloud(true);
+          } else {
+            lastCloudSyncAt = Date.now();
+            updateCloudAccountUI();
+          }
+          return true;
+        } catch (err) {
+          console.warn('[Cloud Save Pull]', err);
+          return false;
+        }
+      }
+
+      function applyFirebaseLiveConfigDoc(data) {
+        if (!data || typeof data !== 'object') return;
+        const merged = {
+          configVersion: Number(data.configVersion) || 1,
+          updatedAt: data.updatedAt || new Date().toISOString(),
+          maintenanceNotice: data.maintenanceNotice || '',
+          banner: (data.banner && typeof data.banner === 'object') ? data.banner : { enabled: false, text: '' },
+          events: Object.assign({ name: '', goldMult: 1, gemMult: 1, shardMult: 1 }, data.events || {}),
+          coupons: Object.assign({}, liveConfig.coupons || {}, data.coupons || {})
+        };
+        const prevKey = JSON.stringify({ b: liveConfig.banner, m: liveConfig.maintenanceNotice, e: liveConfig.events });
+        const nextKey = JSON.stringify({ b: merged.banner, m: merged.maintenanceNotice, e: merged.events });
+        liveConfig = merged;
+        renderLiveEventBar();
+        updateLiveVersionLabel('실시간 DB 연결됨');
+        if (prevKey !== nextKey && merged.banner && merged.banner.enabled && merged.banner.text) {
+          showToast(`📢 실시간 공지 업데이트: ${merged.banner.text}`);
+        }
+      }
+
+      function attachUserCloudListeners(user) {
+        if (fbUserSaveUnsub) { try { fbUserSaveUnsub(); } catch (_) {} fbUserSaveUnsub = null; }
+        if (!user || !fbDb || !fbMod) return;
+        fbUserSaveUnsub = fbMod.onSnapshot(fbMod.doc(fbDb, 'saves', user.uid), (snap) => {
+          if (!snap.exists() || (snap.metadata && snap.metadata.hasPendingWrites)) return;
+          const remote = snap.data() || {};
+          const remoteUpdated = Number(remote.updatedAtMs) || 0;
+          const remoteAdminAt = Number(remote.adminEditedAt) || 0;
+          const adminNewer = remoteAdminAt > (lastAdminEditedAt || 0);
+          const remoteMuchNewer = remoteUpdated > (saveUpdatedAt || 0) + 3000;
+          if (adminNewer || remoteMuchNewer) {
+            applyRemoteCloudSave(
+              remote,
+              adminNewer ? '🛠️ 운영자 세이브 수정사항이 실시간 반영되었습니다!' : '☁️ 다른 기기의 최신 클라우드 세이브가 동기화되었습니다!'
+            );
+          }
+        }, () => {});
+      }
+
+      async function initFirebaseBackend() {
+        if (fbBootStarted) return;
+        fbBootStarted = true;
+        syncLocalMetaFromStorage();
+        updateCloudAccountUI();
+
+        const isHttp = (location.protocol === 'https:' || location.protocol === 'http:');
+        if (!isHttp || typeof window.RCD_IS_FIREBASE_READY !== 'function' || !window.RCD_IS_FIREBASE_READY()) {
+          return;
+        }
+        try {
+          const [appMod, authMod, fsMod] = await Promise.all([
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js')
+          ]);
+          fbMod = Object.assign({}, appMod, authMod, fsMod);
+          fbApp = appMod.getApps().length ? appMod.getApps()[0] : appMod.initializeApp(window.RCD_FIREBASE_CONFIG);
+          fbAuth = authMod.getAuth(fbApp);
+          fbDb = fsMod.getFirestore(fbApp);
+          fbReady = true;
+          updateCloudAccountUI();
+
+          if (!fbLiveCfgUnsub) {
+            fbLiveCfgUnsub = fsMod.onSnapshot(fsMod.doc(fbDb, 'liveConfig', 'current'), (snap) => {
+              if (snap.exists()) applyFirebaseLiveConfigDoc(snap.data());
+            }, () => {});
+          }
+
+          let anonAttempted = false;
+          authMod.onAuthStateChanged(fbAuth, async (user) => {
+            if (!user) {
+              updateCloudAccountUI();
+              if (!anonAttempted) {
+                anonAttempted = true;
+                try { await authMod.signInAnonymously(fbAuth); } catch (e) {
+                  console.warn('[Firebase Anon Auth]', e);
+                  updateCloudAccountUI('익명 인증 실패 (Firebase 콘솔에서 익명 로그인을 켜세요)');
+                }
+              }
+              return;
+            }
+            updateCloudAccountUI();
+            attachUserCloudListeners(user);
+            await pullSaveFromCloud(false);
+          });
+        } catch (err) {
+          console.warn('[Firebase Init Fallback]', err);
+          updateCloudAccountUI('클라우드 연결 실패 (로컬 저장소 모드로 동작 중)');
+        }
+      }
+
+      // Firestore Atomic Transactional Coupon Redemption (with local live_config / RCD1 fallback)
+      const _origRedeemLiveCoupon = redeemLiveCoupon;
+      redeemLiveCoupon = async function (inputEl = document.getElementById('txtCouponCode')) {
+        if (couponRedeemBusy) return;
+        const inp = inputEl || document.getElementById('txtCouponCode');
+        const rawInput = (inp ? inp.value : '').trim();
+        if (!rawInput || rawInput.startsWith('RCD1-')) {
+          return _origRedeemLiveCoupon(inp);
+        }
+        const rawCode = rawInput.toUpperCase();
+        if (claimedCoupons.includes(rawCode)) {
+          const msg = `⚠️ 이미 사용한 쿠폰(${rawCode})입니다.`;
+          setCouponStatusMsg(msg, 'warn');
+          showToast(msg);
+          return;
+        }
+        if (fbReady && fbDb && fbMod && fbAuth && fbAuth.currentUser) {
+          couponRedeemBusy = true;
+          try {
+            const uid = fbAuth.currentUser.uid;
+            const couponRef = fbMod.doc(fbDb, 'coupons', rawCode);
+            const claimRef = fbMod.doc(fbDb, 'coupons', rawCode, 'claims', uid);
+            const txRes = await fbMod.runTransaction(fbDb, async (tx) => {
+              const cSnap = await tx.get(couponRef);
+              const claimSnap = await tx.get(claimRef);
+              if (!cSnap.exists()) return { status: 'NOT_FOUND' };
+              if (claimSnap.exists()) return { status: 'ALREADY_CLAIMED' };
+              const c = cSnap.data() || {};
+              if (c.enabled !== true) return { status: 'DISABLED' };
+              if (c.expiresAt && getTodayDateKey() > String(c.expiresAt)) return { status: 'EXPIRED', exp: c.expiresAt };
+              const usedCount = Number(c.usedCount) || 0;
+              const maxUses = Number(c.maxUses) || 0;
+              if (maxUses > 0 && usedCount >= maxUses) return { status: 'EXHAUSTED', maxUses };
+              tx.set(claimRef, { uid, claimedAt: Date.now() });
+              tx.update(couponRef, { usedCount: usedCount + 1 });
+              return { status: 'OK', coupon: c };
+            });
+            if (txRes.status === 'ALREADY_CLAIMED') {
+              if (!claimedCoupons.includes(rawCode)) claimedCoupons.push(rawCode);
+              saveGameData();
+              const msg = `⚠️ 이미 사용한 쿠폰(${rawCode})입니다.`;
+              setCouponStatusMsg(msg, 'warn');
+              showToast(msg);
+              return;
+            }
+            if (txRes.status === 'DISABLED') {
+              const msg = `❌ 현재 사용 중지된 쿠폰(${rawCode})입니다.`;
+              setCouponStatusMsg(msg, 'err');
+              showToast(msg);
+              return;
+            }
+            if (txRes.status === 'EXPIRED') {
+              const msg = `❌ 만료 기간(${txRes.exp})이 지난 쿠폰입니다.`;
+              setCouponStatusMsg(msg, 'err');
+              showToast(msg);
+              return;
+            }
+            if (txRes.status === 'EXHAUSTED') {
+              const msg = `❌ 선착순 수량(${txRes.maxUses}명)이 마감된 쿠폰입니다.`;
+              setCouponStatusMsg(msg, 'err');
+              showToast(msg);
+              return;
+            }
+            if (txRes.status === 'OK') {
+              const c = txRes.coupon || {};
+              const gotParts = [];
+              const g = Math.max(0, Math.floor(Number(c.gold) || 0));
+              const dm = Math.max(0, Math.floor(Number(c.gems) || 0));
+              const sh = Math.max(0, Math.floor(Number(c.shards) || 0));
+              const gp = Math.max(0, Math.floor(Number(c.goldPotion) || 0));
+              const ss = Math.max(0, Math.floor(Number(c.shockScroll) || 0));
+              const bb = Math.max(0, Math.floor(Number(c.bossBane) || 0));
+              if (g > 0) { accountGold += g; gotParts.push(`${g.toLocaleString()}G`); }
+              if (dm > 0) { accountGems += dm; gotParts.push(`${dm}💎`); }
+              if (sh > 0) { accountShards += sh; gotParts.push(`${sh}✨`); }
+              if (gp > 0) { consumables.goldPotion += gp; gotParts.push(`황금비약x${gp}`); }
+              if (ss > 0) { consumables.shockScroll += ss; gotParts.push(`충격파x${ss}`); }
+              if (bb > 0) { consumables.bossBane += bb; gotParts.push(`거신영약x${bb}`); }
+              if (c.itemId) {
+                const tpl = SHOP_CATALOG.find(it => it.id === c.itemId);
+                if (tpl) {
+                  const itemObj = addInventoryItem(tpl);
+                  const lv = Math.max(0, Math.min(15, Math.floor(Number(c.itemLv) || 0)));
+                  const ex = Math.max(0, Math.min(3, Math.floor(Number(c.itemEx) || 0)));
+                  if (itemObj) { itemObj.level = lv; itemObj.extraLevel = ex; }
+                  gotParts.push(`${tpl.name}${lv ? ` +${lv}` : ''}${ex ? ` ★${ex}` : ''}`);
+                }
+              }
+              if (!claimedCoupons.includes(rawCode)) claimedCoupons.push(rawCode);
+              saveGameData();
+              pushSaveToCloud(true).catch(() => {});
+              if (inp) inp.value = '';
+              renderLobbyAll();
+              const okMsg = `🎁 쿠폰 [${rawCode}] 보상 수령 완료! (${gotParts.join(', ') || '적용됨'})`;
+              setCouponStatusMsg(okMsg, 'ok');
+              showToast(okMsg);
+              return;
+            }
+          } catch (err) {
+            console.warn('[Firestore Coupon Redeem Fallback]', err);
+          } finally {
+            couponRedeemBusy = false;
+          }
+        }
+        return _origRedeemLiveCoupon(inp);
+      };
+
+      // Cloud Account Settings Listeners
+      document.getElementById('btnCloudSyncNow')?.addEventListener('click', async () => {
+        if (!fbReady || !fbAuth?.currentUser) return showToast('Firebase 미연결 상태입니다. firebase-config.js를 확인하세요.');
+        showToast('☁️ 클라우드와 동기화 중...');
+        await pullSaveFromCloud(false);
+        await pushSaveToCloud(true);
+        showToast('✅ 클라우드 동기화가 완료되었습니다!');
+      });
+
+      document.getElementById('btnCloudLinkEmail')?.addEventListener('click', async () => {
+        if (!fbReady || !fbAuth || !fbMod) return showToast('Firebase 연동 설정 후 이용할 수 있습니다.');
+        const email = (document.getElementById('txtCloudEmail')?.value || '').trim();
+        const pass = document.getElementById('txtCloudPass')?.value || '';
+        if (!email || pass.length < 6) return showToast('이메일과 비밀번호(6자 이상)를 입력하세요.');
+        try {
+          if (fbAuth.currentUser && fbAuth.currentUser.isAnonymous) {
+            const cred = fbMod.EmailAuthProvider.credential(email, pass);
+            await fbMod.linkWithCredential(fbAuth.currentUser, cred);
+          } else {
+            await fbMod.createUserWithEmailAndPassword(fbAuth, email, pass);
+          }
+          await pushSaveToCloud(true, true);
+          showToast('🎉 현재 게스트 진행도가 이메일 계정에 연동되었습니다!');
+        } catch (err) {
+          const code = err?.code || '';
+          if (code === 'auth/email-already-in-use' || code === 'auth/credential-already-in-use') {
+            showToast('이미 가입된 이메일입니다. [기존 로그인]을 누르세요.');
+          } else {
+            showToast(`계정 연동 실패: ${err?.message || code || '오류'}`);
+          }
+        }
+      });
+
+      document.getElementById('btnCloudSignInEmail')?.addEventListener('click', async () => {
+        if (!fbReady || !fbAuth || !fbMod) return showToast('Firebase 연동 설정 후 이용할 수 있습니다.');
+        const email = (document.getElementById('txtCloudEmail')?.value || '').trim();
+        const pass = document.getElementById('txtCloudPass')?.value || '';
+        if (!email || !pass) return showToast('이메일과 비밀번호를 입력하세요.');
+        try {
+          await fbMod.signInWithEmailAndPassword(fbAuth, email, pass);
+          await pullSaveFromCloud(true);
+          showToast('☁️ 이메일 계정 로그인 및 세이브 동기화 완료!');
+        } catch (err) {
+          showToast(`로그인 실패: ${err?.message || err?.code || '이메일/비밀번호 확인'}`);
+        }
+      });
+
+      document.getElementById('btnCloudGoogle')?.addEventListener('click', async () => {
+        if (!fbReady || !fbAuth || !fbMod) return showToast('Firebase 연동 설정 후 이용할 수 있습니다.');
+        const provider = new fbMod.GoogleAuthProvider();
+        try {
+          if (fbAuth.currentUser && fbAuth.currentUser.isAnonymous) {
+            try {
+              await fbMod.linkWithPopup(fbAuth.currentUser, provider);
+              await pushSaveToCloud(true, true);
+              showToast('🎉 게스트 진행도가 Google 계정에 연동되었습니다!');
+              return;
+            } catch (linkErr) {
+              if (linkErr?.code !== 'auth/credential-already-in-use' && linkErr?.code !== 'auth/email-already-in-use') {
+                throw linkErr;
+              }
+            }
+          }
+          await fbMod.signInWithPopup(fbAuth, provider);
+          await pullSaveFromCloud(true);
+          showToast('☁️ Google 계정 로그인 및 세이브 동기화 완료!');
+        } catch (err) {
+          if (err?.code === 'auth/popup-blocked') {
+            showToast('팝업이 차단되었습니다. 브라우저 팝업을 허용하거나 이메일 연동을 사용하세요.');
+          } else if (err?.code !== 'auth/popup-closed-by-user') {
+            showToast(`Google 로그인 실패: ${err?.message || err?.code || '오류'}`);
+          }
+        }
+      });
+
+      document.getElementById('btnCloudSignOut')?.addEventListener('click', async () => {
+        if (!fbReady || !fbAuth || !fbMod) return;
+        try {
+          await fbMod.signOut(fbAuth);
+          await fbMod.signInAnonymously(fbAuth);
+          showToast('게스트 세션으로 전환되었습니다.');
+        } catch (_) {
+          showToast('로그아웃 처리 중 오류가 발생했습니다.');
+        }
+      });
+
+      initFirebaseBackend();
 
       // switchScreen / pause 시 Wake Lock 상태 자동 동기화
       const _origSwitchScreen = switchScreen;
