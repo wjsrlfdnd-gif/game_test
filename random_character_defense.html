@@ -1627,7 +1627,7 @@
               <span class="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-sm">🔨</span>
               <h3 class="text-sm font-black text-amber-300">장비 대장간 · 강화 모루</h3>
             </div>
-            <span class="text-[10px] text-slate-400 font-semibold">+15 기본강화 → ★+3 초월강화</span>
+            <span class="text-[10px] text-slate-400 font-semibold">+15강 달성 → 초월 후 Lv.0 재강화 (최대 ★5)</span>
           </div>
 
           <!-- Selected Item on Anvil -->
@@ -1644,24 +1644,26 @@
                   <p id="anvilItemDesc" class="text-[11px] text-slate-400 mt-0.5 truncate">아래 보유 장비 또는 장착 슬롯을 클릭하세요</p>
                 </div>
               </div>
-              <div id="anvilItemLvBadge" class="px-3 py-2 min-w-[60px] rounded-xl bg-slate-900 border-2 border-slate-700 flex flex-col items-center justify-center text-base font-black text-slate-300 shrink-0 shadow">
+              <div id="anvilItemLvBadge" class="px-3 py-2 min-w-[64px] rounded-xl bg-slate-900 border-2 border-slate-700 flex flex-col items-center justify-center text-sm sm:text-base font-black text-slate-300 shrink-0 shadow">
                 +0
               </div>
             </div>
 
-            <!-- Visual 18-Step Enhancement Gauge (+1..+15 & ★+1..★+3) -->
-            <div id="anvilProgressWrap" class="bg-slate-900/65 border border-slate-800/80 rounded-xl px-3 py-2 flex flex-col gap-1">
-              <div class="flex items-center justify-between text-[10px] font-semibold">
-                <span class="text-slate-400">강화 진행 단계</span>
+            <!-- Visual 5-Star Transcendence + 15-Step Cycle Gauge (+0..+15 per Transcendence Tier) -->
+            <div id="anvilProgressWrap" class="bg-slate-900/65 border border-slate-800/80 rounded-xl px-3 py-2 flex flex-col gap-1.5">
+              <div class="flex flex-wrap items-center justify-between gap-1 text-[10px] font-semibold">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-slate-400">초월 단계</span>
+                  <span id="anvilTransStars" class="tracking-widest text-xs font-black text-slate-600">☆☆☆☆☆</span>
+                </div>
                 <span id="anvilTierMilestoneLbl" class="text-amber-300">0 / 15 (+0%)</span>
               </div>
-              <div id="anvilStepSegments" class="grid gap-1 h-1.5 w-full" style="grid-template-columns: repeat(18, minmax(0, 1fr));"></div>
+              <div id="anvilStepSegments" class="grid gap-1 h-1.5 w-full" style="grid-template-columns: repeat(15, minmax(0, 1fr));"></div>
               <div class="flex items-center justify-between text-[9px] text-slate-500">
-                <span>+0</span>
+                <span>Lv.0</span>
                 <span class="text-emerald-400/80">+5</span>
                 <span class="text-sky-400/80">+10</span>
-                <span class="text-amber-300/80">+15 MAX</span>
-                <span class="text-teal-300/80">★+3 초월</span>
+                <span class="text-teal-300/85">+15 (다음 초월 · Lv.0 전환)</span>
               </div>
             </div>
 
@@ -1682,13 +1684,13 @@
 
             <div class="grid grid-cols-2 gap-2">
               <button id="btnAnvilUpgrade1" class="game-btn py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-black text-slate-950 shadow">
-                +1 강화 (100 G)
+                +1 강화
               </button>
               <button id="btnAnvilEquip" class="game-btn py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-indigo-500/40 text-xs font-bold text-indigo-200">
                 장착 / 해제
               </button>
               <button id="btnAnvilUpgradeMax" class="game-btn py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-rose-500/40 text-xs font-bold text-rose-200">
-                보석 돌파 (+3강, 2💎)
+                보석 돌파 (+3강)
               </button>
               <button id="btnAnvilUpgradeShard" class="game-btn py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-fuchsia-500/40 text-xs font-bold text-fuchsia-200">
                 ✨ 파편 연성 (+2강)
@@ -1761,8 +1763,8 @@
             <span class="text-xs sm:text-sm font-extrabold text-amber-300">🪙 황금 고블린 소굴 (10W)</span>
             <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/35 text-[10px] font-bold text-amber-200">금화 · 비약 파밍</span>
           </div>
-          <p class="text-[11px] text-slate-300 leading-relaxed">
-            황금 보물 고블린 처치 보너스! 클리어 보상: <strong class="text-amber-300">+2,400G</strong> · <strong class="text-fuchsia-300">+15✨</strong> · <strong class="text-emerald-300">비약 +2</strong>
+          <p id="lblTrialGoldDesc" class="text-[11px] text-slate-300 leading-relaxed">
+            황금 보물 고블린 처치 보너스! 클리어 보상: <strong class="text-amber-300">+3,500G</strong> · <strong class="text-fuchsia-300">+25✨</strong> · <strong class="text-emerald-300">비약 +2</strong>
           </p>
           <button id="btnStartTrialGold" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow">
             🪙 황금 소굴 입장 (10웨이브)
@@ -1775,8 +1777,8 @@
             <span class="text-xs sm:text-sm font-extrabold text-fuchsia-300">✨ 마력 수정 균열 (10W)</span>
             <span class="px-2 py-0.5 rounded-full bg-fuchsia-500/20 border border-fuchsia-400/35 text-[10px] font-bold text-fuchsia-200">파편 · 보석 파밍</span>
           </div>
-          <p class="text-[11px] text-slate-300 leading-relaxed">
-            마력 수정 골렘 웨이브! 클리어 보상: <strong class="text-fuchsia-300">+45✨</strong> · <strong class="text-cyan-300">+12💎</strong> · <strong class="text-amber-300">+600G</strong>
+          <p id="lblTrialShardDesc" class="text-[11px] text-slate-300 leading-relaxed">
+            마력 수정 골렘 웨이브! 클리어 보상: <strong class="text-fuchsia-300">+65✨</strong> · <strong class="text-cyan-300">+14💎</strong> · <strong class="text-amber-300">+1,200G</strong>
           </p>
           <button id="btnStartTrialShard" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-black text-xs shadow">
             ✨ 수정 균열 입장 (10웨이브)
@@ -3256,6 +3258,8 @@
       let autoProtectMythicMats = true;
       let stageRecords = {}; // key: `${mapKey}_${subLv}` (normal) or `${diff}:${mapKey}_${subLv}` -> { cleared: bool, bestWave: number, clearCount: number }
       let bestEndlessWave = 0;
+      let currentMap = 'meadow';
+      let currentStageSub = 1; // 1 to 10 (n-1 to n-10)
 
       // Stage Difficulty Modes (Normal -> Hard -> Nightmare unlocked on 10-10 clear)
       const DIFFICULTY_MODES = {
@@ -3305,11 +3309,11 @@
       let achPrestige = {};    // { achId: 환생 횟수 (보상 +25%씩 영구 증가) }
 
       const TALENT_DEFS = [
-        { key: 'startGoldLv', title: '💰 풍요의 서약', desc: '전투 시작 골드를 영구적으로 증가시킵니다.', unit: 'G', perLv: 40, maxLv: 10, baseCost: 6, stepCost: 4, statKey: 'startGold' },
-        { key: 'atkPctLv',    title: '⚔️ 영원한 결의', desc: '모든 아군 유닛의 기본 공격력을 증가시킵니다.', unit: '%', perLv: 8,  maxLv: 10, baseCost: 8, stepCost: 5, statKey: 'atkPct' },
-        { key: 'skillLv',     title: '⚡ 비전 각성',   desc: '모든 유닛의 5타 고유 스킬 피해를 강화합니다.', unit: '%', perLv: 10, maxLv: 10, baseCost: 8, stepCost: 5, statKey: 'skillPct' },
-        { key: 'luckLv',      title: '🎲 운명의 부름', desc: '유닛 소환 시 희귀 이상 고등급 등장 확률이 오릅니다.', unit: '%p', perLv: 1.5, maxLv: 8, baseCost: 10, stepCost: 6, statKey: 'luckPct' },
-        { key: 'econLv',      title: '🪙 연금술의 손길', desc: '몬스터 처치·유닛 판매 시 획득 전투 골드가 증가합니다.', unit: '%', perLv: 6,  maxLv: 8, baseCost: 8, stepCost: 5, statKey: 'econPct' }
+        { key: 'startGoldLv', title: '💰 풍요의 서약', desc: '전투 시작 골드를 영구적으로 증가시킵니다.', unit: 'G', perLv: 40, maxLv: 10, baseCost: 15, stepCost: 14, statKey: 'startGold' },
+        { key: 'atkPctLv',    title: '⚔️ 영원한 결의', desc: '모든 아군 유닛의 기본 공격력을 증가시킵니다.', unit: '%', perLv: 8,  maxLv: 10, baseCost: 20, stepCost: 18, statKey: 'atkPct' },
+        { key: 'skillLv',     title: '⚡ 비전 각성',   desc: '모든 유닛의 5타 고유 스킬 피해를 강화합니다.', unit: '%', perLv: 10, maxLv: 10, baseCost: 20, stepCost: 18, statKey: 'skillPct' },
+        { key: 'luckLv',      title: '🎲 운명의 부름', desc: '유닛 소환 시 희귀 이상 고등급 등장 확률이 오릅니다.', unit: '%p', perLv: 1.5, maxLv: 8, baseCost: 25, stepCost: 24, statKey: 'luckPct' },
+        { key: 'econLv',      title: '🪙 연금술의 손길', desc: '몬스터 처치·유닛 판매 시 획득 전투 골드가 증가합니다.', unit: '%', perLv: 6,  maxLv: 8, baseCost: 20, stepCost: 20, statKey: 'econPct' }
       ];
       let talents = { startGoldLv: 0, atkPctLv: 0, skillLv: 0, luckLv: 0, econLv: 0 };
       let soundOn = true;
@@ -3329,7 +3333,8 @@
       }
 
       function calcTalentCost(def, curLv) {
-        return def.baseCost + curLv * def.stepCost;
+        const lv = Math.max(0, Math.floor(curLv || 0));
+        return Math.round((def.baseCost + lv * def.stepCost) * (1 + Math.pow(lv, 1.35) * 0.10));
       }
 
       // 장비 65종 · 소모품 3종 · 영구 특성 5종 전용 고해상도(96x96) 프로시저럴 아이콘 생성
@@ -3907,7 +3912,12 @@
           if (typeof data.nextUid === 'number') nextUid = data.nextUid;
           if (Array.isArray(data.inventory)) {
             inventory.length = 0;
-            data.inventory.forEach(it => inventory.push(it));
+            data.inventory.forEach(it => {
+              if (!it || typeof it !== 'object') return;
+              it.level = Math.max(0, Math.min(15, Math.floor(Number(it.level) || 0)));
+              it.extraLevel = Math.max(0, Math.min(5, Math.floor(Number(it.extraLevel) || 0)));
+              inventory.push(it);
+            });
           }
           Object.keys(unitEquipped).forEach(k => delete unitEquipped[k]);
           const validUids = new Set(inventory.map(it => it.uid));
@@ -4090,15 +4100,21 @@
         startGold:    (v) => `추가 시작골드 +${v}G`
       };
 
-      // Diminishing-returns upgrade curve + Extra Breakthrough (+1..+3 after +15):
-      // +1~+5: +12%/lv (+60%), +6~+10: +9%/lv (+45%), +11~+15: +6%/lv (+30%) => +15 = 2.35x
-      // Extra +1~+3 after +15: +15%/lv => MAX +3강 = 2.80x
+      // Diminishing-returns upgrade curve + 5-Stage Transcendence Cycle (+0..+15 per ★1~★5):
+      // 0초월 +1~+15 => 1.00x -> 2.35x; each transcendence resets Lv to 0 with +12% awakening bonus and +45% cycle growth (max ★5 +15 = 5.20x)
+      const MAX_ITEM_LEVEL = 15;
+      const MAX_ITEM_TRANSCEND = 5;
+
       function getItemGrowthMult(lv, extraLv = 0) {
-        const l1 = Math.min(5, Math.max(0, lv));
-        const l2 = Math.min(5, Math.max(0, lv - 5));
-        const l3 = Math.min(5, Math.max(0, lv - 10));
-        const ex = Math.min(3, Math.max(0, extraLv || 0));
-        return 1 + l1 * 0.12 + l2 * 0.09 + l3 * 0.06 + ex * 0.15;
+        const safeLv = Math.max(0, Math.min(MAX_ITEM_LEVEL, Number(lv) || 0));
+        const ex = Math.max(0, Math.min(MAX_ITEM_TRANSCEND, Number(extraLv) || 0));
+        const l1 = Math.min(5, safeLv);
+        const l2 = Math.min(5, Math.max(0, safeLv - 5));
+        const l3 = Math.min(5, Math.max(0, safeLv - 10));
+        if (ex === 0) {
+          return 1 + l1 * 0.12 + l2 * 0.09 + l3 * 0.06;
+        }
+        return 2.35 + ex * 0.12 + (ex - 1) * 0.45 + l1 * 0.04 + l2 * 0.03 + l3 * 0.02;
       }
 
       function getItemTpl(item) {
@@ -4116,43 +4132,72 @@
         const exType = item.extraStat || (tpl && tpl.extraStat);
         const exBase = item.extraVal ?? (tpl && tpl.extraVal) ?? 0;
         if (!exType || !exBase) return { type: null, val: 0 };
-        const scale = 1 + lv * 0.05 + (extraLv || 0) * 0.12;
+        const safeLv = Math.max(0, Math.min(MAX_ITEM_LEVEL, Number(lv) || 0));
+        const ex = Math.max(0, Math.min(MAX_ITEM_TRANSCEND, Number(extraLv) || 0));
+        const scale = ex === 0
+          ? (1 + safeLv * 0.05)
+          : (1.75 + ex * 0.06 + (ex - 1) * 0.30 + safeLv * 0.02);
         return { type: exType, val: Math.round(exBase * scale) };
       }
 
       function formatItemLevelTag(item) {
-        const ex = item.extraLevel || 0;
-        return item.level >= 15 ? `MAX +${ex}강` : `+${item.level}`;
+        const lv = Math.max(0, Math.min(MAX_ITEM_LEVEL, Math.floor(Number(item?.level) || 0)));
+        const ex = Math.max(0, Math.min(MAX_ITEM_TRANSCEND, Math.floor(Number(item?.extraLevel) || 0)));
+        if (ex >= MAX_ITEM_TRANSCEND && lv >= MAX_ITEM_LEVEL) return `👑${ex}초월 +${lv} MAX`;
+        if (ex >= 1) return `★${ex} +${lv}`;
+        return lv >= MAX_ITEM_LEVEL ? `+${lv} (초월가능)` : `+${lv}`;
       }
 
-      const ITEM_TIER_COST_SCALE = [1.0, 2.3, 4.8, 9.5, 19.0, 35.0, 62.0];
+      const ITEM_TIER_COST_SCALE = [1.0, 2.0, 4.0, 7.5, 14.0, 24.0, 36.0];
+      const ITEM_TRANSCEND_COST_MULT = [1.0, 1.40, 1.85, 2.40, 3.05, 3.80];
+
+      function calcStepUpgradeGold(tier, lv, ex = 0) {
+        const ts = ITEM_TIER_COST_SCALE[tier] || 36.0;
+        const sw = lv >= 10 ? 1.45 : (lv >= 5 ? 1.20 : 1.0);
+        const em = ITEM_TRANSCEND_COST_MULT[Math.min(MAX_ITEM_TRANSCEND, Math.max(0, ex))] || 3.80;
+        return Math.round(30 * ts * (1 + lv * 0.35) * sw * em);
+      }
+
+      function calcItemTranscendCost(item) {
+        const tier = Math.max(0, item?.tier || 0);
+        const ex = Math.max(0, item?.extraLevel || 0);
+        const nextEx = Math.min(MAX_ITEM_TRANSCEND, ex + 1);
+        const ts = ITEM_TIER_COST_SCALE[tier] || 36.0;
+        return {
+          nextEx,
+          gold: Math.round(450 * ts * Math.pow(1.42, nextEx - 1)),
+          gems: Math.max(2, Math.round((2 + tier) * (1 + (nextEx - 1) * 0.45))),
+          shards: Math.max(6, Math.round((8 + tier * 4) * (1 + (nextEx - 1) * 0.45)))
+        };
+      }
 
       function calcItemUpgradeCost(item) {
-        const ts = ITEM_TIER_COST_SCALE[item.tier] || 62.0;
-        if (item.level >= 15) {
-          const ex = item.extraLevel || 0;
-          return Math.round(28 * ts * (ex + 1));
+        const lv = Math.max(0, item?.level || 0);
+        const ex = Math.max(0, item?.extraLevel || 0);
+        if (lv >= MAX_ITEM_LEVEL) {
+          return calcItemTranscendCost(item).gold;
         }
-        const stepWeight = item.level >= 10 ? 1.45 : (item.level >= 5 ? 1.20 : 1.0);
-        return Math.round(2.2 * ts * (item.level + 1) * stepWeight);
+        return calcStepUpgradeGold(item?.tier || 0, lv, ex);
       }
 
       function calcGemBreakthroughCost(item) {
-        return [1, 1, 2, 2, 3, 4][item.tier] || 4;
+        const lv = Math.max(0, item?.level || 0);
+        const ex = Math.max(0, item?.extraLevel || 0);
+        if (lv >= MAX_ITEM_LEVEL) return calcItemTranscendCost(item).gems;
+        const tier = Math.max(0, item?.tier || 0);
+        return Math.max(1, Math.round((1 + Math.floor(tier / 2)) * (1 + ex * 0.35)));
       }
 
       function calcExtraShardCost(item) {
-        const ex = item.extraLevel || 0;
-        return 8 + item.tier * 4 + ex * 6;
+        return calcItemTranscendCost(item).shards;
       }
 
       function calcItemPromoteCost(item) {
         const t = item.tier;
-        // 전설(t=3->4)·신화(t=4->5) 제작/승급 시도 비용은 상점 구매 비용의 약 5~10% 수준
         return {
-          gold: [200, 450, 950, 350, 700][t] || 700,
-          gems: [1, 2, 3, 1, 2][t] || 2,
-          shards: [5, 10, 16, 12, 20][t] || 20
+          gold: [400, 900, 1800, 3500, 6500][t] || 6500,
+          gems: [2, 3, 4, 6, 9][t] || 9,
+          shards: [8, 14, 22, 30, 42][t] || 42
         };
       }
 
@@ -4165,16 +4210,20 @@
 
       function calcItemSellPrice(item) {
         const baseGold = item.costGold > 0 ? item.costGold : item.costGems * 150;
-        const ts = ITEM_TIER_COST_SCALE[item.tier] || 62.0;
+        const tier = Math.max(0, item.tier || 0);
+        const ex = Math.max(0, Math.min(MAX_ITEM_TRANSCEND, item.extraLevel || 0));
+        const curLv = Math.max(0, Math.min(MAX_ITEM_LEVEL, item.level || 0));
         let spentGold = 0;
-        for (let lv = 0; lv < (item.level || 0); lv++) {
-          const w = lv >= 10 ? 1.45 : (lv >= 5 ? 1.20 : 1.0);
-          spentGold += Math.round(2.2 * ts * (lv + 1) * w);
+        for (let e = 0; e < ex; e++) {
+          for (let lv = 0; lv < MAX_ITEM_LEVEL; lv++) {
+            spentGold += calcStepUpgradeGold(tier, lv, e);
+          }
+          spentGold += calcItemTranscendCost({ tier, extraLevel: e }).gold;
         }
-        for (let ex = 0; ex < (item.extraLevel || 0); ex++) {
-          spentGold += Math.round(28 * ts * (ex + 1));
+        for (let lv = 0; lv < curLv; lv++) {
+          spentGold += calcStepUpgradeGold(tier, lv, ex);
         }
-        return Math.round(baseGold * 0.6 + spentGold * 0.5);
+        return Math.round(baseGold * 0.6 + spentGold * 0.45);
       }
 
       function formatItemStat(item, lv = item.level, extraLv = (item.extraLevel || 0)) {
@@ -4191,36 +4240,51 @@
       }
 
       function calcItemSalvageShards(item) {
-        return Math.max(2, (item.tier + 1) * 2 + item.level * 2 + (item.extraLevel || 0) * 5);
+        return Math.max(3, (item.tier + 1) * 3 + Math.floor((item.level || 0) * 1.2) + (item.extraLevel || 0) * 14);
       }
 
       function calcShardForgeCost(item) {
-        if (item.level >= 15) return calcExtraShardCost(item);
-        return 4 + item.tier * 2 + Math.floor(item.level / 2);
+        const lv = Math.max(0, item?.level || 0);
+        const ex = Math.max(0, item?.extraLevel || 0);
+        if (lv >= MAX_ITEM_LEVEL) return calcExtraShardCost(item);
+        const tier = Math.max(0, item?.tier || 0);
+        return Math.max(4, Math.round((4 + tier * 2 + Math.floor(lv / 2)) * (1 + ex * 0.25)));
       }
 
-      // 강화 수치(+0~+15, ★1~★3)별 시인성 스타일/테두리/배지 메타 반환
+      // 강화 수치(+0~+15, ★1~★5)별 시인성 스타일/테두리/배지 메타 반환
       function getEnhanceStyle(lv = 0, ex = 0) {
-        const safeLv = Math.max(0, lv | 0);
-        const safeEx = Math.max(0, ex | 0);
+        const safeLv = Math.max(0, Math.min(MAX_ITEM_LEVEL, lv | 0));
+        const safeEx = Math.max(0, Math.min(MAX_ITEM_TRANSCEND, ex | 0));
         if (safeEx >= 1) {
+          const isFullMax = safeEx >= MAX_ITEM_TRANSCEND && safeLv >= MAX_ITEM_LEVEL;
+          const canTranscend = safeLv >= MAX_ITEM_LEVEL && safeEx < MAX_ITEM_TRANSCEND;
+          const badgeCls = safeEx >= 5
+            ? 'bg-gradient-to-r from-amber-300 via-teal-300 to-rose-300 text-slate-950 border-white font-black'
+            : (safeEx >= 3
+              ? 'bg-gradient-to-r from-fuchsia-400 via-teal-300 to-amber-300 text-slate-950 border-white/90 font-black'
+              : 'bg-gradient-to-r from-teal-400 via-cyan-300 to-emerald-300 text-slate-950 border-white/90 font-black');
+          const textCls = safeEx >= 4 ? 'text-amber-300' : (safeEx >= 2 ? 'text-fuchsia-300' : 'text-teal-300');
           return {
-            tag: `💎★${safeEx}`,
-            compactTag: `★${safeEx}`,
-            longTag: `MAX +${safeEx}강`,
-            tierLabel: `초월 각성 💎★${safeEx}`,
+            tag: isFullMax ? `👑★${safeEx} MAX` : `★${safeEx} +${safeLv}`,
+            compactTag: isFullMax ? `★${safeEx} MAX` : `★${safeEx}+${safeLv}`,
+            longTag: isFullMax ? `👑 ${safeEx}초월 +${safeLv} MAX` : `${safeEx}초월 +${safeLv}`,
+            tierLabel: isFullMax
+              ? `신역 완성 👑 ${safeEx}초월 +15 MAX`
+              : (canTranscend
+                ? `초월 극강 ★${safeEx} +15 (${safeEx + 1}초월 가능)`
+                : `초월 각성 ★${safeEx} (+${safeLv}/15)`),
             frameCls: 'enh-frame-trans',
-            badgeCls: 'bg-gradient-to-r from-teal-400 via-cyan-300 to-rose-400 text-slate-950 border-white/90 font-black',
-            textCls: 'text-teal-300',
-            stepPct: 100
+            badgeCls,
+            textCls,
+            stepPct: Math.round((safeLv / MAX_ITEM_LEVEL) * 100)
           };
         }
         if (safeLv >= 15) {
           return {
-            tag: '👑MAX',
-            compactTag: 'MAX',
-            longTag: '+15 MAX',
-            tierLabel: '극강 👑 +15 MAX',
+            tag: '👑+15',
+            compactTag: '+15',
+            longTag: '+15 (1초월 가능)',
+            tierLabel: '극강 +15 (1초월 각성 가능)',
             frameCls: 'enh-frame-max',
             badgeCls: 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 border-yellow-100 font-black',
             textCls: 'text-amber-300',
@@ -4975,8 +5039,6 @@
       // Stage & Battle State
       const MAX_WAVES = 30;
       let inLobby = true;
-      let currentMap = 'meadow';
-      let currentStageSub = 1; // 1 to 10 (n-1 to n-10)
       let speedMult = 1;
       let paused = false;
       let gameOver = false;
@@ -5164,6 +5226,45 @@
           bountyGold, bountyAccGold, bountyGems,
           baseClearGold, baseClearGems, baseClearShards,
           clearGold, clearGems, clearShards
+        };
+      }
+
+      function getBestProgressionEconScale() {
+        const keys = getMapKeys();
+        let best = 1.0;
+        ['normal', 'hard', 'nightmare'].forEach(diff => {
+          if (!isDifficultyUnlocked(diff)) return;
+          const dCfg = DIFFICULTY_MODES[diff];
+          for (const k of keys) {
+            const wNum = MAPS[k].worldNum;
+            const wRewardMult = getRewardWorldMult(wNum);
+            for (let s = 1; s <= 10; s++) {
+              const rec = stageRecords[getStageRecordKey(k, s, diff)];
+              if (rec && rec.cleared) {
+                const sc = Math.pow(getStageStepMult(s), 0.65) * wRewardMult * dCfg.rewardMult;
+                if (sc > best) best = sc;
+              }
+            }
+          }
+        });
+        return best;
+      }
+
+      function getTrialRewardSummary() {
+        const hiEcon = getBestProgressionEconScale();
+        const ev = getLiveEventMultipliers();
+        const logTier = Math.log2(Math.max(1, hiEcon));
+        return {
+          goldTrial: {
+            gold: Math.round(3500 * Math.max(1, Math.pow(hiEcon, 0.65)) * ev.goldMult),
+            shards: Math.round(25 * (1 + Math.min(2.5, logTier * 0.35)) * ev.shardMult),
+            potions: 2
+          },
+          shardTrial: {
+            shards: Math.round(65 * (1 + Math.min(3.5, logTier * 0.48)) * ev.shardMult),
+            gems: Math.max(14, Math.round((14 + Math.min(22, Math.floor(logTier * 3.5))) * ev.gemMult)),
+            gold: Math.round(1200 * Math.max(1, Math.pow(hiEcon, 0.55)) * ev.goldMult)
+          }
         };
       }
 
@@ -6143,9 +6244,10 @@
             saveGameData();
           }
           if (wave > 1 && wave % 10 === 0) {
-            const mGold = 250 + wave * 18;
-            const eGems = 5 + Math.floor(wave / 10) * 2;
-            const eShards = 12 + Math.floor(wave / 5) * 3;
+            const ev = getLiveEventMultipliers();
+            const mGold = Math.round((800 + wave * 120) * ev.goldMult);
+            const eGems = Math.round((6 + Math.floor(wave / 10) * 3) * ev.gemMult);
+            const eShards = Math.round((18 + Math.floor(wave / 5) * 5) * ev.shardMult);
             accountGold += mGold;
             accountGems += eGems;
             accountShards += eShards;
@@ -6155,9 +6257,10 @@
             playSound('bossWarn');
             showToast(`🌌 심연 W${wave} 보스 강림 & 돌파 보상: +${mGold.toLocaleString()}G · +${eGems}💎 · +${eShards}✨!`);
           } else if (wave > 1 && wave % 5 === 0) {
-            const mGold = 250 + wave * 18;
-            const mGems = 2 + Math.floor(wave / 10);
-            const mShards = 4 + Math.floor(wave / 5);
+            const ev = getLiveEventMultipliers();
+            const mGold = Math.round((500 + wave * 75) * ev.goldMult);
+            const mGems = Math.round((3 + Math.floor(wave / 10) * 2) * ev.gemMult);
+            const mShards = Math.round((8 + Math.floor(wave / 5) * 3) * ev.shardMult);
             accountGold += mGold;
             accountGems += mGems;
             accountShards += mShards;
@@ -7223,16 +7326,14 @@
         updateBgmGain();
         questStats.clears++;
         if (gameMode === 'trial_gold') {
-          const ev = getLiveEventMultipliers();
-          const tGold = Math.round(2400 * ev.goldMult);
-          const tShards = Math.round(15 * ev.shardMult);
-          accountGold += tGold;
-          consumables.goldPotion += 2;
-          accountShards += tShards;
+          const tr = getTrialRewardSummary().goldTrial;
+          accountGold += tr.gold;
+          consumables.goldPotion += tr.potions;
+          accountShards += tr.shards;
           playSound('victory');
           document.getElementById('gameOverTitle').textContent = '🪙 황금 고블린 소굴 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-amber-300 mb-2';
-          document.getElementById('gameOverSub').textContent = `시련 보상: +${tGold.toLocaleString()} 금화 · +${tShards}✨ 마력 파편 · 황금 비약 +2개 지급 완료!`;
+          document.getElementById('gameOverSub').textContent = `시련 보상: +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨ 마력 파편 · 황금 비약 +${tr.potions}개 지급 완료!`;
           document.getElementById('btnModalNextStage').classList.add('hidden');
           renderGameOverSummary();
           document.getElementById('gameOverModal').classList.remove('hidden');
@@ -7241,17 +7342,14 @@
           return;
         }
         if (gameMode === 'trial_shard') {
-          const ev = getLiveEventMultipliers();
-          const tShards = Math.round(45 * ev.shardMult);
-          const tGems = Math.round(12 * ev.gemMult);
-          const tGold = Math.round(600 * ev.goldMult);
-          accountShards += tShards;
-          accountGems += tGems;
-          accountGold += tGold;
+          const tr = getTrialRewardSummary().shardTrial;
+          accountShards += tr.shards;
+          accountGems += tr.gems;
+          accountGold += tr.gold;
           playSound('victory');
           document.getElementById('gameOverTitle').textContent = '✨ 마력 수정 균열 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-fuchsia-300 mb-2';
-          document.getElementById('gameOverSub').textContent = `시련 보상: +${tShards}✨ 마력 파편 · +${tGems}💎 보석 · +${tGold.toLocaleString()} 금화 지급 완료!`;
+          document.getElementById('gameOverSub').textContent = `시련 보상: +${tr.shards}✨ 마력 파편 · +${tr.gems}💎 보석 · +${tr.gold.toLocaleString()} 금화 지급 완료!`;
           document.getElementById('btnModalNextStage').classList.add('hidden');
           renderGameOverSummary();
           document.getElementById('gameOverModal').classList.remove('hidden');
@@ -9804,6 +9902,7 @@
         const nameEl = document.getElementById('anvilItemName');
         const descEl = document.getElementById('anvilItemDesc');
         const lvEl = document.getElementById('anvilItemLvBadge');
+        const starsEl = document.getElementById('anvilTransStars');
         const segEl = document.getElementById('anvilStepSegments');
         const mileEl = document.getElementById('anvilTierMilestoneLbl');
         const deltaEl = document.getElementById('anvilDeltaBadge');
@@ -9815,25 +9914,21 @@
         const btnUpShard = document.getElementById('btnAnvilUpgradeShard');
         const btnPromote = document.getElementById('btnAnvilPromote');
 
-        const renderStepBar = (curSteps) => {
+        const renderStepBar = (curSteps, curEx = 0) => {
           if (!segEl) return;
           segEl.innerHTML = '';
-          for (let i = 0; i < 18; i++) {
+          for (let i = 0; i < MAX_ITEM_LEVEL; i++) {
             const seg = document.createElement('div');
             if (i < curSteps) {
-              const fillCls = i < 5
-                ? 'bg-emerald-400'
-                : (i < 10
-                  ? 'bg-sky-400'
-                  : (i < 15
-                    ? 'bg-purple-400'
-                    : 'bg-gradient-to-r from-teal-300 to-rose-400'));
+              const fillCls = curEx >= 1
+                ? (i < 5 ? 'bg-teal-400' : (i < 10 ? 'bg-cyan-300' : 'bg-gradient-to-r from-fuchsia-400 to-amber-300'))
+                : (i < 5 ? 'bg-emerald-400' : (i < 10 ? 'bg-sky-400' : 'bg-purple-400'));
               seg.className = `h-full rounded-sm ${fillCls}`;
-            } else if (i === curSteps && curSteps < 18) {
+            } else if (i === curSteps && curSteps < MAX_ITEM_LEVEL) {
               seg.className = 'h-full rounded-sm bg-slate-700 ring-1 ring-amber-400/75';
             } else {
-              seg.className = i >= 15
-                ? 'h-full rounded-sm bg-slate-900 border border-teal-500/30'
+              seg.className = curEx >= 1
+                ? 'h-full rounded-sm bg-slate-900 border border-teal-500/25'
                 : 'h-full rounded-sm bg-slate-800';
             }
             segEl.appendChild(seg);
@@ -9854,8 +9949,12 @@
           nameEl.textContent = '장비를 선택하세요';
           descEl.textContent = '아래 보유 장비 또는 장착 슬롯을 클릭하세요';
           lvEl.textContent = '+0';
-          lvEl.className = 'px-3 py-2 min-w-[60px] rounded-xl bg-slate-900 border-2 border-slate-700 flex flex-col items-center justify-center text-base font-black text-slate-300 shrink-0 shadow';
-          renderStepBar(0);
+          lvEl.className = 'px-3 py-2 min-w-[64px] rounded-xl bg-slate-900 border-2 border-slate-700 flex flex-col items-center justify-center text-sm sm:text-base font-black text-slate-300 shrink-0 shadow';
+          if (starsEl) {
+            starsEl.textContent = '☆☆☆☆☆ (0/5)';
+            starsEl.className = 'tracking-wider text-[11px] font-black text-slate-500';
+          }
+          renderStepBar(0, 0);
           if (mileEl) mileEl.textContent = '0 / 15 (+0%)';
           if (deltaEl) deltaEl.classList.add('hidden');
           currEl.textContent = '-';
@@ -9868,13 +9967,13 @@
         } else {
           const tMeta = TIER_META[selItem.tier];
           const isEq = getUnitEquippedSlots(selectedForgeCharKey)[selItem.slot] === selItem.uid;
-          const exLv = selItem.extraLevel || 0;
-          const enh = getEnhanceStyle(selItem.level, exLv);
-          const isMaxBase = selItem.level >= 15;
-          const isFullMax = isMaxBase && exLv >= 3;
+          const exLv = Math.max(0, Math.min(MAX_ITEM_TRANSCEND, selItem.extraLevel || 0));
+          const safeLv = Math.max(0, Math.min(MAX_ITEM_LEVEL, selItem.level || 0));
+          const enh = getEnhanceStyle(safeLv, exLv);
+          const isMaxBase = safeLv >= MAX_ITEM_LEVEL;
+          const isFullMax = isMaxBase && exLv >= MAX_ITEM_TRANSCEND;
           const upCost = calcItemUpgradeCost(selItem);
-          const curSteps = isMaxBase ? 15 + exLv : selItem.level;
-          const growthPct = Math.round((getItemGrowthMult(selItem.level, exLv) - 1) * 100);
+          const growthPct = Math.round((getItemGrowthMult(safeLv, exLv) - 1) * 100);
 
           if (imgFrame) {
             imgFrame.className = `item-icon-wrap w-16 h-16 rounded-2xl border-2 p-1 shrink-0 ${enh.frameCls}`;
@@ -9894,39 +9993,51 @@
           tierEl.style.backgroundColor = tMeta.badgeBg;
           tierEl.style.color = tMeta.color;
           nameEl.textContent = `${selItem.name}`;
-          const rateLabel = isMaxBase
-            ? `초월 추가강화 (${exLv}/3 · 단계당 +15%)`
-            : (selItem.level < 5 ? '+1~+5 기본 구간 (+12%/강)' : (selItem.level < 10 ? '+6~+10 돌파 구간 (+9%/강)' : '+11~+15 고강 구간 (+6%/강)'));
+          const rateLabel = isFullMax
+            ? `👑 5초월 +15 최종 완성!`
+            : (isMaxBase
+              ? `✨ ${exLv + 1}초월 각성 가능 (초월 후 Lv.0→+15 재강화)`
+              : (exLv >= 1
+                ? `★${exLv} 초월 강화 (${safeLv}/15 · +4%/+3%/+2%)`
+                : (safeLv < 5 ? '+1~+5 기본 구간 (+12%/강)' : (safeLv < 10 ? '+6~+10 돌파 구간 (+9%/강)' : '+11~+15 고강 구간 (+6%/강)'))));
           descEl.textContent = `${isEq ? '✅ 현재 장착 중' : '미장착'} · ${rateLabel}`;
           lvEl.textContent = enh.tag;
-          lvEl.className = `px-3 py-2 min-w-[64px] rounded-xl border-2 flex flex-col items-center justify-center text-sm sm:text-base shrink-0 shadow ${enh.badgeCls} ${enh.frameCls}`;
+          lvEl.className = `px-3 py-2 min-w-[64px] rounded-xl border-2 flex flex-col items-center justify-center text-xs sm:text-sm shrink-0 shadow ${enh.badgeCls} ${enh.frameCls}`;
 
-          renderStepBar(curSteps);
+          if (starsEl) {
+            starsEl.textContent = `${'★'.repeat(exLv)}${'☆'.repeat(MAX_ITEM_TRANSCEND - exLv)} (${exLv}/${MAX_ITEM_TRANSCEND})`;
+            starsEl.className = exLv >= 4
+              ? 'tracking-wider text-[11px] font-black text-amber-300'
+              : (exLv >= 1 ? 'tracking-wider text-[11px] font-black text-teal-300' : 'tracking-wider text-[11px] font-bold text-slate-500');
+          }
+          renderStepBar(safeLv, exLv);
           if (mileEl) {
             mileEl.textContent = `${enh.tierLabel} · 기본능력 +${growthPct}%`;
           }
 
-          const curMain = calcItemValue(selItem, selItem.level, exLv);
-          currEl.textContent = formatItemStat(selItem, selItem.level, exLv);
+          const curMain = calcItemValue(selItem, safeLv, exLv);
+          currEl.textContent = formatItemStat(selItem, safeLv, exLv);
           const unitSuffix = selItem.statType === 'startGold' ? 'G' : '%';
           if (!isMaxBase) {
-            const nxtMain = calcItemValue(selItem, selItem.level + 1, 0);
+            const nxtMain = calcItemValue(selItem, safeLv + 1, exLv);
             const delta = nxtMain - curMain;
-            nextEl.textContent = formatItemStat(selItem, selItem.level + 1, 0);
+            nextEl.textContent = formatItemStat(selItem, safeLv + 1, exLv);
             if (deltaEl) {
               deltaEl.textContent = delta > 0 ? `▲ +${delta}${unitSuffix}` : '유지';
               deltaEl.classList.remove('hidden');
             }
-          } else if (exLv < 3) {
-            const nxtMain = calcItemValue(selItem, 15, exLv + 1);
+          } else if (exLv < MAX_ITEM_TRANSCEND) {
+            const nxtMain = calcItemValue(selItem, 0, exLv + 1);
             const delta = nxtMain - curMain;
-            nextEl.textContent = formatItemStat(selItem, 15, exLv + 1);
+            nextEl.textContent = `★${exLv + 1} +0 → ${formatItemStat(selItem, 0, exLv + 1)}`;
             if (deltaEl) {
-              deltaEl.textContent = delta > 0 ? `▲ +${delta}${unitSuffix}` : '유지';
+              deltaEl.textContent = delta > 0 ? `▲ +${delta}${unitSuffix} (초월)` : '초월 각성';
               deltaEl.classList.remove('hidden');
             }
           } else {
-            nextEl.textContent = selItem.tier < 5 ? `제작·승급 가능 (${TIER_META[selItem.tier + 1].name} Lv.0 · 성공률 ${Math.round(calcItemPromoteSuccessRate(selItem) * 100)}%)` : (selItem.tier === 6 ? '최종 초월 MAX +3강' : '최종 신화 MAX +3강');
+            nextEl.textContent = selItem.tier < 5
+              ? `승급 가능 (${TIER_META[selItem.tier + 1].name} Lv.0 · 성공률 ${Math.round(calcItemPromoteSuccessRate(selItem) * 100)}%)`
+              : (selItem.tier === 6 ? '최종 초월 5★ +15 완성' : '최종 신화 5★ +15 완성');
             if (deltaEl) deltaEl.classList.add('hidden');
           }
 
@@ -9937,18 +10048,22 @@
             : 'game-btn py-2 px-3 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/45 text-xs font-bold text-indigo-200';
           btnUp1.disabled = isFullMax;
           btnUp1.textContent = isFullMax
-            ? 'MAX +3강 완료'
-            : (isMaxBase ? `추가 +1강 (${upCost.toLocaleString()} G)` : `+1 강화 (${upCost.toLocaleString()} G)`);
+            ? '👑 5초월 +15 완료'
+            : (isMaxBase ? `🌟 ${exLv + 1}초월 강화 (${upCost.toLocaleString()} G)` : `+1 강화 (${upCost.toLocaleString()} G)`);
           btnUp1.className = isFullMax
             ? 'game-btn py-2 px-3 rounded-xl bg-slate-900 text-slate-500 text-xs font-bold border border-slate-800'
             : (accountGold >= upCost
-              ? 'game-btn py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-black text-slate-950 shadow'
+              ? (isMaxBase
+                ? 'game-btn py-2 px-3 rounded-xl bg-gradient-to-r from-teal-400 to-amber-400 hover:from-teal-300 hover:to-amber-300 text-xs font-black text-slate-950 shadow'
+                : 'game-btn py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-black text-slate-950 shadow')
               : 'game-btn py-2 px-3 rounded-xl bg-slate-900 border border-amber-500/35 text-xs font-bold text-amber-300/80');
 
           const gemBtCost = calcGemBreakthroughCost(selItem);
-          btnUpMax.disabled = isMaxBase;
-          btnUpMax.textContent = isMaxBase ? '기본 강화 완료' : `보석 돌파 (+3강, ${gemBtCost}💎)`;
-          btnUpMax.className = isMaxBase
+          btnUpMax.disabled = isFullMax;
+          btnUpMax.textContent = isFullMax
+            ? '초월 풀강 완료'
+            : (isMaxBase ? `💎 ${exLv + 1}초월 (${gemBtCost}💎)` : `보석 돌파 (+3강, ${gemBtCost}💎)`);
+          btnUpMax.className = isFullMax
             ? 'game-btn py-2 px-3 rounded-xl bg-slate-900 text-slate-500 text-xs font-bold border border-slate-800'
             : (accountGems >= gemBtCost
               ? 'game-btn py-2 px-3 rounded-xl bg-slate-900 hover:bg-rose-950/70 border border-rose-500/50 text-xs font-bold text-rose-200'
@@ -9958,8 +10073,8 @@
             const shardCost = calcShardForgeCost(selItem);
             btnUpShard.disabled = isFullMax;
             btnUpShard.textContent = isFullMax
-              ? 'MAX +3강 완료'
-              : (isMaxBase ? `✨ 초월 +1강 (${shardCost}✨)` : `✨ 파편 연성 (+2강, ${shardCost}✨)`);
+              ? '👑 5초월 +15 완료'
+              : (isMaxBase ? `✨ ${exLv + 1}초월 (${shardCost}✨)` : `✨ 파편 연성 (+2강, ${shardCost}✨)`);
             btnUpShard.className = isFullMax
               ? 'game-btn py-2 px-3 rounded-xl bg-slate-900 text-slate-500 text-xs font-bold border border-slate-800'
               : (accountShards >= shardCost
@@ -9967,16 +10082,17 @@
                 : 'game-btn py-2 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-400');
           }
           if (btnPromote) {
-            if (isFullMax && selItem.tier < 5) {
+            if (isMaxBase && selItem.tier < 5) {
               const pCost = calcItemPromoteCost(selItem);
               const nextTier = selItem.tier + 1;
               const nextTierName = TIER_META[nextTier].name;
               const ratePct = Math.round(calcItemPromoteSuccessRate(selItem) * 100);
               const canProm = accountGold >= pCost.gold && accountGems >= pCost.gems && accountShards >= pCost.shards;
+              const resetTag = exLv > 0 ? ' · 0초월+0 초기화' : '';
               btnPromote.classList.remove('hidden');
               btnPromote.textContent = nextTier >= 4
-                ? `🔨 [${nextTierName}] 제작·승급 (${ratePct}% · ${pCost.gold.toLocaleString()}G · ${pCost.gems}💎 · ${pCost.shards}✨)`
-                : `🌟 [${nextTierName}] 등급 승급 (100% · ${pCost.gold.toLocaleString()}G · ${pCost.gems}💎 · ${pCost.shards}✨)`;
+                ? `🔨 [${nextTierName}] 제작·승급 (${ratePct}%${resetTag} · ${pCost.gold.toLocaleString()}G · ${pCost.gems}💎 · ${pCost.shards}✨)`
+                : `🌟 [${nextTierName}] 등급 승급 (100%${resetTag} · ${pCost.gold.toLocaleString()}G · ${pCost.gems}💎 · ${pCost.shards}✨)`;
               btnPromote.className = canProm
                 ? 'game-btn col-span-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-rose-400 text-xs font-black text-slate-950 shadow'
                 : 'game-btn col-span-2 py-2.5 px-3 rounded-xl bg-slate-900 border border-amber-400/35 text-xs font-bold text-amber-200/80';
@@ -10283,8 +10399,8 @@
                   <span class="text-emerald-300 font-bold leading-tight block">${formatItemStat(it, 0, 0)}</span>
                 </div>
                 <div class="rounded-lg bg-slate-900/90 border border-teal-500/30 px-2 py-1">
-                  <span class="text-teal-300 block text-[9px] font-extrabold">최대 (👑+15 / ★3)</span>
-                  <span class="text-sky-200 font-bold leading-tight block">${formatItemStat(it, 15, 3)}</span>
+                  <span class="text-teal-300 block text-[9px] font-extrabold">최대 (👑5초월 +15)</span>
+                  <span class="text-sky-200 font-bold leading-tight block">${formatItemStat(it, 15, 5)}</span>
                 </div>
               </div>
             `;
@@ -10344,25 +10460,25 @@
       });
 
       const DAILY_QUEST_POOL = [
-        { stat: 'totalKills',     label: '몬스터 토벌',      unit: '마리', baseGoal: 120, stepGoal: 35, g: 520, gem: 2, sh: 10 },
-        { stat: 'totalSummons',   label: '유닛 소환',        unit: '회',   baseGoal: 25,  stepGoal: 10, g: 440, gem: 2, sh: 9  },
-        { stat: 'totalMerges',    label: '유닛 합성',        unit: '회',   baseGoal: 18,  stepGoal: 6,  g: 480, gem: 3, sh: 12 },
-        { stat: 'bossKills',      label: '보스·현상금 토벌', unit: '회',   baseGoal: 3,   stepGoal: 1,  g: 760, gem: 4, sh: 16 },
-        { stat: 'enhances',       label: '장비 강화 시도',   unit: '회',   baseGoal: 4,   stepGoal: 2,  g: 560, gem: 3, sh: 13 },
-        { stat: 'clears',         label: '스테이지·시련 클리어', unit: '회', baseGoal: 1, stepGoal: 1,  g: 820, gem: 5, sh: 18 },
-        { stat: 'salvages',       label: '장비 분해·판매',   unit: '회',   baseGoal: 3,   stepGoal: 2,  g: 460, gem: 2, sh: 11 },
-        { stat: 'mythicsCrafted', label: '신화·초월 조합',   unit: '회',   baseGoal: 1,   stepGoal: 1,  g: 920, gem: 6, sh: 20 }
+        { stat: 'totalKills',     label: '몬스터 토벌',          unit: '마리', baseGoal: 120, stepGoal: 35, g: 1000, gem: 4, sh: 15 },
+        { stat: 'totalSummons',   label: '유닛 소환',            unit: '회',   baseGoal: 25,  stepGoal: 10, g: 850,  gem: 3, sh: 12 },
+        { stat: 'totalMerges',    label: '유닛 합성',            unit: '회',   baseGoal: 18,  stepGoal: 6,  g: 950,  gem: 4, sh: 15 },
+        { stat: 'bossKills',      label: '보스·현상금 토벌',     unit: '회',   baseGoal: 3,   stepGoal: 1,  g: 1500, gem: 6, sh: 22 },
+        { stat: 'enhances',       label: '장비 강화·초월 시도',  unit: '회',   baseGoal: 5,   stepGoal: 2,  g: 1100, gem: 4, sh: 16 },
+        { stat: 'clears',         label: '스테이지·시련 클리어', unit: '회',   baseGoal: 1,   stepGoal: 1,  g: 1600, gem: 7, sh: 25 },
+        { stat: 'salvages',       label: '장비 분해·판매',       unit: '회',   baseGoal: 3,   stepGoal: 2,  g: 900,  gem: 3, sh: 14 },
+        { stat: 'mythicsCrafted', label: '신화·초월 조합',       unit: '회',   baseGoal: 1,   stepGoal: 1,  g: 1800, gem: 8, sh: 28 }
       ];
 
       const ACH_DEFS = [
-        { id: 'summon',  title: '소환사',       stat: 'totalSummons',   steps: [20, 80, 250],   rewardGold: 500,  rewardGems: 4,  rewardShards: 10 },
-        { id: 'merge',   title: '연금 합성가',  stat: 'totalMerges',    steps: [15, 60, 180],   rewardGold: 600,  rewardGems: 5,  rewardShards: 12 },
-        { id: 'mythic',  title: '신화 각성자',  stat: 'mythicsCrafted', steps: [1, 5, 15],      rewardGold: 1000, rewardGems: 10, rewardShards: 22 },
-        { id: 'enhance', title: '전설 대장장이', stat: 'enhances',       steps: [5, 20, 50],     rewardGold: 650,  rewardGems: 5,  rewardShards: 15 },
-        { id: 'boss',    title: '보스 슬레이어', stat: 'bossKills',      steps: [3, 12, 35],     rewardGold: 850,  rewardGems: 8,  rewardShards: 18 },
-        { id: 'clear',   title: '월드 정복자',  stat: 'clears',         steps: [1, 5, 15],      rewardGold: 1200, rewardGems: 12, rewardShards: 26 },
-        { id: 'slayer',  title: '몬스터 학살자', stat: 'totalKills',     steps: [300, 1200, 3500], rewardGold: 750, rewardGems: 6,  rewardShards: 16 },
-        { id: 'salvage', title: '장비 해체 전문가', stat: 'salvages',   steps: [5, 20, 60],     rewardGold: 580,  rewardGems: 5,  rewardShards: 14 }
+        { id: 'summon',  title: '소환사',         stat: 'totalSummons',   steps: [20, 80, 250],    rewardGold: 1200, rewardGems: 5,  rewardShards: 20 },
+        { id: 'merge',   title: '연금 합성가',    stat: 'totalMerges',    steps: [15, 60, 180],    rewardGold: 1400, rewardGems: 6,  rewardShards: 24 },
+        { id: 'mythic',  title: '신화 각성자',    stat: 'mythicsCrafted', steps: [1, 5, 15],       rewardGold: 2600, rewardGems: 12, rewardShards: 42 },
+        { id: 'enhance', title: '전설 대장장이',  stat: 'enhances',       steps: [5, 20, 50],      rewardGold: 1600, rewardGems: 6,  rewardShards: 28 },
+        { id: 'boss',    title: '보스 슬레이어',  stat: 'bossKills',      steps: [3, 12, 35],      rewardGold: 2100, rewardGems: 10, rewardShards: 35 },
+        { id: 'clear',   title: '월드 정복자',    stat: 'clears',         steps: [1, 5, 15],       rewardGold: 3000, rewardGems: 14, rewardShards: 48 },
+        { id: 'slayer',  title: '몬스터 학살자',  stat: 'totalKills',     steps: [300, 1200, 3500], rewardGold: 1800, rewardGems: 8,  rewardShards: 30 },
+        { id: 'salvage', title: '장비 해체 전문가', stat: 'salvages',     steps: [5, 20, 60],      rewardGold: 1300, rewardGems: 6,  rewardShards: 25 }
       ];
 
       function getTodayDateKey() {
@@ -10387,16 +10503,20 @@
         const tierBoost = Math.min(4, Math.floor((questStats.clears || 0) / 3) + Math.floor(dailyCompletedToday / 3));
         const bonusMult = isBonus ? 1.25 : 1.0;
         const goal = Math.max(1, Math.round((tpl.baseGoal + tpl.stepGoal * tierBoost) * (isBonus ? 1.15 : 1.0)));
-        const rewardScale = (1 + tierBoost * 0.22) * bonusMult;
+        const hiEcon = typeof getBestProgressionEconScale === 'function' ? getBestProgressionEconScale() : 1.0;
+        const logTier = Math.log2(Math.max(1, hiEcon));
+        const goldScale = Math.max(1 + tierBoost * 0.25, Math.min(35, Math.pow(hiEcon, 0.72))) * bonusMult;
+        const gemScale = (1 + tierBoost * 0.22 + Math.min(3.5, logTier * 0.40)) * bonusMult;
+        const shardScale = (1 + tierBoost * 0.28 + Math.min(4.5, logTier * 0.55)) * bonusMult;
         return {
           id: `dq_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           stat: tpl.stat,
           title: `${isBonus ? '[추가 의뢰] ' : ''}${tpl.label} ${goal}${tpl.unit}`,
           base: questStats[tpl.stat] || 0,
           goal,
-          g: Math.round(tpl.g * rewardScale),
-          gem: Math.max(1, Math.round(tpl.gem * rewardScale)),
-          sh: Math.round(tpl.sh * rewardScale),
+          g: Math.round(tpl.g * goldScale),
+          gem: Math.max(1, Math.round(tpl.gem * gemScale)),
+          sh: Math.round(tpl.sh * shardScale),
           claimed: false,
           isBonus
         };
@@ -10476,7 +10596,7 @@
               <div class="mt-1.5 h-1.5 rounded-full bg-slate-800 overflow-hidden">
                 <div class="h-full rounded-full ${claimed ? 'bg-slate-600' : (ready ? 'bg-emerald-400' : (q.isBonus ? 'bg-gradient-to-r from-fuchsia-500 to-pink-400' : 'bg-gradient-to-r from-amber-500 to-yellow-300'))}" style="width:${pct}%"></div>
               </div>
-              <div class="text-[10px] text-slate-400 mt-1">보상: <span class="text-amber-300 font-bold">+${q.g}G</span> · <span class="text-cyan-300 font-bold">+${q.gem}💎</span> · <span class="text-fuchsia-300 font-bold">+${q.sh}✨</span></div>
+              <div class="text-[10px] text-slate-400 mt-1">보상: <span class="text-amber-300 font-bold">+${Number(q.g || 0).toLocaleString()}G</span> · <span class="text-cyan-300 font-bold">+${q.gem}💎</span> · <span class="text-fuchsia-300 font-bold">+${q.sh}✨</span></div>
             </div>
             <button ${ready ? '' : 'disabled'} class="game-btn px-3 py-2 rounded-xl text-xs font-black shrink-0 ${claimed ? 'bg-slate-800 text-slate-500' : (ready ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow' : 'bg-slate-800 text-slate-400')}">
               ${claimed ? '수령 완료' : (ready ? '보상 수령' : `${pct}%`)}
@@ -10496,11 +10616,16 @@
             const poolChoice = candidates.length > 0 ? candidates : DAILY_QUEST_POOL;
             const nextTpl = poolChoice[Math.floor(Math.random() * poolChoice.length)];
             dailyQuests[qIdx] = createDynamicQuest(nextTpl, true);
-            showToast(`🎁 퀘스트 보상 수령(+${q.g}G · +${q.gem}💎 · +${q.sh}✨) → 새 추가 의뢰 생성!`);
+            showToast(`🎁 퀘스트 보상 수령(+${Number(q.g || 0).toLocaleString()}G · +${q.gem}💎 · +${q.sh}✨) → 새 추가 의뢰 생성!`);
             renderLobbyAll();
           });
           dList.appendChild(row);
         });
+
+        const hiEcon = typeof getBestProgressionEconScale === 'function' ? getBestProgressionEconScale() : 1.0;
+        const achProgGold = Math.max(1, Math.min(12, Math.pow(hiEcon, 0.50)));
+        const achProgGem = 1 + Math.min(1.6, Math.log2(Math.max(1, hiEcon)) * 0.22);
+        const achProgShard = 1 + Math.min(2.4, Math.log2(Math.max(1, hiEcon)) * 0.32);
 
         aList.innerHTML = '';
         ACH_DEFS.forEach(a => {
@@ -10516,10 +10641,10 @@
           if (ready) claimableCount++;
 
           const prestigeMult = 1 + prestige * 0.25;
-          const stageMult = lv + 1;
-          const rG = Math.round(a.rewardGold * stageMult * prestigeMult);
-          const rGem = Math.round(a.rewardGems * stageMult * prestigeMult);
-          const rSh = Math.round(a.rewardShards * stageMult * prestigeMult);
+          const stageMult = 1 + lv * 1.15;
+          const rG = Math.round(a.rewardGold * stageMult * prestigeMult * achProgGold);
+          const rGem = Math.round(a.rewardGems * stageMult * prestigeMult * achProgGem);
+          const rSh = Math.round(a.rewardShards * stageMult * prestigeMult * achProgShard);
           const canPrestige = isMastery;
 
           const card = document.createElement('div');
@@ -10537,7 +10662,7 @@
               <div class="mt-1.5 h-1.5 rounded-full bg-slate-800 overflow-hidden">
                 <div class="h-full rounded-full ${ready ? 'bg-amber-400' : (isMastery ? 'bg-gradient-to-r from-fuchsia-500 to-cyan-400' : 'bg-gradient-to-r from-cyan-500 to-indigo-400')}" style="width:${pct}%"></div>
               </div>
-              <div class="text-[10px] text-slate-400 mt-1">보상: <span class="text-amber-300 font-bold">+${rG}G</span> · <span class="text-cyan-300 font-bold">+${rGem}💎</span> · <span class="text-fuchsia-300 font-bold">+${rSh}✨</span></div>
+              <div class="text-[10px] text-slate-400 mt-1">보상: <span class="text-amber-300 font-bold">+${rG.toLocaleString()}G</span> · <span class="text-cyan-300 font-bold">+${rGem}💎</span> · <span class="text-fuchsia-300 font-bold">+${rSh}✨</span></div>
             </div>
             <div class="flex items-center gap-1.5">
               <button data-act="claim" ${ready ? '' : 'disabled'} class="game-btn flex-1 py-1.5 rounded-lg text-[11px] font-extrabold ${ready ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow' : 'bg-slate-800 text-slate-400'}">
@@ -10553,7 +10678,7 @@
             accountGems += rGem;
             accountShards += rSh;
             playSound('victory');
-            showToast(`🏆 [${a.title} ${lv + 1}단계] 달성! +${rG}G · +${rGem}💎 · +${rSh}✨ (다음 ${lv + 2}단계 해금!)`);
+            showToast(`🏆 [${a.title} ${lv + 1}단계] 달성! +${rG.toLocaleString()}G · +${rGem}💎 · +${rSh}✨ (다음 ${lv + 2}단계 해금!)`);
             renderLobbyAll();
           });
           const pBtn = card.querySelector('[data-act="prestige"]');
@@ -10577,6 +10702,18 @@
         }
         const recEl = document.getElementById('lblEndlessRecord');
         if (recEl) recEl.textContent = `최고 기록: W${bestEndlessWave}`;
+
+        if (typeof getTrialRewardSummary === 'function') {
+          const tr = getTrialRewardSummary();
+          const tgDesc = document.getElementById('lblTrialGoldDesc');
+          if (tgDesc) {
+            tgDesc.innerHTML = `황금 보물 고블린 처치 보너스! 클리어 보상: <strong class="text-amber-300">+${tr.goldTrial.gold.toLocaleString()}G</strong> · <strong class="text-fuchsia-300">+${tr.goldTrial.shards}✨</strong> · <strong class="text-emerald-300">비약 +${tr.goldTrial.potions}</strong>`;
+          }
+          const tsDesc = document.getElementById('lblTrialShardDesc');
+          if (tsDesc) {
+            tsDesc.innerHTML = `마력 수정 골렘 웨이브! 클리어 보상: <strong class="text-fuchsia-300">+${tr.shardTrial.shards}✨</strong> · <strong class="text-cyan-300">+${tr.shardTrial.gems}💎</strong> · <strong class="text-amber-300">+${tr.shardTrial.gold.toLocaleString()}G</strong>`;
+          }
+        }
       }
 
       // 자정(하루 경과) 자동 리셋 및 카운트다운 표시 타이머
@@ -10662,13 +10799,13 @@
               </div>
             </div>
             <button ${isMax ? 'disabled' : ''} class="game-btn w-full py-2 rounded-xl text-xs font-extrabold transition ${isMax ? 'bg-slate-800 text-amber-300 cursor-default' : (canStudy ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white shadow' : 'bg-slate-800 border border-slate-700 text-slate-400')}">
-              ${isMax ? '👑 마스터 완료' : `✨ 특성 연구 (${cost} 파편)`}
+              ${isMax ? '👑 마스터 완료' : `✨ 특성 연구 (${cost.toLocaleString()} 파편)`}
             </button>
           `;
           if (!isMax) {
             card.querySelector('button').addEventListener('click', () => {
               if (accountShards < cost) {
-                return showToast(`마력 파편(✨)이 부족합니다! (${cost} ✨ 필요)`);
+                return showToast(`마력 파편(✨)이 부족합니다! (${cost.toLocaleString()} ✨ 필요)`);
               }
               accountShards -= cost;
               talents[def.key] = curLv + 1;
@@ -10865,7 +11002,7 @@
       });
 
       function scoreItemForAutoEquip(it) {
-        return (it.tier + 1) * 1000 + (it.level || 0) * 65 + (it.extraLevel || 0) * 120 + (it.baseVal || 0) * 2 + (it.extraVal || 0) * 2;
+        return (it.tier + 1) * 2000 + (it.extraLevel || 0) * 1050 + (it.level || 0) * 60 + (it.baseVal || 0) * 2 + (it.extraVal || 0) * 2;
       }
 
       document.getElementById('btnForgeAutoEquip').addEventListener('click', () => {
@@ -10914,58 +11051,80 @@
       document.getElementById('btnAnvilUpgrade1').addEventListener('click', () => {
         const it = selectedForgeUid ? inventory.find(x => x.uid === selectedForgeUid) : null;
         if (!it) return;
-        const exLv = it.extraLevel || 0;
-        if (it.level >= 15 && exLv >= 3) return;
+        const exLv = Math.max(0, Math.min(MAX_ITEM_TRANSCEND, it.extraLevel || 0));
+        if (it.level >= MAX_ITEM_LEVEL && exLv >= MAX_ITEM_TRANSCEND) return;
         const cost = calcItemUpgradeCost(it);
         if (accountGold < cost) return showToast(`강화 금화가 부족합니다! (${cost.toLocaleString()} G 필요)`);
         accountGold -= cost;
-        if (it.level < 15) {
+        questStats.enhances++;
+        if (it.level < MAX_ITEM_LEVEL) {
           it.level++;
+          playSound('enhance', { level: it.level + exLv });
+          if (it.level >= MAX_ITEM_LEVEL && exLv < MAX_ITEM_TRANSCEND) {
+            showToast(`👑 [${it.name}] ${formatItemLevelTag(it)} 달성! 이제 ${exLv + 1}초월 강화(Lv.0 시작)가 가능합니다!`);
+          } else {
+            showToast(`🔨 [${it.name}] ${formatItemLevelTag(it)} 강화 성공! (${formatItemStat(it)})`);
+          }
         } else {
           it.extraLevel = exLv + 1;
+          it.level = 0;
+          playSound('mythic');
+          showToast(`🌟 [${it.name}] ${it.extraLevel}초월 돌파 완료! ★${it.extraLevel} Lv.0부터 다시 +15강 도전! (${formatItemStat(it)})`);
         }
-        questStats.enhances++;
-        playSound('enhance', { level: it.level + (it.extraLevel || 0) });
-        showToast(`🔨 [${it.name}] ${formatItemLevelTag(it)} 강화 성공! (${formatItemStat(it)})`);
         renderLobbyAll();
       });
 
       document.getElementById('btnAnvilUpgradeMax').addEventListener('click', () => {
         const it = selectedForgeUid ? inventory.find(x => x.uid === selectedForgeUid) : null;
-        if (!it || it.level >= 15) return;
+        if (!it) return;
+        const exLv = Math.max(0, Math.min(MAX_ITEM_TRANSCEND, it.extraLevel || 0));
+        if (it.level >= MAX_ITEM_LEVEL && exLv >= MAX_ITEM_TRANSCEND) return;
         const gemCost = calcGemBreakthroughCost(it);
         if (accountGems < gemCost) return showToast(`보석(💎)이 부족합니다! (${gemCost} 💎 필요)`);
         accountGems -= gemCost;
-        it.level = Math.min(15, it.level + 3);
-        questStats.enhances += 3;
-        playSound('enhance', { level: it.level });
-        showToast(`✨ 보석 돌파 성공! [${it.name}] +${it.level} 달성!`);
+        if (it.level < MAX_ITEM_LEVEL) {
+          const prevLv = it.level;
+          it.level = Math.min(MAX_ITEM_LEVEL, it.level + 3);
+          questStats.enhances += Math.max(1, it.level - prevLv);
+          playSound('enhance', { level: it.level + exLv });
+          showToast(`✨ 보석 돌파 성공! [${it.name}] ${formatItemLevelTag(it)} 달성!`);
+        } else {
+          it.extraLevel = exLv + 1;
+          it.level = 0;
+          questStats.enhances += 1;
+          playSound('mythic');
+          showToast(`💎 보석 초월 성공! [${it.name}] ${it.extraLevel}초월 Lv.0부터 다시 +15강 도전! (${formatItemStat(it)})`);
+        }
         renderLobbyAll();
       });
 
       document.getElementById('btnAnvilUpgradeShard').addEventListener('click', () => {
         const it = selectedForgeUid ? inventory.find(x => x.uid === selectedForgeUid) : null;
         if (!it) return;
-        const exLv = it.extraLevel || 0;
-        if (it.level >= 15 && exLv >= 3) return;
+        const exLv = Math.max(0, Math.min(MAX_ITEM_TRANSCEND, it.extraLevel || 0));
+        if (it.level >= MAX_ITEM_LEVEL && exLv >= MAX_ITEM_TRANSCEND) return;
         const shCost = calcShardForgeCost(it);
         if (accountShards < shCost) return showToast(`마력 파편(✨)이 부족합니다! (${shCost} ✨ 필요)`);
         accountShards -= shCost;
-        if (it.level < 15) {
-          it.level = Math.min(15, it.level + 2);
-          questStats.enhances += 2;
+        if (it.level < MAX_ITEM_LEVEL) {
+          const prevLv = it.level;
+          it.level = Math.min(MAX_ITEM_LEVEL, it.level + 2);
+          questStats.enhances += Math.max(1, it.level - prevLv);
+          playSound('enhance', { level: it.level + exLv });
+          showToast(`✨ 마력 파편 연성 성공! [${it.name}] ${formatItemLevelTag(it)} 달성!`);
         } else {
           it.extraLevel = exLv + 1;
+          it.level = 0;
           questStats.enhances += 1;
+          playSound('mythic');
+          showToast(`✨ 파편 초월 돌파! [${it.name}] ${it.extraLevel}초월 Lv.0부터 다시 +15강 도전! (${formatItemStat(it)})`);
         }
-        playSound('enhance', { level: it.level + (it.extraLevel || 0) });
-        showToast(`✨ 마력 파편 연성 성공! [${it.name}] ${formatItemLevelTag(it)} 달성!`);
         renderLobbyAll();
       });
 
       document.getElementById('btnAnvilPromote').addEventListener('click', () => {
         const it = selectedForgeUid ? inventory.find(x => x.uid === selectedForgeUid) : null;
-        if (!it || it.level < 15 || (it.extraLevel || 0) < 3 || it.tier >= 5) return;
+        if (!it || it.level < MAX_ITEM_LEVEL || it.tier >= 5) return;
         const pCost = calcItemPromoteCost(it);
         if (accountGold < pCost.gold) return showToast(`승급 금화가 부족합니다! (${pCost.gold.toLocaleString()} G 필요)`);
         if (accountGems < pCost.gems) return showToast(`승급 보석이 부족합니다! (${pCost.gems} 💎 필요)`);
@@ -11743,7 +11902,7 @@
             bossBane: Math.max(0, Math.floor(Number(obj.bb) || 0)),
             itemId: obj.it ? String(obj.it) : '',
             itemLv: Math.max(0, Math.min(15, Math.floor(Number(obj.lv) || 0))),
-            itemEx: Math.max(0, Math.min(3, Math.floor(Number(obj.ex) || 0))),
+            itemEx: Math.max(0, Math.min(5, Math.floor(Number(obj.ex) || 0))),
             expiresAt: obj.exp ? String(obj.exp).trim() : ''
           };
         } catch (_) {
@@ -11811,7 +11970,7 @@
             bossBane: Math.max(0, Math.floor(Number(entry.bossBane) || 0)),
             itemId: entry.itemId ? String(entry.itemId) : '',
             itemLv: Math.max(0, Math.min(15, Math.floor(Number(entry.itemLv) || 0))),
-            itemEx: Math.max(0, Math.min(3, Math.floor(Number(entry.itemEx) || 0))),
+            itemEx: Math.max(0, Math.min(5, Math.floor(Number(entry.itemEx) || 0))),
             expiresAt: entry.expiresAt ? String(entry.expiresAt).trim() : ''
           };
         }
@@ -12525,9 +12684,9 @@
                 if (tpl) {
                   const itemObj = addInventoryItem(tpl);
                   const lv = Math.max(0, Math.min(15, Math.floor(Number(c.itemLv) || 0)));
-                  const ex = Math.max(0, Math.min(3, Math.floor(Number(c.itemEx) || 0)));
+                  const ex = Math.max(0, Math.min(5, Math.floor(Number(c.itemEx) || 0)));
                   if (itemObj) { itemObj.level = lv; itemObj.extraLevel = ex; }
-                  gotParts.push(`${tpl.name}${lv ? ` +${lv}` : ''}${ex ? ` ★${ex}` : ''}`);
+                  gotParts.push(`${tpl.name}${itemObj ? ` ${formatItemLevelTag(itemObj)}` : ''}`);
                 }
               }
               if (!claimedCoupons.includes(rawCode)) claimedCoupons.push(rawCode);
