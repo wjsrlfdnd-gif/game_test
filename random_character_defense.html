@@ -517,10 +517,13 @@
       #selUnitGear { padding: 0.16rem 0.36rem !important; gap: 0 !important; border-radius: 0.42rem !important; }
       #selUnitGear .sel-gear-grid { display: none !important; }
 
-      /* 4-Col × 2-Row Compact Unit Action Dock (All 7 buttons in 2 thumb rows!) */
+      /* 3-Col × 2-Row Compact Unit Action Dock (All 6 buttons in 2 thumb rows!) */
       #selUnitActionGrid {
-        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 0.2rem !important;
+      }
+      #selUnitActionGrid .col-span-2 {
+        grid-column: span 1 / span 1 !important;
       }
       #selUnitActionGrid .game-btn {
         padding: 0.28rem 0.12rem !important;
@@ -2020,11 +2023,8 @@
         </div>
 
         <div id="selUnitActionGrid" class="grid grid-cols-2 gap-1.5">
-          <button id="btnMergeSelected" disabled class="game-btn py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow">
+          <button id="btnMergeSelected" disabled class="game-btn col-span-2 py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow">
             선택 합성<span class="mobile-label-hide"> (2→1)</span>
-          </button>
-          <button id="btnCrossMerge" disabled class="game-btn py-1.5 px-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs font-bold text-white shadow inline-flex items-center justify-center gap-1">
-            <span>교차 합성</span><span class="keycap">C</span>
           </button>
           <button id="btnMoveUnit" disabled class="game-btn py-1.5 px-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white shadow inline-flex items-center justify-center gap-1">
             <span>이동/교환</span><span class="keycap">V</span>
@@ -5685,29 +5685,6 @@
         syncUI();
       }
 
-      function crossMergeSelected() {
-        if (selectedSlotIdx === null || gameOver || paused) return;
-        const u = units.find(x => x.slotIdx === selectedSlotIdx);
-        if (!u || u.tier >= 5) return;
-        if (u.locked) {
-          showToast('🔒 잠금 상태인 유닛은 합성할 수 없습니다.');
-          return;
-        }
-        const partner = units.find(x => x !== u && x.tier === u.tier && !isUnitProtectedFromAutoMerge(x));
-        if (!partner) {
-          showToast('교차 합성할 동일 등급(미잠금) 다른 유닛이 없습니다.');
-          return;
-        }
-        const fee = u.sub === partner.sub ? 0 : 35 * (u.tier + 1);
-        if (gold < fee) {
-          showToast(`교차 합성 비용이 부족합니다! (${fee} G 필요)`);
-          return;
-        }
-        gold -= fee;
-        mergeUnitPair(u, partner);
-        syncUI();
-      }
-
       function mergeSelected() {
         if (selectedSlotIdx === null || gameOver || paused) return;
         const u = units.find(x => x.slotIdx === selectedSlotIdx);
@@ -6533,7 +6510,6 @@
         const dpsEl = document.getElementById('selUnitDps');
         const mechEl = document.getElementById('selUnitMech');
         const btnMerge = document.getElementById('btnMergeSelected');
-        const btnCross = document.getElementById('btnCrossMerge');
         const btnMove = document.getElementById('btnMoveUnit');
         const btnReroll = document.getElementById('btnRerollJob');
         const btnTarget = document.getElementById('btnTargetMode');
@@ -6569,7 +6545,6 @@
             gearEl.innerHTML = `<div class="text-[10px] font-extrabold text-emerald-300 flex items-center justify-between"><span>🎒 장착 장비</span><span class="text-slate-500 font-semibold">유닛을 클릭해 확인</span></div>`;
           }
           btnMerge.disabled = true;
-          btnCross.disabled = true;
           btnMove.disabled = true;
           btnReroll.disabled = true;
           if (btnTarget) {
@@ -6648,13 +6623,9 @@
           }
 
           const hasSamePartner = !selUnit.locked && selUnit.tier < 5 && units.some(x => x !== selUnit && x.tier === selUnit.tier && x.sub === selUnit.sub && !x.locked);
-          const hasCrossPartner = !selUnit.locked && selUnit.tier < 5 && units.some(x => x !== selUnit && x.tier === selUnit.tier && !isUnitProtectedFromAutoMerge(x));
-          const crossFee = 35 * (selUnit.tier + 1);
           const rerollFee = 30 * (selUnit.tier + 1);
 
           btnMerge.disabled = !hasSamePartner;
-          btnCross.disabled = !hasCrossPartner;
-          btnCross.innerHTML = `<span>교차합성 (${crossFee}G)</span><span class="keycap">C</span>`;
           btnMove.disabled = false;
           btnMove.innerHTML = moveModeSlotIdx === selUnit.slotIdx
             ? `<span>이동취소</span><span class="keycap !bg-slate-900 !text-amber-200 !border-slate-700">ESC</span>`
@@ -11082,7 +11053,6 @@
       });
       document.getElementById('btnGambleRare').addEventListener('click', gambleSummon);
       document.getElementById('btnMergeSelected').addEventListener('click', mergeSelected);
-      document.getElementById('btnCrossMerge').addEventListener('click', crossMergeSelected);
       document.getElementById('btnRerollJob').addEventListener('click', rerollSelectedUnitJob);
       document.getElementById('btnTargetMode').addEventListener('click', () => {
         if (selectedSlotIdx === null || gameOver) return;
@@ -11472,7 +11442,6 @@
         if (e.code === 'Space') { e.preventDefault(); summonRandomUnit(null); }
         else if (e.key === 'f' || e.key === 'F') summonMultipleUnits(5);
         else if (e.key === 'm' || e.key === 'M') batchMergeAll();
-        else if (e.key === 'c' || e.key === 'C') crossMergeSelected();
         else if (e.key === 'r' || e.key === 'R') rerollSelectedUnitJob();
         else if (e.key === 't' || e.key === 'T') {
           const u = selectedSlotIdx !== null ? units.find(x => x.slotIdx === selectedSlotIdx) : null;
