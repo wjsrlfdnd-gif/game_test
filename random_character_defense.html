@@ -16,6 +16,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
+    .hidden { display: none !important; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background:
@@ -1756,64 +1757,127 @@
         <div id="achQuestList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto custom-scrollbar pr-1"></div>
       </div>
 
-      <!-- Right: Additional Content (Resource Trials & Endless Abyss) -->
+      <!-- Right: Additional Content (Resource Trials, Challenges & Leaderboard) -->
       <div id="questTrialPane" class="lg:col-span-5 panel-glass border border-slate-700/75 rounded-2xl p-4 flex flex-col gap-3">
-        <div class="flex items-center gap-2 pb-2 border-b border-slate-800/80">
-          <span class="w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-400/40 flex items-center justify-center text-base">⚔️</span>
-          <h3 class="text-sm font-black text-white">특수 시련 &amp; 챌린지</h3>
-        </div>
-
-        <!-- Trial 1: Golden Goblin Vault -->
-        <div class="p-3.5 rounded-xl bg-gradient-to-br from-amber-950/65 to-slate-950 border border-amber-500/45 flex flex-col gap-2 shadow">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-xs sm:text-sm font-extrabold text-amber-300">🪙 황금 고블린 소굴 (10W)</span>
-            <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/35 text-[10px] font-bold text-amber-200">금화 · 비약 파밍</span>
+        <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-400/40 flex items-center justify-center text-base shrink-0">⚔️</span>
+            <h3 class="text-sm font-black text-white truncate">특수 시련 &amp; 챌린지</h3>
           </div>
-          <p id="lblTrialGoldDesc" class="text-[11px] text-slate-300 leading-relaxed">
-            황금 보물 고블린 처치 보너스! 클리어 보상: <strong class="text-amber-300">+3,500G</strong> · <strong class="text-fuchsia-300">+25✨</strong> · <strong class="text-emerald-300">비약 +2</strong>
-          </p>
-          <button id="btnStartTrialGold" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow">
-            🪙 황금 소굴 입장 (10웨이브)
+          <button id="btnOpenLeaderboard" type="button" class="game-btn px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/35 hover:to-yellow-500/35 border border-amber-400/50 text-[11px] font-black text-amber-300 shrink-0 shadow">
+            🏆 실시간 랭킹
           </button>
         </div>
 
-        <!-- Trial 2: Arcane Crystal Rift -->
-        <div class="p-3.5 rounded-xl bg-gradient-to-br from-fuchsia-950/65 to-slate-950 border border-fuchsia-500/45 flex flex-col gap-2 shadow">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-xs sm:text-sm font-extrabold text-fuchsia-300">✨ 마력 수정 균열 (10W)</span>
-            <span class="px-2 py-0.5 rounded-full bg-fuchsia-500/20 border border-fuchsia-400/35 text-[10px] font-bold text-fuchsia-200">파편 · 보석 파밍</span>
+        <div class="flex flex-col gap-2.5 lg:max-h-[600px] lg:overflow-y-auto custom-scrollbar pr-0.5">
+          <!-- Trial 1: Golden Goblin Vault -->
+          <div class="p-3 rounded-xl bg-gradient-to-br from-amber-950/65 to-slate-950 border border-amber-500/45 flex flex-col gap-1.5 shadow shrink-0">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs sm:text-sm font-extrabold text-amber-300">🪙 황금 고블린 소굴 (10W)</span>
+              <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/35 text-[10px] font-bold text-amber-200">금화 · 비약 파밍</span>
+            </div>
+            <p id="lblTrialGoldDesc" class="text-[11px] text-slate-300 leading-relaxed">
+              황금 보물 고블린 처치 보너스! 클리어 보상: <strong class="text-amber-300">+3,500G</strong> · <strong class="text-fuchsia-300">+9✨</strong> · <strong class="text-emerald-300">비약 +2</strong>
+            </p>
+            <button id="btnStartTrialGold" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow">
+              🪙 황금 소굴 입장 (10웨이브)
+            </button>
           </div>
-          <p id="lblTrialShardDesc" class="text-[11px] text-slate-300 leading-relaxed">
-            마력 수정 골렘 웨이브! 클리어 보상: <strong class="text-fuchsia-300">+65✨</strong> · <strong class="text-cyan-300">+14💎</strong> · <strong class="text-amber-300">+1,200G</strong>
-          </p>
-          <button id="btnStartTrialShard" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-black text-xs shadow">
-            ✨ 수정 균열 입장 (10웨이브)
-          </button>
-        </div>
 
-        <!-- Mode 3: Endless Abyss -->
-        <div class="p-3.5 rounded-xl bg-gradient-to-br from-rose-950/65 via-purple-950/45 to-slate-950 border border-rose-500/45 flex flex-col gap-2 shadow">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-xs sm:text-sm font-extrabold text-rose-300">🌌 무한 심연 챌린지</span>
-            <span id="lblEndlessRecord" class="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-400/35 text-[10px] font-bold text-rose-200">최고 기록: W0</span>
+          <!-- Trial 2: Arcane Crystal Rift -->
+          <div class="p-3 rounded-xl bg-gradient-to-br from-fuchsia-950/65 to-slate-950 border border-fuchsia-500/45 flex flex-col gap-1.5 shadow shrink-0">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs sm:text-sm font-extrabold text-fuchsia-300">✨ 마력 수정 균열 (10W)</span>
+              <span class="px-2 py-0.5 rounded-full bg-fuchsia-500/20 border border-fuchsia-400/35 text-[10px] font-bold text-fuchsia-200">파편 · 보석 파밍</span>
+            </div>
+            <p id="lblTrialShardDesc" class="text-[11px] text-slate-300 leading-relaxed">
+              마력 수정 골렘 웨이브! 클리어 보상: <strong class="text-fuchsia-300">+24✨</strong> · <strong class="text-cyan-300">+14💎</strong> · <strong class="text-amber-300">+1,200G</strong>
+            </p>
+            <button id="btnStartTrialShard" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-black text-xs shadow">
+              ✨ 수정 균열 입장 (10웨이브)
+            </button>
           </div>
-          <p class="text-[11px] text-slate-300 leading-relaxed">
-            한계 없는 심연 돌파! 5W마다 보스 · 10W마다 보석·파편 대규모 보너스
-          </p>
-          <button id="btnStartEndless" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-black text-xs shadow">
-            🌌 무한 심연 도전 시작
-          </button>
-        </div>
 
-        <!-- Event Coupon Exchange -->
-        <div class="p-3.5 rounded-xl bg-gradient-to-br from-indigo-950/65 to-slate-950 border border-indigo-500/45 flex flex-col gap-2 shadow">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-xs sm:text-sm font-extrabold text-indigo-300">🎟️ 이벤트 쿠폰 교환</span>
-            <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/35 text-[10px] font-bold text-indigo-200">보상 즉시 지급</span>
+          <!-- Trial 3: Iron Fortress (Equipment & Gem Trial) -->
+          <div class="p-3 rounded-xl bg-gradient-to-br from-cyan-950/65 to-slate-950 border border-cyan-500/45 flex flex-col gap-1.5 shadow shrink-0">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs sm:text-sm font-extrabold text-cyan-300">🔨 강철 요새 시련 (10W)</span>
+              <span class="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/35 text-[10px] font-bold text-cyan-200">장비 · 보석 파밍</span>
+            </div>
+            <p id="lblTrialForgeDesc" class="text-[11px] text-slate-300 leading-relaxed">
+              철갑 군단 돌파! 클리어 보상: <strong class="text-emerald-300">장비 1개 확정 드랍</strong> · <strong class="text-cyan-300">+18💎</strong> · <strong class="text-amber-300">+1,800G</strong>
+            </p>
+            <button id="btnStartTrialForge" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-slate-950 font-black text-xs shadow">
+              🔨 강철 요새 입장 (10웨이브)
+            </button>
           </div>
-          <div class="flex gap-1.5">
-            <input id="txtLobbyCouponCode" type="text" placeholder="쿠폰 코드 입력 (예: MOBILE2026 / RCD1-...)" class="flex-1 min-w-0 bg-slate-950/90 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-400" />
-            <button id="btnLobbyRedeemCoupon" type="button" class="game-btn px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-xs shrink-0 shadow">교환</button>
+
+          <!-- Challenge 4: Constellation Boss Rush -->
+          <div class="p-3 rounded-xl bg-gradient-to-br from-orange-950/65 to-slate-950 border border-orange-500/45 flex flex-col gap-1.5 shadow shrink-0">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs sm:text-sm font-extrabold text-orange-300">👑 성좌 보스 러시 (10W)</span>
+              <span id="lblBossRushRecord" class="px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-400/35 text-[10px] font-bold text-orange-200">최고 기록: 미도전</span>
+            </div>
+            <p id="lblBossRushDesc" class="text-[11px] text-slate-300 leading-relaxed">
+              1~10월드 보스 10연속 토벌 타임어택! 클리어 보상: <strong class="text-cyan-300">+16💎</strong> · <strong class="text-purple-300">영약+2·두루마리+1</strong>
+            </p>
+            <button id="btnStartBossRush" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-400 hover:to-rose-500 text-white font-black text-xs shadow">
+              👑 보스 러시 타임어택 시작
+            </button>
+          </div>
+
+          <!-- Challenge 5: Today's Mutator Challenge -->
+          <div class="p-3 rounded-xl bg-gradient-to-br from-emerald-950/65 to-slate-950 border border-emerald-500/45 flex flex-col gap-1.5 shadow shrink-0">
+            <div class="flex items-center justify-between gap-2">
+              <span id="lblMutatorBadge" class="text-xs sm:text-sm font-extrabold text-emerald-300">🎲 오늘의 변이 챌린지 (15W)</span>
+              <span id="lblMutatorRemain" class="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/35 text-[10px] font-bold text-emerald-200">일일 보너스 3/3</span>
+            </div>
+            <p id="lblMutatorDesc" class="text-[11px] text-slate-300 leading-relaxed">
+              매일 규칙이 바뀌는 특수 15웨이브! 보석·파편·금화 일일 보너스 지급
+            </p>
+            <button id="btnStartDailyMutator" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow">
+              🎲 오늘의 변이 도전 (15웨이브)
+            </button>
+          </div>
+
+          <!-- Challenge 6: 3-Minute Storm Rush -->
+          <div class="p-3 rounded-xl bg-gradient-to-br from-sky-950/65 to-slate-950 border border-sky-400/45 flex flex-col gap-1.5 shadow shrink-0">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs sm:text-sm font-extrabold text-sky-300">⚡ 3분 폭풍 러시 (180초)</span>
+              <span id="lblSpeedRushRecord" class="px-2 py-0.5 rounded-full bg-sky-500/20 border border-sky-400/35 text-[10px] font-bold text-sky-200">최고 기록: W0</span>
+            </div>
+            <p id="lblSpeedRushDesc" class="text-[11px] text-slate-300 leading-relaxed">
+              4.5초마다 쏟아지는 초고속 웨이브를 3분간 생존! 돌파 웨이브 비례 보상 지급
+            </p>
+            <button id="btnStartSpeedRush" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black text-xs shadow">
+              ⚡ 3분 폭풍 러시 시작
+            </button>
+          </div>
+
+          <!-- Mode 7: Endless Abyss -->
+          <div class="p-3 rounded-xl bg-gradient-to-br from-rose-950/65 via-purple-950/45 to-slate-950 border border-rose-500/45 flex flex-col gap-1.5 shadow shrink-0">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs sm:text-sm font-extrabold text-rose-300">🌌 무한 심연 챌린지</span>
+              <span id="lblEndlessRecord" class="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-400/35 text-[10px] font-bold text-rose-200">최고 기록: W0</span>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-relaxed">
+              한계 없는 심연 돌파! 5W마다 보스 · 10W마다 보석·파편 대규모 보너스
+            </p>
+            <button id="btnStartEndless" class="game-btn w-full py-2 rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 text-white font-black text-xs shadow">
+              🌌 무한 심연 도전 시작
+            </button>
+          </div>
+
+          <!-- Event Coupon Exchange -->
+          <div class="p-3 rounded-xl bg-gradient-to-br from-indigo-950/65 to-slate-950 border border-indigo-500/45 flex flex-col gap-1.5 shadow shrink-0">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs sm:text-sm font-extrabold text-indigo-300">🎟️ 이벤트 쿠폰 교환</span>
+              <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/35 text-[10px] font-bold text-indigo-200">보상 즉시 지급</span>
+            </div>
+            <div class="flex gap-1.5">
+              <input id="txtLobbyCouponCode" type="text" placeholder="쿠폰 코드 입력 (예: MOBILE2026 / RCD1-...)" class="flex-1 min-w-0 bg-slate-950/90 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-400" />
+              <button id="btnLobbyRedeemCoupon" type="button" class="game-btn px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-xs shrink-0 shadow">교환</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1880,8 +1944,8 @@
         <div class="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden border border-slate-700/80 ring-1 ring-white/10 shadow-[0_8px_36px_rgba(2,6,23,0.95)]">
           <canvas id="battleCanvas" class="w-full h-full block cursor-pointer"></canvas>
 
-          <!-- Top Overlay Bar: Boss Timer Banner -->
-          <div id="battleCanvasOverlayTop" class="absolute top-2 left-2 right-2 flex items-start justify-start gap-1.5 pointer-events-none z-10">
+          <!-- Top Overlay Bar: Boss Timer Banner & Challenge Pill -->
+          <div id="battleCanvasOverlayTop" class="absolute top-2 left-2 right-2 flex items-start justify-between gap-1.5 pointer-events-none z-10">
             <!-- Boss Countdown Timer Banner -->
             <div id="bossTimerBanner" class="hidden flex-1 min-w-[180px] max-w-md bg-slate-950/92 backdrop-blur-md border border-rose-500/75 rounded-xl px-3 py-1.5 shadow-xl pointer-events-none">
               <div id="bossBannerName" class="text-[11px] font-extrabold text-rose-300 truncate">👑 보스 출현</div>
@@ -1892,6 +1956,8 @@
                 </div>
               </div>
             </div>
+            <!-- Live Challenge Timer / Mutator Status Pill -->
+            <div id="challengeStatusPill" class="hidden ml-auto bg-slate-950/90 backdrop-blur-md border border-sky-400/60 rounded-xl px-3 py-1.5 text-[11px] font-black text-sky-200 shadow-lg tabular-nums whitespace-nowrap"></div>
           </div>
 
           <!-- Danger Alert Banner -->
@@ -2496,6 +2562,39 @@
       <button id="btnDismissRotateOverlay" type="button" class="text-[11px] text-slate-400 hover:text-slate-200 underline py-1">
         세로 화면으로 임시 진행
       </button>
+    </div>
+  </div>
+
+  <!-- Real-Time Challenge Leaderboard Modal -->
+  <div id="leaderboardModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="panel-glass border border-amber-500/45 rounded-2xl max-w-2xl w-full max-h-[88dvh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between gap-2 bg-slate-950/60">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-lg">🏆</span>
+          <div>
+            <h3 class="text-sm sm:text-base font-black text-amber-300 leading-tight">실시간 챌린지 리더보드</h3>
+            <p id="lblLbStatus" class="text-[10px] text-slate-400">Firebase Firestore 실시간 TOP 20</p>
+          </div>
+        </div>
+        <button id="btnCloseLeaderboard" type="button" class="game-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 shrink-0">닫기</button>
+      </div>
+
+      <div class="p-3 border-b border-slate-800 flex flex-col gap-2 bg-slate-900/60">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button id="btnLbTabEndless" data-lb-board="endless" type="button" class="game-btn px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black text-xs">🌌 무한 심연</button>
+          <button id="btnLbTabBoss" data-lb-board="boss_rush" type="button" class="game-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs">👑 보스 러시</button>
+          <button id="btnLbTabSpeed" data-lb-board="speed_rush" type="button" class="game-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs">⚡ 3분 폭풍</button>
+          <button id="btnRefreshLb" type="button" class="game-btn ml-auto px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-extrabold">🔄 새로고침</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <input id="txtLbNickname" type="text" maxlength="16" placeholder="랭킹 닉네임 (최대 16자)" class="flex-1 min-w-[130px] bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400" />
+          <button id="btnSaveLbNick" type="button" class="game-btn px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-extrabold text-white">닉네임 저장</button>
+          <button id="btnPushMyLb" type="button" class="game-btn px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-extrabold text-white">내 기록 등록</button>
+        </div>
+        <div id="lblLbMyBest" class="text-[11px] font-bold text-amber-200 bg-slate-950/80 border border-slate-800 rounded-lg px-2.5 py-1.5">내 최고 기록: -</div>
+      </div>
+
+      <div id="leaderboardList" class="p-3 overflow-y-auto custom-scrollbar flex flex-col gap-1.5 flex-1 min-h-[180px]"></div>
     </div>
   </div>
 
@@ -3264,6 +3363,11 @@
       let autoProtectMythicMats = true;
       let stageRecords = {}; // key: `${mapKey}_${subLv}` (normal) or `${diff}:${mapKey}_${subLv}` -> { cleared: bool, bestWave: number, clearCount: number }
       let bestEndlessWave = 0;
+      let bestBossRushSec = 0;
+      let bestSpeedRushWave = 0;
+      let mutatorDate = '';
+      let mutatorClearsToday = 0;
+      let playerNickname = '';
       let currentMap = 'meadow';
       let currentStageSub = 1; // 1 to 10 (n-1 to n-10)
 
@@ -3290,9 +3394,11 @@
         return false;
       }
 
-      // Game Mode ('stage' | 'trial_gold' | 'trial_shard' | 'endless') & Active Consumable Buff
+      // Game Mode ('stage' | 'trial_gold' | 'trial_shard' | 'trial_forge' | 'boss_rush' | 'daily_mutator' | 'speed_rush' | 'endless') & Challenge Timers
       let gameMode = 'stage';
       let bossBaneTimer = 0;
+      let speedRushTimeLeft = 180.0;
+      let activeMutatorId = '';
 
       // Quest & Achievement Progress + Permanent Account Talents
       let questStats = {
@@ -3826,6 +3932,11 @@
             autoProtectMythicMats,
             stageRecords,
             bestEndlessWave,
+            bestBossRushSec,
+            bestSpeedRushWave,
+            mutatorDate,
+            mutatorClearsToday,
+            playerNickname,
             questStats,
             dailyQuestBase,
             dailyQuestClaimed,
@@ -3868,6 +3979,11 @@
             });
           }
           if (typeof data.bestEndlessWave === 'number') bestEndlessWave = data.bestEndlessWave;
+          if (typeof data.bestBossRushSec === 'number') bestBossRushSec = data.bestBossRushSec;
+          if (typeof data.bestSpeedRushWave === 'number') bestSpeedRushWave = data.bestSpeedRushWave;
+          if (typeof data.mutatorDate === 'string') mutatorDate = data.mutatorDate;
+          if (typeof data.mutatorClearsToday === 'number') mutatorClearsToday = data.mutatorClearsToday;
+          if (typeof data.playerNickname === 'string') playerNickname = data.playerNickname;
           if (data.questStats && typeof data.questStats === 'object') {
             Object.assign(questStats, data.questStats);
           }
@@ -5137,20 +5253,119 @@
         }
       }
 
-      // Mode-aware Wave & Stage Display Helpers
+      // Mode-aware Wave, Mutator & Stage Display Helpers
+      const DAILY_MUTATORS = [
+        {
+          id: 'elite_squad',
+          name: '소수 정예',
+          badge: '🛡️ 정예 8기 제한',
+          desc: '최대 배치 8기 제한 · 시작 +600G · 전 유닛 공격력 +45%',
+          maxUnits: 8,
+          startGoldBonus: 600,
+          atkPct: 45
+        },
+        {
+          id: 'tier_seal',
+          name: '등급 봉인',
+          badge: '🔒 최대 레어(3티어)',
+          desc: '영웅 이상 소환·조합·도박 봉인 · 대신 전 유닛 공격력 +85% · 공속 +25%',
+          maxTier: 2,
+          atkPct: 85,
+          aspdPct: 25
+        },
+        {
+          id: 'synergy_surge',
+          name: '시너지 폭주',
+          badge: '⚡ 시너지 2+ 폭주',
+          desc: '시너지 2개 이상 활성 시 공격력 +90% · 공속 +30% (적 체력 1.5배)',
+          reqSynergies: 2,
+          atkPct: 90,
+          aspdPct: 30,
+          mobHpMult: 1.5
+        },
+        {
+          id: 'hyper_horde',
+          name: '과속 군단',
+          badge: '💨 웨이브 11초 가속',
+          desc: '적 이동속도 +35% · 웨이브 11초 진행 · 대신 공속 +35% · 처치 골드 +40%',
+          mobSpeedMult: 1.35,
+          waveDuration: 11.0,
+          aspdPct: 35,
+          killGoldPct: 40
+        }
+      ];
+
+      function getTodayMutatorConfig(dateStr = null) {
+        const key = dateStr || (typeof getTodayDateKey === 'function' ? getTodayDateKey() : new Date().toISOString().slice(0, 10));
+        let h = 2166136261;
+        for (let i = 0; i < key.length; i++) {
+          h ^= key.charCodeAt(i);
+          h = Math.imul(h, 16777619) >>> 0;
+        }
+        return DAILY_MUTATORS[h % DAILY_MUTATORS.length];
+      }
+
+      function syncDailyMutatorCounter() {
+        const today = typeof getTodayDateKey === 'function' ? getTodayDateKey() : new Date().toISOString().slice(0, 10);
+        if (mutatorDate !== today) {
+          mutatorDate = today;
+          mutatorClearsToday = 0;
+        }
+        return mutatorClearsToday;
+      }
+
+      function getActiveMutatorRule() {
+        if (gameMode !== 'daily_mutator') return null;
+        return DAILY_MUTATORS.find(m => m.id === activeMutatorId) || getTodayMutatorConfig();
+      }
+
+      function getMaxUnitSlots() {
+        const slotsLen = MAPS[currentMap].slots.length;
+        const mut = getActiveMutatorRule();
+        if (mut && mut.maxUnits) return Math.min(mut.maxUnits, slotsLen);
+        return slotsLen;
+      }
+
+      function formatClockStr(sec) {
+        const s = Math.max(0, Math.floor(sec));
+        const mm = String(Math.floor(s / 60)).padStart(2, '0');
+        const ss = String(s % 60).padStart(2, '0');
+        return `${mm}:${ss}`;
+      }
+
+      function rollForgeTrialDropTier(hiEcon = getBestProgressionEconScale()) {
+        const logTier = Math.log2(Math.max(1, hiEcon));
+        const pT5 = Math.min(0.10, 0.01 + logTier * 0.008);
+        const pT4 = Math.min(0.30, 0.08 + logTier * 0.02);
+        const pT3 = Math.min(0.45, 0.30 + logTier * 0.015);
+        const r = Math.random();
+        if (r < pT5) return 5;
+        if (r < pT5 + pT4) return 4;
+        if (r < pT5 + pT4 + pT3) return 3;
+        return 2;
+      }
+
       function getTargetMaxWave() {
-        if (gameMode === 'trial_gold' || gameMode === 'trial_shard') return 10;
-        if (gameMode === 'endless') return Infinity;
+        if (gameMode === 'trial_gold' || gameMode === 'trial_shard' || gameMode === 'trial_forge' || gameMode === 'boss_rush') return 10;
+        if (gameMode === 'daily_mutator') return 15;
+        if (gameMode === 'endless' || gameMode === 'speed_rush') return Infinity;
         return MAX_WAVES;
       }
 
       function getMaxWaveLabel() {
-        return gameMode === 'endless' ? '∞' : String(getTargetMaxWave());
+        return (gameMode === 'endless' || gameMode === 'speed_rush') ? '∞' : String(getTargetMaxWave());
       }
 
       function getModeDisplayLabel() {
         if (gameMode === 'trial_gold') return '시련: 황금 소굴';
         if (gameMode === 'trial_shard') return '시련: 수정 균열';
+        if (gameMode === 'trial_forge') return '시련: 강철 요새';
+        if (gameMode === 'boss_rush') return '도전: 성좌 보스 러시';
+        if (gameMode === 'daily_mutator') {
+          const mut = getActiveMutatorRule();
+          return `변이: ${mut ? mut.name : '일일 챌린지'}`;
+        }
+        if (gameMode === 'speed_rush') return `폭풍 러시 (최고 W${bestSpeedRushWave})`;
         if (gameMode === 'endless') return `무한 심연 (최고 W${bestEndlessWave})`;
         const wNum = MAPS[currentMap].worldNum;
         const dCfg = getDifficultyConfig();
@@ -5271,6 +5486,29 @@
             shards: Math.round(24 * (1 + Math.min(2.2, logTier * 0.30)) * ev.shardMult),
             gems: Math.max(14, Math.round((14 + Math.min(22, Math.floor(logTier * 3.5))) * ev.gemMult)),
             gold: Math.round(1200 * Math.max(1, Math.pow(hiEcon, 0.55)) * ev.goldMult)
+          },
+          forgeTrial: {
+            gems: Math.max(18, Math.round((18 + Math.min(28, Math.floor(logTier * 4.2))) * ev.gemMult)),
+            gold: Math.round(1800 * Math.max(1, Math.pow(hiEcon, 0.58)) * ev.goldMult),
+            shards: Math.round(8 * (1 + Math.min(1.5, logTier * 0.20)) * ev.shardMult),
+            equipDrop: 1
+          },
+          bossRush: {
+            gems: Math.max(16, Math.round((16 + Math.min(24, Math.floor(logTier * 3.6))) * ev.gemMult)),
+            gold: Math.round(2400 * Math.max(1, Math.pow(hiEcon, 0.60)) * ev.goldMult),
+            shards: Math.round(10 * (1 + Math.min(1.5, logTier * 0.22)) * ev.shardMult),
+            bossBane: 2,
+            shockScroll: 1
+          },
+          mutatorChallenge: {
+            gems: Math.max(15, Math.round((15 + Math.min(20, Math.floor(logTier * 3.2))) * ev.gemMult)),
+            gold: Math.round(2800 * Math.max(1, Math.pow(hiEcon, 0.62)) * ev.goldMult),
+            shards: Math.round(12 * (1 + Math.min(1.6, logTier * 0.22)) * ev.shardMult)
+          },
+          speedRush: {
+            goldPerWave: Math.round(240 * Math.max(1, Math.pow(hiEcon, 0.45)) * ev.goldMult),
+            shardPerWave: 0.65 * ev.shardMult,
+            gemPer2Waves: 1 * ev.gemMult
           }
         };
       }
@@ -5368,6 +5606,35 @@
           activeList.push({ id: 'rainbow', name: '🌈 오색군단', detail: '공속+15% · 스킬+10%', cls: 'bg-fuchsia-950/80 border-fuchsia-400/50 text-fuchsia-200' });
         }
 
+        const mut = getActiveMutatorRule();
+        if (mut) {
+          const mutActive = !mut.reqSynergies || activeList.length >= mut.reqSynergies;
+          if (mutActive) {
+            if (mut.atkPct) allAtkPct += mut.atkPct;
+            if (mut.aspdPct) allAspdPct += mut.aspdPct;
+            if (mut.killGoldPct) killGoldPct += mut.killGoldPct;
+            const dParts = [];
+            if (mut.atkPct) dParts.push(`공격+${mut.atkPct}%`);
+            if (mut.aspdPct) dParts.push(`공속+${mut.aspdPct}%`);
+            if (mut.killGoldPct) dParts.push(`처치골드+${mut.killGoldPct}%`);
+            if (mut.maxUnits) dParts.push(`배치${mut.maxUnits}기`);
+            if (mut.maxTier !== undefined) dParts.push(`레어상한`);
+            activeList.push({
+              id: `mut_${mut.id}`,
+              name: mut.badge,
+              detail: dParts.join(' · ') || mut.name,
+              cls: 'bg-emerald-950/85 border-emerald-400/70 text-emerald-200'
+            });
+          } else {
+            activeList.push({
+              id: `mut_${mut.id}_wait`,
+              name: `⏳ ${mut.name}`,
+              detail: `시너지 ${activeList.length}/${mut.reqSynergies}개 (2+ 달성 시 폭주)`,
+              cls: 'bg-slate-900/90 border-slate-600/70 text-slate-400'
+            });
+          }
+        }
+
         return { allAtkPct, allAspdPct, skillPct, slowDurMult, killGoldPct, skillGoldMult, shredBonusPct, activeList };
       }
 
@@ -5451,12 +5718,29 @@
 
       function resetGame() {
         bossBaneTimer = 0;
-        gold = (gameMode === 'trial_gold' ? 400 : 250) + getTotalStartGoldBonus();
+        const mut = getActiveMutatorRule();
+        const baseStartGold = gameMode === 'trial_gold'
+          ? 400
+          : (gameMode === 'boss_rush'
+            ? 650
+            : ((gameMode === 'speed_rush' || gameMode === 'daily_mutator') ? 320 : 250)) + (mut && mut.startGoldBonus ? mut.startGoldBonus : 0);
+        gold = baseStartGold + getTotalStartGoldBonus();
         summonCost = 80;
         wave = 1;
-        waveTimer = 18;
-        waveSpawnLeft = 10;
-        spawnTick = 0;
+        speedRushTimeLeft = 180.0;
+        if (gameMode === 'boss_rush') {
+          waveTimer = 45;
+          waveSpawnLeft = 0;
+          spawnTick = 0;
+        } else if (gameMode === 'speed_rush') {
+          waveTimer = 4.5;
+          waveSpawnLeft = 7;
+          spawnTick = 0.2;
+        } else {
+          waveTimer = (mut && mut.waveDuration) ? mut.waveDuration : 18;
+          waveSpawnLeft = 10;
+          spawnTick = 0;
+        }
         totalKills = 0;
         battleElapsed = 0;
         lastInspRefreshTime = 0;
@@ -5489,6 +5773,16 @@
         document.getElementById('btnPause').textContent = '일시정지';
         placeUnit(0, 0, 0);
         placeUnit(1, 1, 0);
+        if (gameMode === 'boss_rush') {
+          spawnWaveMob('boss_rush');
+        }
+        if (gameMode === 'daily_mutator' && mut) {
+          showToast(`🎲 오늘의 변이 [${mut.name}]: ${mut.desc}`);
+        } else if (gameMode === 'speed_rush') {
+          showToast('⚡ 3분 폭풍 러시 시작! 180초 동안 쏟아지는 웨이브를 버텨내세요!');
+        } else if (gameMode === 'boss_rush') {
+          showToast('👑 성좌 보스 러시 시작! W1~W10 보스 최단 시간 토벌에 도전하세요!');
+        }
         updateBgmGain();
         syncUI();
       }
@@ -5504,6 +5798,15 @@
           return false;
         }
         const slots = MAPS[currentMap].slots;
+        const maxUnits = getMaxUnitSlots();
+        if (units.length >= maxUnits) {
+          if (!opt.silent) {
+            showToast(maxUnits < slots.length
+              ? `🛡️ 소수 정예 변이: 최대 ${maxUnits}기까지만 배치할 수 있습니다!`
+              : '빈 배치 타일이 없습니다! 유닛을 합성하세요.');
+          }
+          return false;
+        }
         const emptyIndices = slots.map((_, i) => i).filter(i => !units.some(u => u.slotIdx === i));
         if (emptyIndices.length === 0) {
           if (!opt.silent) showToast('빈 배치 타일이 없습니다! 유닛을 합성하세요.');
@@ -5524,6 +5827,8 @@
         if (r > Math.max(0.93, 0.99 - luckBonus * 0.25)) tier = 3;
         else if (r > Math.max(0.80, 0.93 - luckBonus * 0.6)) tier = 2;
         else if (r > Math.max(0.45, 0.70 - luckBonus)) tier = 1;
+        const mut = getActiveMutatorRule();
+        if (mut && mut.maxTier !== undefined) tier = Math.min(mut.maxTier, tier);
         const sub = Math.floor(Math.random() * UNIT_DB[tier].length);
 
         placeUnit(slotIdx, tier, sub);
@@ -5546,16 +5851,18 @@
         }
         let done = 0;
         for (let i = 0; i < count; i++) {
-          const slots = MAPS[currentMap].slots;
-          const emptyCount = slots.filter((_, idx) => !units.some(u => u.slotIdx === idx)).length;
-          if (emptyCount === 0 && autoMergeOn) {
+          const atCap = units.length >= getMaxUnitSlots();
+          if (atCap && autoMergeOn) {
             batchMergeAll({ quietEmpty: true, silentSync: true });
           }
           if (!summonRandomUnit(null, { silent: true, skipAutoMerge: true, silentSync: true })) break;
           done++;
         }
         if (done === 0) {
-          showToast('빈 배치 타일이 없습니다! 유닛을 합성하세요.');
+          const maxUnits = getMaxUnitSlots();
+          showToast(maxUnits < MAPS[currentMap].slots.length
+            ? `🛡️ 소수 정예 변이: 최대 ${maxUnits}기 제한에 도달했습니다! 합성으로 정리하세요.`
+            : '빈 배치 타일이 없습니다! 유닛을 합성하세요.');
           return;
         }
         playSound('summon');
@@ -5836,6 +6143,11 @@
         if (selectedSlotIdx === null || gameOver || paused) return;
         const u = units.find(x => x.slotIdx === selectedSlotIdx);
         if (!u || u.tier >= 5) return;
+        const mut = getActiveMutatorRule();
+        if (mut && mut.maxTier !== undefined && u.tier >= mut.maxTier) {
+          showToast(`🔒 등급 봉인 변이: 최대 ${TIER_META[mut.maxTier].name} 등급까지만 조합할 수 있습니다!`);
+          return;
+        }
         if (u.locked) {
           showToast('🔒 잠금 보호된 유닛입니다. 잠금 해제 후 합성하세요.');
           return;
@@ -5854,12 +6166,13 @@
         let mergedCount = 0;
         let skippedProtected = 0;
         let maxMergedTier = 0;
+        const mut = getActiveMutatorRule();
         let changed = true;
         while (changed) {
           changed = false;
           for (let i = 0; i < units.length; i++) {
             const a = units[i];
-            if (a.tier >= 4) continue;
+            if (a.tier >= 4 || (mut && mut.maxTier !== undefined && a.tier >= mut.maxTier)) continue;
             if (isUnitProtectedFromAutoMerge(a)) {
               skippedProtected++;
               continue;
@@ -5889,6 +6202,11 @@
 
       function craftMythic(recipeIdx) {
         if (gameOver || paused) return;
+        const mut = getActiveMutatorRule();
+        if (mut && mut.maxTier !== undefined) {
+          showToast('🔒 등급 봉인 변이: 신화 강림이 봉인되어 있습니다!');
+          return;
+        }
         const rec = MYTHIC_RECIPES[recipeIdx];
         if (!rec) return;
         const mat1 = units.find(u => u.tier === rec.reqs[0].tier && u.sub === rec.reqs[0].sub);
@@ -5917,6 +6235,11 @@
 
       function craftTranscend(recipeIdx) {
         if (gameOver || paused) return;
+        const mut = getActiveMutatorRule();
+        if (mut && mut.maxTier !== undefined) {
+          showToast('🔒 등급 봉인 변이: 초월 각성이 봉인되어 있습니다!');
+          return;
+        }
         const rec = TRANSCEND_RECIPES[recipeIdx];
         if (!rec) return;
         const mat1 = units.find(u => u.tier === rec.reqs[0].tier && u.sub === rec.reqs[0].sub);
@@ -5956,6 +6279,13 @@
           return;
         }
         const slots = MAPS[currentMap].slots;
+        const maxUnits = getMaxUnitSlots();
+        if (units.length >= maxUnits) {
+          showToast(maxUnits < slots.length
+            ? `🛡️ 소수 정예 변이: 최대 ${maxUnits}기까지만 배치할 수 있습니다!`
+            : '빈 배치 타일이 없습니다!');
+          return;
+        }
         const emptyIndices = slots.map((_, i) => i).filter(i => !units.some(u => u.slotIdx === i));
         if (emptyIndices.length === 0) {
           showToast('빈 배치 타일이 없습니다!');
@@ -5965,7 +6295,9 @@
         saveGameData();
         if (Math.random() <= 0.75) {
           const r = Math.random();
-          const tier = r > 0.85 ? 4 : (r > 0.45 ? 3 : 2);
+          let tier = r > 0.85 ? 4 : (r > 0.45 ? 3 : 2);
+          const mut = getActiveMutatorRule();
+          if (mut && mut.maxTier !== undefined) tier = Math.min(mut.maxTier, tier);
           const sub = Math.floor(Math.random() * UNIT_DB[tier].length);
           const slotIdx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
           placeUnit(slotIdx, tier, sub);
@@ -5983,18 +6315,37 @@
         const mapCfg = MAPS[currentMap];
         const path = mapCfg.path;
         const isStageMode = (gameMode === 'stage');
-        const waveScale = Math.pow(1.13, wave - 1);
+        const isBossRush = (gameMode === 'boss_rush');
+        const isForgeTrial = (gameMode === 'trial_forge');
+        const isSpeedRush = (gameMode === 'speed_rush');
+        const mutRule = getActiveMutatorRule();
+
+        const waveScale = isSpeedRush ? Math.pow(1.15, wave - 1) : Math.pow(1.13, wave - 1);
         const stageStepMult = isStageMode ? getStageStepMult(currentStageSub) : 1.0; // 1.5^(sub-1)
         const worldMult = isStageMode ? getWorldBaseMult(currentMap) : 1.0;
         const diffCfg = isStageMode ? getDifficultyConfig() : DIFFICULTY_MODES.normal;
-        const totalMult = waveScale * stageStepMult * worldMult * diffCfg.hpMult;
+        const mutHpMult = (mutRule && mutRule.mobHpMult) ? mutRule.mobHpMult : 1.0;
+        const mutSpdMult = (mutRule && mutRule.mobSpeedMult) ? mutRule.mobSpeedMult : 1.0;
+        const totalMult = waveScale * stageStepMult * worldMult * diffCfg.hpMult * mutHpMult;
 
         let kind = forcedKind;
         if (!kind) {
-          if (gameMode === 'trial_gold') {
+          if (isBossRush) {
+            kind = 'boss_rush';
+          } else if (gameMode === 'trial_gold') {
             kind = (wave >= 7 && Math.random() < 0.24) ? 'treasure' : 'goblin';
           } else if (gameMode === 'trial_shard') {
             kind = (wave >= 6 && Math.random() < 0.22) ? 'armored' : 'crystal';
+          } else if (isForgeTrial) {
+            kind = wave >= 4
+              ? (Math.random() < 0.62 ? 'armored' : 'elite')
+              : (Math.random() < 0.50 ? 'armored' : 'inter');
+          } else if (isSpeedRush) {
+            const srRoll = Math.random();
+            if (srRoll < 0.22) kind = 'sprinter';
+            else if (srRoll < 0.42) kind = 'inter';
+            else if (wave >= 8 && srRoll < 0.66) kind = 'elite';
+            else kind = 'normal';
           } else {
             const spRoll = Math.random();
             if (wave >= 4 && spRoll < 0.08) kind = 'treasure';
@@ -6021,10 +6372,18 @@
         const eliteHp = interHp * 1.5;
         const eliteDef = interDef * 1.25;
 
+        const brWave = Math.max(1, Math.min(10, wave));
+        const brMapKey = Object.keys(MAPS).find(k => MAPS[k].worldNum === brWave) || 'meadow';
+        const brMap = MAPS[brMapKey];
+        const brBossHp = Math.round(180000 * Math.pow(2.4, brWave - 1));
+        const brBossDef = Math.round(45 * Math.pow(1.28, brWave - 1));
+
         const effPatternWorld = isStageMode
           ? mapCfg.worldNum
-          : (gameMode === 'endless' ? Math.min(10, Math.max(1, Math.floor(wave / 5) + 1)) : 1);
-        const bossBoost = getLateWorldBossBoost(isStageMode ? mapCfg.worldNum : 1);
+          : (isBossRush
+            ? brWave
+            : ((gameMode === 'endless' || isSpeedRush) ? Math.min(10, Math.max(1, Math.floor(wave / 5) + 1)) : 1));
+        const bossBoost = getLateWorldBossBoost(isStageMode ? mapCfg.worldNum : (isBossRush ? brWave : 1));
         const midBossHp = 1600 * 1.5 * totalMult * bossBoost.hpMult; // 2400 * totalMult * lateWorldBoost
         const midBossDef = eliteDef * 1.5 * bossBoost.defMult;       // 1.5x of Elite * lateWorldBoost
 
@@ -6184,10 +6543,25 @@
             gems: rw.mainGems,
             shards: 0,
             isBoss: true
+          },
+          boss_rush: {
+            imgKey: brMap.bbKey,
+            name: `[성좌 ${brWave}/10] ${brMap.bbName}`,
+            hp: brBossHp,
+            def: brBossDef,
+            speed: 35,
+            size: 108,
+            gold: Math.round(280 + brWave * 85),
+            accGold: 0,
+            gems: 0,
+            shards: 0,
+            isBoss: true
           }
         }[kind];
 
-        const bossMaxTimer = kind === 'boss' ? 60.0 : (kind === 'midboss' ? 45.0 : 0);
+        const bossMaxTimer = (isSpeedRush && (kind === 'boss' || kind === 'midboss'))
+          ? 75.0
+          : (kind === 'boss' ? 60.0 : ((kind === 'midboss' || kind === 'boss_rush') ? 45.0 : 0));
         const initSh = presets.initShieldPct ? Math.round(presets.hp * presets.initShieldPct) : 0;
         mobs.push({
           kind,
@@ -6200,7 +6574,7 @@
           hp: presets.hp,
           maxHp: presets.hp,
           def: presets.def,
-          speed: presets.speed,
+          speed: Math.round(presets.speed * mutSpdMult),
           size: presets.size,
           gold: presets.gold,
           accGold: presets.accGold,
@@ -6236,16 +6610,50 @@
       function advanceToWave(targetWave) {
         const isStageMode = (gameMode === 'stage');
         const targetMaxWave = getTargetMaxWave();
+        const mutRule = getActiveMutatorRule();
         wave = Number.isFinite(targetMaxWave) ? Math.min(targetMaxWave, targetWave) : targetWave;
-        waveTimer = gameMode === 'endless' ? 16 : 18;
-        waveSpawnLeft = 10 + Math.floor(wave / 3);
+        if (gameMode === 'boss_rush') {
+          waveTimer = 45;
+          waveSpawnLeft = 0;
+        } else if (gameMode === 'speed_rush') {
+          waveTimer = 4.5;
+          waveSpawnLeft = 6 + Math.floor(wave / 3);
+        } else {
+          waveTimer = (mutRule && mutRule.waveDuration) ? mutRule.waveDuration : (gameMode === 'endless' ? 16 : 18);
+          waveSpawnLeft = 10 + Math.floor(wave / 3);
+        }
         const rw = isStageMode
           ? getStageRewardSummary(currentMap, currentStageSub)
           : getStageRewardSummary('meadow', 1, 'normal');
-        const waveGoldBonus = Math.round((50 + wave * 5) * rw.battleScale * (gameMode === 'trial_gold' ? 1.5 : 1.0));
+        const waveGoldBonus = gameMode === 'boss_rush'
+          ? Math.round(120 + wave * 35)
+          : Math.round((50 + wave * 5) * rw.battleScale * (gameMode === 'trial_gold' ? 1.5 : 1.0));
         gold += waveGoldBonus;
 
-        if (gameMode === 'endless') {
+        if (gameMode === 'boss_rush') {
+          spawnWaveMob('boss_rush');
+          screenShake = 0.35;
+          playSound('bossWarn');
+          showToast(`👑 성좌 보스 러시 W${wave} / 10 강림!`);
+        } else if (gameMode === 'speed_rush') {
+          if (wave > bestSpeedRushWave) {
+            bestSpeedRushWave = wave;
+            saveGameData();
+          }
+          if (wave % 10 === 0) {
+            spawnWaveMob('boss');
+            screenShake = 0.4;
+            playSound('bossWarn');
+            showToast(`⚡ 폭풍 러시 W${wave} 보스 돌격!`);
+          } else if (wave % 5 === 0) {
+            spawnWaveMob('midboss');
+            screenShake = 0.3;
+            playSound('bossWarn');
+            showToast(`⚡ 폭풍 러시 W${wave} 정예 보스 출현!`);
+          } else if (wave <= 3) {
+            playSound('waveStart');
+          }
+        } else if (gameMode === 'endless') {
           if (wave > bestEndlessWave) {
             bestEndlessWave = wave;
             saveGameData();
@@ -6279,7 +6687,7 @@
           } else {
             showToast(`🌌 무한 심연 Wave ${wave} 시작!`);
           }
-        } else if (gameMode === 'trial_gold' || gameMode === 'trial_shard') {
+        } else if (gameMode === 'trial_gold' || gameMode === 'trial_shard' || gameMode === 'trial_forge') {
           if (wave === 5) {
             spawnWaveMob('midboss');
             screenShake = 0.35;
@@ -6293,7 +6701,24 @@
           } else {
             showToast(gameMode === 'trial_gold'
               ? `🪙 황금 고블린 러시! Wave ${wave} / 10`
-              : `💎 마력 수정 군단 진격! Wave ${wave} / 10`);
+              : (gameMode === 'trial_forge'
+                ? `🔨 철갑 수호 군단 진격! Wave ${wave} / 10`
+                : `💎 마력 수정 군단 진격! Wave ${wave} / 10`));
+          }
+        } else if (gameMode === 'daily_mutator') {
+          if (wave === 5 || wave === 10) {
+            spawnWaveMob('midboss');
+            screenShake = 0.35;
+            playSound('bossWarn');
+            showToast(`🎲 변이 Wave ${wave} 중간보스 출현!`);
+          } else if (wave === 15) {
+            spawnWaveMob('boss');
+            screenShake = 0.45;
+            playSound('bossWarn');
+            showToast(`👑 변이 챌린지 최종 Wave 15 보스 강림!`);
+          } else {
+            playSound('waveStart');
+            showToast(`🎲 변이 [${mutRule ? mutRule.name : '도전'}] Wave ${wave} / 15`);
           }
         } else {
           if (wave === 15) {
@@ -6563,6 +6988,33 @@
       }
 
       // Sync both Top Bar, Battle HUD, and Lobby UI
+      function updateChallengeStatusPill() {
+        const pill = document.getElementById('challengeStatusPill');
+        if (!pill) return;
+        if (gameMode === 'boss_rush') {
+          pill.textContent = `⏱️ ${formatClockStr(battleElapsed)} · 보스 ${wave}/10`;
+          pill.className = 'ml-auto bg-slate-950/90 backdrop-blur-md border border-orange-400/70 rounded-xl px-3 py-1.5 text-[11px] font-black text-orange-200 shadow-lg tabular-nums whitespace-nowrap';
+          pill.classList.remove('hidden');
+        } else if (gameMode === 'speed_rush') {
+          pill.textContent = `⚡ 남은 ${formatClockStr(speedRushTimeLeft)} · W${wave}`;
+          pill.className = speedRushTimeLeft <= 20
+            ? 'ml-auto bg-rose-950/90 backdrop-blur-md border border-rose-400/80 rounded-xl px-3 py-1.5 text-[11px] font-black text-rose-200 shadow-lg tabular-nums whitespace-nowrap animate-pulse'
+            : 'ml-auto bg-slate-950/90 backdrop-blur-md border border-sky-400/70 rounded-xl px-3 py-1.5 text-[11px] font-black text-sky-200 shadow-lg tabular-nums whitespace-nowrap';
+          pill.classList.remove('hidden');
+        } else if (gameMode === 'daily_mutator') {
+          const mut = getActiveMutatorRule();
+          pill.textContent = `${mut ? mut.badge : '🎲 변이'} · W${wave}/15`;
+          pill.className = 'ml-auto bg-slate-950/90 backdrop-blur-md border border-emerald-400/70 rounded-xl px-3 py-1.5 text-[11px] font-black text-emerald-200 shadow-lg tabular-nums whitespace-nowrap';
+          pill.classList.remove('hidden');
+        } else if (gameMode === 'trial_forge') {
+          pill.textContent = `🔨 강철 요새 · 장비확정 · W${wave}/10`;
+          pill.className = 'ml-auto bg-slate-950/90 backdrop-blur-md border border-cyan-400/70 rounded-xl px-3 py-1.5 text-[11px] font-black text-cyan-200 shadow-lg tabular-nums whitespace-nowrap';
+          pill.classList.remove('hidden');
+        } else {
+          pill.classList.add('hidden');
+        }
+      }
+
       function syncUI() {
         document.getElementById('topAccGold').textContent = `${accountGold.toLocaleString()} G`;
         document.getElementById('topAccGems').textContent = `${accountGems} 💎`;
@@ -6576,10 +7028,12 @@
         if (c3) c3.textContent = consumables.bossBane;
 
         document.getElementById('hudStageLabel').textContent = getModeDisplayLabel();
-        document.getElementById('hudWave').textContent = `W${wave} / ${getMaxWaveLabel()} (${Math.ceil(Math.max(0, waveTimer))}s)`;
+        document.getElementById('hudWave').textContent = gameMode === 'speed_rush'
+          ? `W${wave} (남은 ${formatClockStr(speedRushTimeLeft)})`
+          : `W${wave} / ${getMaxWaveLabel()} (${Math.ceil(Math.max(0, waveTimer))}s)`;
         const btnNextW = document.getElementById('btnNextWaveNow');
         if (btnNextW) {
-          btnNextW.disabled = (gameMode !== 'endless' && wave >= getTargetMaxWave());
+          btnNextW.disabled = (gameMode !== 'endless' && gameMode !== 'speed_rush' && wave >= getTargetMaxWave());
         }
         document.getElementById('hudGold').textContent = `${gold} G`;
         document.getElementById('hudGems').textContent = `${accountGems} 💎`;
@@ -6590,8 +7044,9 @@
           ? 'text-xs font-extrabold text-rose-400 animate-pulse'
           : 'text-xs font-extrabold text-emerald-400';
 
-        document.getElementById('hudUnitCount').textContent = `${units.length} / ${MAPS[currentMap].slots.length}`;
+        document.getElementById('hudUnitCount').textContent = `${units.length} / ${getMaxUnitSlots()}`;
         document.getElementById('lblSummonCost').textContent = `비용: ${summonCost} G`;
+        updateChallengeStatusPill();
         const lbl5 = document.getElementById('lblSummon5Cost');
         if (lbl5) lbl5.textContent = `${calcMultiSummonCost(5)} G`;
 
@@ -6865,6 +7320,13 @@
 
       function updateGame(dt) {
         battleElapsed += dt;
+        if (gameMode === 'speed_rush') {
+          speedRushTimeLeft = Math.max(0, speedRushTimeLeft - dt);
+          if (speedRushTimeLeft <= 0) {
+            triggerStageClear();
+            return;
+          }
+        }
         const syn = getActiveFieldSynergies();
         if (screenShake > 0) screenShake = Math.max(0, screenShake - dt);
         if (bountyCd > 0) {
@@ -6883,11 +7345,11 @@
           ? (isCompactMobile ? `${Math.ceil(ultCd)}s` : `쿨타임: ${Math.ceil(ultCd)}초`)
           : (isCompactMobile ? '준비' : '즉시 발동 가능');
 
-        // Wave Spawning & Progression up to Wave 30
+        // Wave Spawning & Progression
         waveTimer -= dt;
         spawnTick -= dt;
         if (waveSpawnLeft > 0 && spawnTick <= 0) {
-          spawnTick = 1.0;
+          spawnTick = (gameMode === 'speed_rush') ? 0.42 : 1.0;
           waveSpawnLeft--;
           spawnWaveMob(null);
         }
@@ -6916,15 +7378,31 @@
           bossBanner.classList.add('hidden');
         }
 
+        updateChallengeStatusPill();
+
         const targetMaxWave = getTargetMaxWave();
+        if (gameMode === 'boss_rush') {
+          if (activeBoss) {
+            waveTimer = Math.max(waveTimer, 0.5);
+          } else if (mobs.length === 0 && waveSpawnLeft === 0) {
+            if (wave >= targetMaxWave) {
+              triggerStageClear();
+              return;
+            }
+            if (waveTimer > 1.2) waveTimer = 1.2;
+          }
+        }
         if (wave < targetMaxWave && waveTimer <= 0) {
-          if (((gameMode === 'stage' && (wave === 15 || wave === 30)) || (gameMode !== 'stage' && wave % 5 === 0)) && activeBoss) {
+          const bossHoldWave = (gameMode === 'stage' && (wave === 15 || wave === 30))
+            || (gameMode === 'boss_rush')
+            || (gameMode !== 'stage' && gameMode !== 'speed_rush' && wave % 5 === 0);
+          if (bossHoldWave && activeBoss) {
             waveTimer = 0.5;
           } else {
             if (gameMode === 'stage') recordWaveProgress(wave + 1, false);
             advanceToWave(wave + 1);
           }
-        } else if (gameMode !== 'endless' && wave === targetMaxWave && waveSpawnLeft === 0 && mobs.length === 0) {
+        } else if (gameMode !== 'endless' && gameMode !== 'speed_rush' && wave === targetMaxWave && waveSpawnLeft === 0 && mobs.length === 0) {
           triggerStageClear();
           return;
         }
@@ -7045,7 +7523,7 @@
             questStats.totalKills++;
             if (m.isBoss || m.isBounty) {
               questStats.bossKills++;
-              const noMainReward = m.isBounty || (gameMode === 'stage' && m.kind === 'midboss');
+              const noMainReward = m.isBounty || (gameMode === 'stage' && m.kind === 'midboss') || gameMode === 'boss_rush';
               const bonusShards = noMainReward ? 0 : (m.isBoss ? 4 : 2);
               accountShards += bonusShards;
               if (noMainReward) {
@@ -7303,18 +7781,39 @@
         gameOver = true;
         updateBgmGain();
         playSound('defeat');
-        const rw = getActiveRewardSummary();
-        const consolationGold = 0;
-        const consolationGems = 0;
-        if (gameMode === 'stage') recordWaveProgress(wave, false);
-        else saveGameData();
+        let consolationTxt = '';
+        if (gameMode === 'stage') {
+          recordWaveProgress(wave, false);
+        } else if (gameMode === 'speed_rush') {
+          if (wave > bestSpeedRushWave) bestSpeedRushWave = wave;
+          if (wave >= 5) {
+            const sr = getTrialRewardSummary().speedRush;
+            const consGold = Math.round(sr.goldPerWave * wave * 0.4);
+            const consShards = Math.round(sr.shardPerWave * wave * 0.4);
+            const consGems = Math.round(Math.floor(wave / 2) * sr.gemPer2Waves * 0.4);
+            accountGold += consGold;
+            accountShards += consShards;
+            accountGems += consGems;
+            consolationTxt = ` | 생존 정산(40%): +${consGold.toLocaleString()}G · +${consGems}💎 · +${consShards}✨`;
+          }
+          saveGameData();
+          if (typeof submitLeaderboardScore === 'function') submitLeaderboardScore('speed_rush', bestSpeedRushWave);
+        } else {
+          saveGameData();
+          if (gameMode === 'endless' && typeof submitLeaderboardScore === 'function') {
+            submitLeaderboardScore('endless', bestEndlessWave);
+          }
+        }
         const wNum = MAPS[currentMap].worldNum;
         document.getElementById('gameOverTitle').textContent = `${reason} (Game Over)`;
         document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-rose-400 mb-2';
-        const consolationTxt = '';
         const modeTitle = gameMode === 'trial_gold' ? '황금 고블린 소굴'
           : (gameMode === 'trial_shard' ? '마력 수정 균열'
-          : (gameMode === 'endless' ? '무한 심연 챌린지' : `[${getDifficultyConfig().shortLabel}] 스테이지 ${wNum}-${currentStageSub}`));
+          : (gameMode === 'trial_forge' ? '강철 요새 시련'
+          : (gameMode === 'boss_rush' ? '성좌 보스 러시'
+          : (gameMode === 'daily_mutator' ? `변이: ${(getActiveMutatorRule() || {}).name || '일일 챌린지'}`
+          : (gameMode === 'speed_rush' ? '3분 폭풍 러시'
+          : (gameMode === 'endless' ? '무한 심연 챌린지' : `[${getDifficultyConfig().shortLabel}] 스테이지 ${wNum}-${currentStageSub}`))))));
         document.getElementById('gameOverSub').textContent =
           `${modeTitle} | 도달: Wave ${wave} / ${getMaxWaveLabel()} | 처치: ${totalKills}마리${consolationTxt} (자동저장 완료)`;
         const nxtFail = gameMode === 'stage' ? getNextStage(currentMap, currentStageSub) : null;
@@ -7361,6 +7860,100 @@
           renderGameOverSummary();
           document.getElementById('gameOverModal').classList.remove('hidden');
           saveGameData();
+          syncUI();
+          return;
+        }
+        if (gameMode === 'trial_forge') {
+          const tr = getTrialRewardSummary().forgeTrial;
+          accountGems += tr.gems;
+          accountGold += tr.gold;
+          accountShards += tr.shards;
+          const dropTier = rollForgeTrialDropTier();
+          const pool = SHOP_CATALOG.filter(x => x.tier === dropTier);
+          const picked = pool[Math.floor(Math.random() * pool.length)] || SHOP_CATALOG[2];
+          const droppedItem = addInventoryItem(picked, false);
+          playSound(dropTier >= 4 ? 'mythic' : 'victory');
+          document.getElementById('gameOverTitle').textContent = '🔨 강철 요새 시련 클리어!';
+          document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-cyan-300 mb-2';
+          document.getElementById('gameOverSub').textContent =
+            `시련 보상: +${tr.gems}💎 · +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨ | 🎁 장비 드랍: [${TIER_META[droppedItem.tier].name}] ${droppedItem.name}`;
+          document.getElementById('btnModalNextStage').classList.add('hidden');
+          renderGameOverSummary();
+          document.getElementById('gameOverModal').classList.remove('hidden');
+          saveGameData();
+          syncUI();
+          return;
+        }
+        if (gameMode === 'boss_rush') {
+          const clearSec = Number(Math.max(1, battleElapsed).toFixed(2));
+          const isNewBest = (bestBossRushSec <= 0 || clearSec < bestBossRushSec);
+          if (isNewBest) bestBossRushSec = clearSec;
+          const tr = getTrialRewardSummary().bossRush;
+          accountGems += tr.gems;
+          accountGold += tr.gold;
+          accountShards += tr.shards;
+          consumables.bossBane += tr.bossBane;
+          consumables.shockScroll += tr.shockScroll;
+          playSound('mythic');
+          document.getElementById('gameOverTitle').textContent = `👑 성좌 보스 러시 완주! (${clearSec.toFixed(1)}초)${isNewBest ? ' [신기록!]' : ''}`;
+          document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-orange-300 mb-2';
+          document.getElementById('gameOverSub').textContent =
+            `타임: ${formatClockStr(clearSec)} (${clearSec.toFixed(2)}s) | 보상: +${tr.gems}💎 · +${tr.gold.toLocaleString()}G · +${tr.shards}✨ · 영약+${tr.bossBane} · 두루마리+${tr.shockScroll}`;
+          document.getElementById('btnModalNextStage').classList.add('hidden');
+          renderGameOverSummary();
+          document.getElementById('gameOverModal').classList.remove('hidden');
+          saveGameData();
+          if (typeof submitLeaderboardScore === 'function') submitLeaderboardScore('boss_rush', clearSec);
+          syncUI();
+          return;
+        }
+        if (gameMode === 'daily_mutator') {
+          syncDailyMutatorCounter();
+          const mut = getActiveMutatorRule();
+          const tr = getTrialRewardSummary().mutatorChallenge;
+          const hasBonus = mutatorClearsToday < 3;
+          let rwText = '';
+          if (hasBonus) {
+            accountGems += tr.gems;
+            accountGold += tr.gold;
+            accountShards += tr.shards;
+            mutatorClearsToday++;
+            rwText = `일일 보너스(${mutatorClearsToday}/3): +${tr.gems}💎 · +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨`;
+          } else {
+            const baseG = Math.round(tr.gold * 0.30);
+            accountGold += baseG;
+            rwText = `일일 보너스 3회 소진 · 기본 보상: +${baseG.toLocaleString()} 금화 (파편 0✨)`;
+          }
+          playSound('victory');
+          document.getElementById('gameOverTitle').textContent = `🎲 오늘의 변이 [${mut ? mut.name : '도전'}] 클리어!`;
+          document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-emerald-300 mb-2';
+          document.getElementById('gameOverSub').textContent = rwText;
+          document.getElementById('btnModalNextStage').classList.add('hidden');
+          renderGameOverSummary();
+          document.getElementById('gameOverModal').classList.remove('hidden');
+          saveGameData();
+          syncUI();
+          return;
+        }
+        if (gameMode === 'speed_rush') {
+          if (wave > bestSpeedRushWave) bestSpeedRushWave = wave;
+          const sr = getTrialRewardSummary().speedRush;
+          const rwGold = Math.round(sr.goldPerWave * wave);
+          const rwShards = Math.max(1, Math.round(sr.shardPerWave * wave));
+          const rwGems = Math.max(1, Math.round(Math.floor(wave / 2) * sr.gemPer2Waves));
+          accountGold += rwGold;
+          accountShards += rwShards;
+          accountGems += rwGems;
+          playSound('mythic');
+          document.getElementById('gameOverTitle').textContent = `⚡ 3분 폭풍 러시 생존 성공! (W${wave} 돌파)`;
+          document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-sky-300 mb-2';
+          document.getElementById('gameOverSub').textContent =
+            `180초 생존 보상: +${rwGold.toLocaleString()} 금화 · +${rwGems}💎 보석 · +${rwShards}✨ 파편 지급 완료!`;
+          document.getElementById('btnModalNextStage').classList.add('hidden');
+          renderGameOverSummary();
+          document.getElementById('gameOverModal').classList.remove('hidden');
+          saveGameData();
+          if (typeof submitLeaderboardScore === 'function') submitLeaderboardScore('speed_rush', bestSpeedRushWave);
           syncUI();
           return;
         }
@@ -10717,6 +11310,24 @@
         const recEl = document.getElementById('lblEndlessRecord');
         if (recEl) recEl.textContent = `최고 기록: W${bestEndlessWave}`;
 
+        if (typeof syncDailyMutatorCounter === 'function') syncDailyMutatorCounter();
+        const todayMut = typeof getTodayMutatorConfig === 'function' ? getTodayMutatorConfig() : null;
+        const mutBadgeEl = document.getElementById('lblMutatorBadge');
+        if (mutBadgeEl && todayMut) mutBadgeEl.textContent = `🎲 ${todayMut.name} (15W)`;
+        const mutRemainEl = document.getElementById('lblMutatorRemain');
+        if (mutRemainEl) {
+          const remMut = Math.max(0, 3 - mutatorClearsToday);
+          mutRemainEl.textContent = remMut > 0 ? `일일 보너스 ${remMut}/3` : '일일 보너스 소진 (기본 30%)';
+        }
+        const bossRecEl = document.getElementById('lblBossRushRecord');
+        if (bossRecEl) {
+          bossRecEl.textContent = bestBossRushSec > 0
+            ? `최고 기록: ${formatClockStr(bestBossRushSec)} (${bestBossRushSec.toFixed(1)}s)`
+            : '최고 기록: 미도전';
+        }
+        const speedRecEl = document.getElementById('lblSpeedRushRecord');
+        if (speedRecEl) speedRecEl.textContent = `최고 기록: W${bestSpeedRushWave}`;
+
         if (typeof getTrialRewardSummary === 'function') {
           const tr = getTrialRewardSummary();
           const tgDesc = document.getElementById('lblTrialGoldDesc');
@@ -10726,6 +11337,25 @@
           const tsDesc = document.getElementById('lblTrialShardDesc');
           if (tsDesc) {
             tsDesc.innerHTML = `마력 수정 골렘 웨이브! 클리어 보상: <strong class="text-fuchsia-300">+${tr.shardTrial.shards}✨</strong> · <strong class="text-cyan-300">+${tr.shardTrial.gems}💎</strong> · <strong class="text-amber-300">+${tr.shardTrial.gold.toLocaleString()}G</strong>`;
+          }
+          const tfDesc = document.getElementById('lblTrialForgeDesc');
+          if (tfDesc) {
+            tfDesc.innerHTML = `철갑 군단 돌파! 클리어 보상: <strong class="text-emerald-300">장비 1개 확정 드랍</strong> · <strong class="text-cyan-300">+${tr.forgeTrial.gems}💎</strong> · <strong class="text-amber-300">+${tr.forgeTrial.gold.toLocaleString()}G</strong> · <strong class="text-fuchsia-300">+${tr.forgeTrial.shards}✨</strong>`;
+          }
+          const brDesc = document.getElementById('lblBossRushDesc');
+          if (brDesc) {
+            brDesc.innerHTML = `1~10월드 보스 10연속 토벌 타임어택! 클리어 보상: <strong class="text-cyan-300">+${tr.bossRush.gems}💎</strong> · <strong class="text-amber-300">+${tr.bossRush.gold.toLocaleString()}G</strong> · <strong class="text-fuchsia-300">+${tr.bossRush.shards}✨</strong> · <strong class="text-purple-300">영약+${tr.bossRush.bossBane}·두루마리+${tr.bossRush.shockScroll}</strong>`;
+          }
+          const mutDescEl = document.getElementById('lblMutatorDesc');
+          if (mutDescEl && todayMut) {
+            mutDescEl.innerHTML = `<span class="text-emerald-300 font-bold">[오늘의 변이]</span> ${todayMut.desc}<br>일일 보너스: <strong class="text-cyan-300">+${tr.mutatorChallenge.gems}💎</strong> · <strong class="text-amber-300">+${tr.mutatorChallenge.gold.toLocaleString()}G</strong> · <strong class="text-fuchsia-300">+${tr.mutatorChallenge.shards}✨</strong>`;
+          }
+          const srDescEl = document.getElementById('lblSpeedRushDesc');
+          if (srDescEl) {
+            const sampleGold = Math.round(tr.speedRush.goldPerWave * 10);
+            const sampleGems = Math.max(1, Math.round(5 * tr.speedRush.gemPer2Waves));
+            const sampleShards = Math.max(1, Math.round(tr.speedRush.shardPerWave * 10));
+            srDescEl.innerHTML = `4.5초마다 쏟아지는 초고속 웨이브 3분 생존! 10W 기준: <strong class="text-amber-300">+${sampleGold.toLocaleString()}G</strong> · <strong class="text-cyan-300">+${sampleGems}💎</strong> · <strong class="text-fuchsia-300">+${sampleShards}✨</strong>`;
           }
         }
       }
@@ -11333,6 +11963,7 @@
 
       document.getElementById('btnStartTrialGold').addEventListener('click', () => {
         gameMode = 'trial_gold';
+        activeMutatorId = '';
         resetGame();
         switchScreen(false);
         showToast('🪙 [황금 고블린 소굴] 10웨이브 시련 시작!');
@@ -11340,13 +11971,46 @@
 
       document.getElementById('btnStartTrialShard').addEventListener('click', () => {
         gameMode = 'trial_shard';
+        activeMutatorId = '';
         resetGame();
         switchScreen(false);
         showToast('✨ [마력 수정 균열] 10웨이브 시련 시작!');
       });
 
+      document.getElementById('btnStartTrialForge').addEventListener('click', () => {
+        gameMode = 'trial_forge';
+        activeMutatorId = '';
+        resetGame();
+        switchScreen(false);
+        showToast('🔨 [강철 요새 시련] 10웨이브 장비 도전 시작!');
+      });
+
+      document.getElementById('btnStartBossRush').addEventListener('click', () => {
+        gameMode = 'boss_rush';
+        activeMutatorId = '';
+        resetGame();
+        switchScreen(false);
+      });
+
+      document.getElementById('btnStartDailyMutator').addEventListener('click', () => {
+        syncDailyMutatorCounter();
+        const todayMut = getTodayMutatorConfig();
+        activeMutatorId = todayMut.id;
+        gameMode = 'daily_mutator';
+        resetGame();
+        switchScreen(false);
+      });
+
+      document.getElementById('btnStartSpeedRush').addEventListener('click', () => {
+        gameMode = 'speed_rush';
+        activeMutatorId = '';
+        resetGame();
+        switchScreen(false);
+      });
+
       document.getElementById('btnStartEndless').addEventListener('click', () => {
         gameMode = 'endless';
+        activeMutatorId = '';
         resetGame();
         switchScreen(false);
         showToast('🌌 [무한 심연 챌린지] 도전 시작!');
@@ -11451,6 +12115,11 @@
         stageRecords = {};
         stageDifficulty = 'normal';
         bestEndlessWave = 0;
+        bestBossRushSec = 0;
+        bestSpeedRushWave = 0;
+        mutatorDate = getTodayDateKey();
+        mutatorClearsToday = 0;
+        playerNickname = '';
         claimedCoupons = [];
         questStats.totalKills = 0;
         questStats.totalSummons = 0;
@@ -11492,7 +12161,7 @@
       document.getElementById('btnNextWaveNow').addEventListener('click', () => {
         if (gameOver || paused) return;
         const targetMaxWave = getTargetMaxWave();
-        if (gameMode !== 'endless' && wave >= targetMaxWave) {
+        if (gameMode !== 'endless' && gameMode !== 'speed_rush' && wave >= targetMaxWave) {
           return showToast(`이미 최종 ${targetMaxWave}웨이브입니다!`);
         }
         if (mobs.some(m => m.isBoss)) {
@@ -11879,7 +12548,7 @@
           }
           window.addEventListener('popstate', () => {
             // 1. 열려있는 모달부터 우선 닫기
-            const modalIds = ['installAppModal', 'codexModal', 'mythicRecipeModal', 'settingsModal', 'exitMainModal'];
+            const modalIds = ['leaderboardModal', 'installAppModal', 'codexModal', 'mythicRecipeModal', 'settingsModal', 'exitMainModal'];
             for (const mid of modalIds) {
               const el = document.getElementById(mid);
               if (el && !el.classList.contains('hidden')) {
@@ -12745,6 +13414,7 @@
             updateCloudAccountUI();
             attachUserCloudListeners(user);
             await pullSaveFromCloud(false);
+            if (typeof syncPersonalBestsToLeaderboard === 'function') syncPersonalBestsToLeaderboard();
           });
         } catch (err) {
           console.warn('[Firebase Init Fallback]', err);
@@ -12752,6 +13422,231 @@
           updateCloudAccountUI(fbLastAuthError);
         }
       }
+
+      // Real-Time Challenge Leaderboard (Firestore leaderboards/{board}/entries/{uid})
+      let activeLeaderboardTab = 'endless';
+
+      function getDefaultPlayerNickname() {
+        const clean = String(playerNickname || '').trim().slice(0, 16);
+        if (clean) return clean;
+        const u = fbAuth && fbAuth.currentUser ? fbAuth.currentUser : null;
+        if (u && u.displayName) return String(u.displayName).trim().slice(0, 16) || '지휘관';
+        if (u && u.uid) return `지휘관#${u.uid.slice(0, 5)}`;
+        return '이름없는 지휘관';
+      }
+
+      function getLbBoardLocalScore(board) {
+        if (board === 'boss_rush') return bestBossRushSec;
+        if (board === 'speed_rush') return bestSpeedRushWave;
+        return bestEndlessWave;
+      }
+
+      function formatLeaderboardScore(board, score) {
+        const n = Number(score) || 0;
+        if (n <= 0) return '-';
+        if (board === 'boss_rush') return `${formatClockStr(n)} (${n.toFixed(1)}s)`;
+        return `W${Math.floor(n)}`;
+      }
+
+      function renderLeaderboardMyBestBar(board = activeLeaderboardTab) {
+        const el = document.getElementById('lblLbMyBest');
+        if (!el) return;
+        const boardLabel = board === 'boss_rush' ? '성좌 보스 러시' : (board === 'speed_rush' ? '3분 폭풍 러시' : '무한 심연');
+        const sc = getLbBoardLocalScore(board);
+        const nick = getDefaultPlayerNickname();
+        el.textContent = `내 최고 기록 (${boardLabel}): ${sc > 0 ? formatLeaderboardScore(board, sc) : '미도전'} · 닉네임: ${nick}`;
+      }
+
+      async function submitLeaderboardScore(board, scoreVal, silent = true) {
+        if (board !== 'endless' && board !== 'boss_rush' && board !== 'speed_rush') return false;
+        const numScore = Number(scoreVal);
+        if (!Number.isFinite(numScore) || numScore <= 0 || numScore > 100000) return false;
+        if (!fbReady || !fbDb || !fbMod || !fbAuth || !fbAuth.currentUser) {
+          if (!silent) showToast('☁️ 온라인 연결 및 로그인 후 랭킹에 등록할 수 있습니다.');
+          return false;
+        }
+        try {
+          const u = fbAuth.currentUser;
+          const entryRef = fbMod.doc(fbDb, 'leaderboards', board, 'entries', u.uid);
+          let finalScore = numScore;
+          try {
+            const prevSnap = await fbMod.getDoc(entryRef);
+            if (prevSnap.exists()) {
+              const prevScore = Number(prevSnap.data()?.score) || 0;
+              if (prevScore > 0) {
+                finalScore = board === 'boss_rush'
+                  ? Math.min(prevScore, numScore)
+                  : Math.max(prevScore, numScore);
+              }
+            }
+          } catch (_) {}
+          await fbMod.setDoc(entryRef, {
+            uid: u.uid,
+            nickname: getDefaultPlayerNickname(),
+            score: finalScore,
+            board,
+            updatedAtMs: Date.now()
+          }, { merge: true });
+          if (!silent) showToast('🏆 실시간 리더보드 기록이 등록되었습니다!');
+          return true;
+        } catch (err) {
+          console.warn('[Leaderboard Submit]', err);
+          if (!silent) {
+            const code = String(err?.code || '');
+            showToast(code === 'permission-denied'
+              ? '🔒 리더보드 쓰기 권한 오류 (Firestore 규칙 확인 필요)'
+              : '⚠️ 리더보드 등록 중 오류가 발생했습니다.');
+          }
+          return false;
+        }
+      }
+
+      async function syncPersonalBestsToLeaderboard() {
+        if (!fbReady || !fbDb || !fbMod || !fbAuth || !fbAuth.currentUser) return;
+        if (bestEndlessWave > 0) await submitLeaderboardScore('endless', bestEndlessWave, true);
+        if (bestBossRushSec > 0) await submitLeaderboardScore('boss_rush', bestBossRushSec, true);
+        if (bestSpeedRushWave > 0) await submitLeaderboardScore('speed_rush', bestSpeedRushWave, true);
+      }
+
+      async function loadAndRenderLeaderboard(board = activeLeaderboardTab) {
+        activeLeaderboardTab = board;
+        [
+          ['btnLbTabEndless', 'endless'],
+          ['btnLbTabBoss', 'boss_rush'],
+          ['btnLbTabSpeed', 'speed_rush']
+        ].forEach(([id, key]) => {
+          const btn = document.getElementById(id);
+          if (!btn) return;
+          btn.className = key === board
+            ? 'game-btn px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black text-xs'
+            : 'game-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs';
+        });
+
+        const nickInp = document.getElementById('txtLbNickname');
+        if (nickInp && document.activeElement !== nickInp) {
+          nickInp.value = playerNickname || '';
+        }
+        renderLeaderboardMyBestBar(board);
+
+        const listEl = document.getElementById('leaderboardList');
+        const stEl = document.getElementById('lblLbStatus');
+        if (!listEl) return;
+
+        if (!fbReady || !fbDb || !fbMod) {
+          if (stEl) stEl.textContent = '오프라인 / Firebase 미연결 (로컬 기록 보관중)';
+          listEl.innerHTML = '<div class="py-10 text-center text-xs text-slate-400">☁️ 오프라인 또는 Firebase 미연결 상태입니다.<br>온라인 환경에서 실시간 TOP 20 랭킹을 불러올 수 있습니다.</div>';
+          return;
+        }
+
+        if (stEl) stEl.textContent = '⏳ 실시간 랭킹 불러오는 중...';
+        listEl.innerHTML = '<div class="py-8 text-center text-xs text-slate-400">⏳ 데이터를 조회하고 있습니다...</div>';
+
+        try {
+          const colRef = fbMod.collection(fbDb, 'leaderboards', board, 'entries');
+          const q = fbMod.query(colRef, fbMod.orderBy('score', board === 'boss_rush' ? 'asc' : 'desc'), fbMod.limit(20));
+          const snap = await fbMod.getDocs(q);
+          const myUid = fbAuth && fbAuth.currentUser ? fbAuth.currentUser.uid : '';
+          listEl.innerHTML = '';
+
+          if (snap.empty) {
+            if (stEl) stEl.textContent = 'Firebase Firestore 실시간 TOP 20';
+            listEl.innerHTML = '<div class="py-10 text-center text-xs text-slate-400">아직 등록된 기록이 없습니다. 첫 1위 기록을 등록해보세요!</div>';
+            return;
+          }
+
+          let rank = 1;
+          snap.forEach((docSnap) => {
+            const rowData = docSnap.data() || {};
+            const uid = rowData.uid || docSnap.id;
+            const isMe = myUid && uid === myUid;
+            const row = document.createElement('div');
+            row.className = isMe
+              ? 'flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-amber-950/55 border border-amber-400/70'
+              : 'flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-800';
+
+            const left = document.createElement('div');
+            left.className = 'flex items-center gap-2.5 min-w-0';
+            const badge = document.createElement('span');
+            badge.className = rank === 1
+              ? 'w-7 text-center text-sm font-black text-amber-300 shrink-0'
+              : (rank === 2
+                ? 'w-7 text-center text-sm font-black text-slate-200 shrink-0'
+                : (rank === 3 ? 'w-7 text-center text-sm font-black text-orange-300 shrink-0' : 'w-7 text-center text-xs font-bold text-slate-400 shrink-0'));
+            badge.textContent = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `${rank}위`));
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'text-xs font-bold text-slate-100 truncate';
+            const rawNick = String(rowData.nickname || `지휘관#${String(uid).slice(0, 5)}`).trim().slice(0, 16);
+            nameSpan.textContent = isMe ? `${rawNick} (나)` : rawNick;
+
+            left.appendChild(badge);
+            left.appendChild(nameSpan);
+
+            const scoreSpan = document.createElement('span');
+            scoreSpan.className = 'text-xs font-black text-amber-300 tabular-nums shrink-0';
+            scoreSpan.textContent = formatLeaderboardScore(board, rowData.score);
+
+            row.appendChild(left);
+            row.appendChild(scoreSpan);
+            listEl.appendChild(row);
+            rank++;
+          });
+          if (stEl) stEl.textContent = `Firebase Firestore 실시간 TOP ${snap.size}`;
+        } catch (err) {
+          console.warn('[Leaderboard Fetch]', err);
+          const code = String(err?.code || '');
+          if (stEl) stEl.textContent = code === 'permission-denied' ? '🔒 보안 규칙(leaderboards) 확인 필요' : '⚠️ 조회 오류';
+          listEl.innerHTML = '';
+          const msgDiv = document.createElement('div');
+          msgDiv.className = 'py-8 text-center text-xs text-rose-300 px-3';
+          msgDiv.textContent = code === 'permission-denied'
+            ? '🔒 Firestore 보안 규칙에서 leaderboards 접근이 차단되었습니다. (firestore.rules 배포 확인)'
+            : `⚠️ 리더보드를 불러오지 못했습니다. (${code || err?.message || '오류'})`;
+          listEl.appendChild(msgDiv);
+        }
+      }
+
+      document.getElementById('btnOpenLeaderboard')?.addEventListener('click', () => {
+        const modal = document.getElementById('leaderboardModal');
+        if (modal) modal.classList.remove('hidden');
+        loadAndRenderLeaderboard(activeLeaderboardTab);
+      });
+      document.getElementById('btnCloseLeaderboard')?.addEventListener('click', () => {
+        const modal = document.getElementById('leaderboardModal');
+        if (modal) modal.classList.add('hidden');
+      });
+      document.getElementById('leaderboardModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'leaderboardModal') e.target.classList.add('hidden');
+      });
+      ['btnLbTabEndless', 'btnLbTabBoss', 'btnLbTabSpeed'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('click', () => {
+            loadAndRenderLeaderboard(el.dataset.lbBoard || 'endless');
+          });
+        }
+      });
+      document.getElementById('btnRefreshLb')?.addEventListener('click', () => {
+        loadAndRenderLeaderboard(activeLeaderboardTab);
+      });
+      document.getElementById('btnSaveLbNick')?.addEventListener('click', async () => {
+        const inp = document.getElementById('txtLbNickname');
+        const val = String(inp ? inp.value : '').trim().slice(0, 16);
+        playerNickname = val;
+        saveGameData();
+        renderLeaderboardMyBestBar(activeLeaderboardTab);
+        showToast(val ? `✅ 랭킹 닉네임 [${val}] 저장 완료!` : '닉네임이 기본값으로 초기화되었습니다.');
+        await syncPersonalBestsToLeaderboard();
+        loadAndRenderLeaderboard(activeLeaderboardTab);
+      });
+      document.getElementById('btnPushMyLb')?.addEventListener('click', async () => {
+        const sc = getLbBoardLocalScore(activeLeaderboardTab);
+        if (!sc || sc <= 0) {
+          return showToast('해당 챌린지에서 최고 기록을 먼저 달성한 뒤 등록해주세요!');
+        }
+        const ok = await submitLeaderboardScore(activeLeaderboardTab, sc, false);
+        if (ok) loadAndRenderLeaderboard(activeLeaderboardTab);
+      });
 
       // Firestore Atomic Transactional Coupon Redemption (with local live_config / RCD1 fallback)
       const _origRedeemLiveCoupon = redeemLiveCoupon;

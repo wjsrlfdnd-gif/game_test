@@ -9,6 +9,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
+    .hidden { display: none !important; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background:
@@ -378,12 +379,34 @@
           <div id="fbSavesList" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[210px] overflow-y-auto pr-1"></div>
         </div>
 
+        <!-- Firebase Challenge Leaderboard Management -->
+        <div id="fbLeaderboardPanel" class="panel-glass border border-amber-500/35 rounded-2xl p-4 flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xs font-black text-amber-300 uppercase tracking-wider">🏆 실시간 챌린지 리더보드 관리 (Firestore)</h3>
+              <p class="text-[11px] text-slate-400">무한 심연 · 성좌 보스 러시 · 3분 폭풍 러시 순위를 조회하고 이상 기록 삭제 또는 시즌 초기화를 실행합니다.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="selAdminLbBoard" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-amber-200">
+                <option value="endless">🌌 무한 심연 TOP 50</option>
+                <option value="boss_rush">👑 성좌 보스 러시 TOP 50</option>
+                <option value="speed_rush">⚡ 3분 폭풍 러시 TOP 50</option>
+              </select>
+              <button id="btnLoadAdminLb" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-extrabold text-white">🔄 순위 불러오기</button>
+              <button id="btnResetAdminLb" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-rose-700 hover:bg-rose-600 text-xs font-extrabold text-white">🗑️ 보드 초기화</button>
+            </div>
+          </div>
+          <div id="adminLbList" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1">
+            <div class="col-span-full text-center text-xs text-slate-500 py-4">Firebase 운영자 로그인 후 [순위 불러오기]를 누르세요.</div>
+          </div>
+        </div>
+
         <!-- Save Editor Panels -->
         <div id="saveEditorPanels" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4">
           <!-- Currencies, Consumables & Talents -->
           <div class="lg:col-span-5 flex flex-col gap-4">
             <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
-              <h3 class="text-xs font-black text-amber-300 uppercase tracking-wider">재화 · 소모품 · 심연 기록</h3>
+              <h3 class="text-xs font-black text-amber-300 uppercase tracking-wider">재화 · 소모품 · 도전 기록</h3>
               <div class="grid grid-cols-2 gap-2.5">
                 <label class="flex flex-col gap-1">
                   <span class="text-[11px] font-bold text-amber-300">🪙 계정 금화</span>
@@ -400,6 +423,14 @@
                 <label class="flex flex-col gap-1">
                   <span class="text-[11px] font-bold text-rose-300">🌌 무한 심연 최고 웨이브</span>
                   <input id="edEndlessWave" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-orange-300">👑 보스 러시 최단 기록(초)</span>
+                  <input id="edBossRushSec" type="number" min="0" step="0.01" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-sky-300">⚡ 3분 폭풍 최고 웨이브</span>
+                  <input id="edSpeedRushWave" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
                 </label>
                 <label class="flex flex-col gap-1">
                   <span class="text-[11px] font-bold text-amber-200">🧪 황금 비약</span>
@@ -1462,6 +1493,11 @@
           autoProtectMythicMats: true,
           stageRecords: {},
           bestEndlessWave: 0,
+          bestBossRushSec: 0,
+          bestSpeedRushWave: 0,
+          mutatorDate: '',
+          mutatorClearsToday: 0,
+          playerNickname: '',
           claimedCoupons: [],
           talents: { startGoldLv: 0, atkPctLv: 0, skillLv: 0, luckLv: 0, econLv: 0 }
         }, parsed || {});
@@ -1501,6 +1537,8 @@
         editingSave.accountGems = Math.max(0, Math.floor(Number(document.getElementById('edAccGems').value) || 0));
         editingSave.accountShards = Math.max(0, Math.floor(Number(document.getElementById('edAccShards').value) || 0));
         editingSave.bestEndlessWave = Math.max(0, Math.floor(Number(document.getElementById('edEndlessWave').value) || 0));
+        editingSave.bestBossRushSec = Math.max(0, Number((Number(document.getElementById('edBossRushSec').value) || 0).toFixed(2)));
+        editingSave.bestSpeedRushWave = Math.max(0, Math.floor(Number(document.getElementById('edSpeedRushWave').value) || 0));
         editingSave.consumables.goldPotion = Math.max(0, Math.floor(Number(document.getElementById('edGp').value) || 0));
         editingSave.consumables.shockScroll = Math.max(0, Math.floor(Number(document.getElementById('edSs').value) || 0));
         editingSave.consumables.bossBane = Math.max(0, Math.floor(Number(document.getElementById('edBb').value) || 0));
@@ -1534,6 +1572,8 @@
         document.getElementById('edAccGems').value = editingSave.accountGems || 0;
         document.getElementById('edAccShards').value = editingSave.accountShards || 0;
         document.getElementById('edEndlessWave').value = editingSave.bestEndlessWave || 0;
+        document.getElementById('edBossRushSec').value = editingSave.bestBossRushSec || 0;
+        document.getElementById('edSpeedRushWave').value = editingSave.bestSpeedRushWave || 0;
         document.getElementById('edGp').value = editingSave.consumables.goldPotion || 0;
         document.getElementById('edSs').value = editingSave.consumables.shockScroll || 0;
         document.getElementById('edBb').value = editingSave.consumables.bossBane || 0;
@@ -2380,6 +2420,7 @@
             unlockAdminUI();
             loadFbCoupons();
             loadFbSaves();
+            if (typeof loadAdminLeaderboard === 'function') loadAdminLeaderboard();
           });
         } catch (err) {
           console.warn('[Admin Firebase Init]', err);
@@ -2517,6 +2558,114 @@
           await loadFbSaves();
         } catch (err) {
           showToast(`클라우드 저장 실패: ${err?.message || '권한 확인'}`);
+        }
+      });
+
+      function formatAdminLbScore(board, score) {
+        const n = Number(score) || 0;
+        if (board === 'boss_rush') {
+          const s = Math.max(0, Math.floor(n));
+          return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')} (${n.toFixed(1)}s)`;
+        }
+        return `W${Math.floor(n)}`;
+      }
+
+      async function loadAdminLeaderboard() {
+        const listEl = document.getElementById('adminLbList');
+        const selEl = document.getElementById('selAdminLbBoard');
+        if (!listEl || !selEl) return;
+        const board = selEl.value || 'endless';
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          listEl.innerHTML = '<div class="col-span-full text-center text-xs text-slate-400 py-4">Firebase 운영자 로그인 후 순위를 조회할 수 있습니다.</div>';
+          return;
+        }
+        listEl.innerHTML = '<div class="col-span-full text-center text-xs text-slate-400 py-4">⏳ 리더보드 데이터를 불러오는 중...</div>';
+        try {
+          const q = fbMod.query(
+            fbMod.collection(fbDb, 'leaderboards', board, 'entries'),
+            fbMod.orderBy('score', board === 'boss_rush' ? 'asc' : 'desc'),
+            fbMod.limit(50)
+          );
+          const snap = await fbMod.getDocs(q);
+          listEl.innerHTML = '';
+          if (snap.empty) {
+            listEl.innerHTML = '<div class="col-span-full text-center text-xs text-slate-500 py-4">해당 보드에 등록된 기록이 없습니다.</div>';
+            return;
+          }
+          let rank = 1;
+          snap.forEach((docSnap) => {
+            const d = docSnap.data() || {};
+            const uid = d.uid || docSnap.id;
+            const nick = String(d.nickname || `지휘관#${String(uid).slice(0, 5)}`).trim().slice(0, 16);
+
+            const card = document.createElement('div');
+            card.className = 'flex items-center justify-between gap-2 bg-slate-950/85 border border-slate-800 rounded-xl px-3 py-2';
+
+            const info = document.createElement('div');
+            info.className = 'min-w-0';
+            const topLine = document.createElement('div');
+            topLine.className = 'text-xs font-bold text-slate-100 truncate';
+            topLine.textContent = `#${rank} ${nick} · ${formatAdminLbScore(board, d.score)}`;
+            const subLine = document.createElement('div');
+            subLine.className = 'text-[10px] text-slate-500 font-mono truncate';
+            subLine.textContent = `UID: ${uid}`;
+            info.appendChild(topLine);
+            info.appendChild(subLine);
+
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'btn-press px-2.5 py-1 rounded-lg bg-rose-900/80 hover:bg-rose-700 text-[11px] font-bold text-rose-100 shrink-0';
+            delBtn.textContent = '삭제';
+            delBtn.addEventListener('click', async () => {
+              if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) return showToast('운영자 권한이 필요합니다.');
+              try {
+                await fbMod.deleteDoc(fbMod.doc(fbDb, 'leaderboards', board, 'entries', uid));
+                showToast(`🗑️ [${nick}] 리더보드 기록 삭제 완료`);
+                await loadAdminLeaderboard();
+              } catch (err) {
+                showToast(`삭제 실패: ${err?.message || '권한 확인'}`);
+              }
+            });
+
+            card.appendChild(info);
+            card.appendChild(delBtn);
+            listEl.appendChild(card);
+            rank++;
+          });
+        } catch (err) {
+          listEl.innerHTML = '';
+          const errDiv = document.createElement('div');
+          errDiv.className = 'col-span-full text-center text-xs text-rose-300 py-4';
+          errDiv.textContent = `조회 실패: ${err?.message || 'Firestore 규칙 확인'}`;
+          listEl.appendChild(errDiv);
+        }
+      }
+
+      let adminLbResetConfirmUntil = 0;
+      document.getElementById('btnLoadAdminLb')?.addEventListener('click', loadAdminLeaderboard);
+      document.getElementById('selAdminLbBoard')?.addEventListener('change', loadAdminLeaderboard);
+      document.getElementById('btnResetAdminLb')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          return showToast('🔥 Firebase 운영자 로그인 후 보드를 초기화할 수 있습니다.');
+        }
+        const board = document.getElementById('selAdminLbBoard')?.value || 'endless';
+        const now = Date.now();
+        if (now > adminLbResetConfirmUntil) {
+          adminLbResetConfirmUntil = now + 4000;
+          return showToast(`⚠️ 4초 안에 [보드 초기화]를 한 번 더 누르면 [${board}] 모든 기록이 삭제됩니다!`);
+        }
+        adminLbResetConfirmUntil = 0;
+        try {
+          const snap = await fbMod.getDocs(fbMod.collection(fbDb, 'leaderboards', board, 'entries'));
+          let removed = 0;
+          for (const dSnap of snap.docs) {
+            await fbMod.deleteDoc(fbMod.doc(fbDb, 'leaderboards', board, 'entries', dSnap.id));
+            removed++;
+          }
+          showToast(`🧹 [${board}] 보드 기록 ${removed}건 시즌 초기화 완료!`);
+          await loadAdminLeaderboard();
+        } catch (err) {
+          showToast(`초기화 실패: ${err?.message || '권한 확인'}`);
         }
       });
 
