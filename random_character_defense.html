@@ -3269,9 +3269,9 @@
 
       // Stage Difficulty Modes (Normal -> Hard -> Nightmare unlocked on 10-10 clear)
       const DIFFICULTY_MODES = {
-        normal:    { key: 'normal',    label: '노멀',       shortLabel: '노멀',       badge: '🟢 노멀',       hpMult: 1.0,  defMult: 1.0,  rewardMult: 1.0  },
-        hard:      { key: 'hard',      label: '하드',       shortLabel: '하드',       badge: '🔥 하드',       hpMult: 3.5,  defMult: 1.35, rewardMult: 1.65 },
-        nightmare: { key: 'nightmare', label: '나이트메어', shortLabel: '나이트메어', badge: '💀 나이트메어', hpMult: 12.0, defMult: 1.80, rewardMult: 2.60 }
+        normal:    { key: 'normal',    label: '노멀',       shortLabel: '노멀',       badge: '🟢 노멀',       hpMult: 3.5,  defMult: 1.35, rewardMult: 1.35 },
+        hard:      { key: 'hard',      label: '하드',       shortLabel: '하드',       badge: '🔥 하드',       hpMult: 12.0, defMult: 1.80, rewardMult: 2.20 },
+        nightmare: { key: 'nightmare', label: '나이트메어', shortLabel: '나이트메어', badge: '💀 나이트메어', hpMult: 40.0, defMult: 2.40, rewardMult: 3.50 }
       };
       let stageDifficulty = 'normal';
 
@@ -5159,7 +5159,7 @@
       function getActiveRewardSummary() {
         return gameMode === 'stage'
           ? getStageRewardSummary(currentMap, currentStageSub)
-          : getStageRewardSummary('meadow', 1);
+          : getStageRewardSummary('meadow', 1, 'normal');
       }
 
       // Stage Difficulty Multiplier: 1.5x per sub-level step (n-1 => 1.0x, n-2 => 1.5x, ..., n-10 => 1.5^9 = 38.44x)
@@ -5194,15 +5194,15 @@
         return base;
       }
 
-      function getStageRewardSummary(mapKey = currentMap, subLv = currentStageSub) {
+      function getStageRewardSummary(mapKey = currentMap, subLv = currentStageSub, diff = stageDifficulty) {
         const wNum = MAPS[mapKey].worldNum;
-        const dCfg = getDifficultyConfig();
+        const dCfg = getDifficultyConfig(diff);
         const wRewardMult = getRewardWorldMult(wNum);
         const sMult = getStageStepMult(subLv);
         const econScale = Math.pow(sMult, 0.65) * wRewardMult * dCfg.rewardMult;
         const battleScale = Math.pow(sMult, 0.35) * Math.pow(wNum, 0.25) * Math.pow(dCfg.rewardMult, 0.55);
 
-        const recKey = getStageRecordKey(mapKey, subLv);
+        const recKey = getStageRecordKey(mapKey, subLv, diff);
         const isFirstClear = !(stageRecords[recKey] && stageRecords[recKey].cleared);
 
         const ev = getLiveEventMultipliers();
@@ -6032,7 +6032,7 @@
 
         const rw = isStageMode
           ? getStageRewardSummary(currentMap, currentStageSub)
-          : getStageRewardSummary('meadow', 1);
+          : getStageRewardSummary('meadow', 1, 'normal');
         const presets = {
           normal: {
             imgKey: Math.random() < 0.5 ? 'm_normal_1' : 'm_normal_2',
@@ -6240,7 +6240,7 @@
         waveSpawnLeft = 10 + Math.floor(wave / 3);
         const rw = isStageMode
           ? getStageRewardSummary(currentMap, currentStageSub)
-          : getStageRewardSummary('meadow', 1);
+          : getStageRewardSummary('meadow', 1, 'normal');
         const waveGoldBonus = Math.round((50 + wave * 5) * rw.battleScale * (gameMode === 'trial_gold' ? 1.5 : 1.0));
         gold += waveGoldBonus;
 

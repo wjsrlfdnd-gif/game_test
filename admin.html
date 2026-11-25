@@ -512,9 +512,9 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <select id="simDiff" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-amber-300">
-                <option value="normal">🟢 노멀 (HP 1.0x · DEF 1.0x)</option>
-                <option value="hard">🔥 하드 (HP 3.5x · DEF 1.35x)</option>
-                <option value="nightmare">💀 나이트메어 (HP 12.0x · DEF 1.80x)</option>
+                <option value="normal">🟢 노멀 (HP 3.5x · DEF 1.35x · 보상 1.35x)</option>
+                <option value="hard">🔥 하드 (HP 12.0x · DEF 1.80x · 보상 2.20x)</option>
+                <option value="nightmare">💀 나이트메어 (HP 40.0x · DEF 2.40x · 보상 3.50x)</option>
               </select>
               <select id="simSub" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-sky-300"></select>
             </div>
@@ -884,9 +884,9 @@
       ];
 
       const DIFFICULTY_MODES = {
-        normal:    { key: 'normal',    label: '노멀',       badge: '🟢 노멀',       hpMult: 1.0,  defMult: 1.0,  rewardMult: 1.0 },
-        hard:      { key: 'hard',      label: '하드',       badge: '🔥 하드',       hpMult: 3.5,  defMult: 1.35, rewardMult: 1.65 },
-        nightmare: { key: 'nightmare', label: '나이트메어', badge: '💀 나이트메어', hpMult: 12.0, defMult: 1.80, rewardMult: 2.60 }
+        normal:    { key: 'normal',    label: '노멀',       badge: '🟢 노멀',       hpMult: 3.5,  defMult: 1.35, rewardMult: 1.35 },
+        hard:      { key: 'hard',      label: '하드',       badge: '🔥 하드',       hpMult: 12.0, defMult: 1.80, rewardMult: 2.20 },
+        nightmare: { key: 'nightmare', label: '나이트메어', badge: '💀 나이트메어', hpMult: 40.0, defMult: 2.40, rewardMult: 3.50 }
       };
 
       // =====================================================================
