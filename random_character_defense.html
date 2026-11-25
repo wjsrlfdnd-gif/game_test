@@ -386,6 +386,8 @@
         gap: 0.4rem !important;
         padding: 0.42rem 0.5rem !important;
       }
+      #anvilStatCompare > div { min-width: 0; }
+      #anvilStatArrow { display: none !important; }
       #anvilProgressWrap { padding: 0.35rem 0.5rem !important; }
       #forgeInventoryList { max-height: 36dvh !important; }
 
@@ -866,6 +868,7 @@
       #forgeLoadoutPane, #forgeAnvilPane,
       #questListPane, #questTrialPane {
         display: flex !important;
+        flex-direction: column !important;
         height: 100% !important;
         min-height: 0 !important;
         overflow-y: auto !important;
@@ -920,8 +923,16 @@
       #equippedSlotsGrid > div { padding: 0.35rem !important; gap: 0.3rem !important; }
       #anvilBox { padding: 0.45rem !important; gap: 0.35rem !important; }
       #anvilItemImgFrame { width: 2.8rem !important; height: 2.8rem !important; }
-      #anvilStatCompare { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important; gap: 0.35rem !important; padding: 0.35rem 0.45rem !important; }
-      #anvilStatCompare > div { grid-column: auto !important; }
+      #anvilStatCompare {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
+        padding: 0.35rem 0.45rem !important;
+      }
+      #anvilStatCompare > div { grid-column: auto !important; min-width: 0; }
+      #anvilStatArrow { display: flex !important; align-items: center; justify-content: center; padding: 0 0.1rem; }
+      #anvilCurrStat, #anvilNextStat { word-break: keep-all; overflow-wrap: anywhere; }
 
       #lobbyTabLab:not(.hidden) {
         display: flex !important;
@@ -1944,12 +1955,12 @@
             </div>
 
             <div id="anvilStatCompare" class="grid grid-cols-1 sm:grid-cols-11 items-center gap-2 bg-slate-900/65 p-2.5 rounded-xl border border-slate-800/80 text-xs">
-              <div class="sm:col-span-5">
+              <div class="sm:col-span-5 min-w-0">
                 <span class="text-slate-400 block text-[10px]">현재 효과</span>
                 <span id="anvilCurrStat" class="font-semibold text-slate-100 leading-snug block">-</span>
               </div>
-              <div class="hidden sm:flex sm:col-span-1 justify-center text-slate-500 font-bold text-sm">→</div>
-              <div class="sm:col-span-5">
+              <div id="anvilStatArrow" class="sm:col-span-1 flex items-center justify-center text-slate-500 font-bold text-sm">→</div>
+              <div class="sm:col-span-5 min-w-0">
                 <div class="flex items-center justify-between gap-1">
                   <span class="text-slate-400 text-[10px]">다음 단계</span>
                   <span id="anvilDeltaBadge" class="hidden px-1.5 py-0.2 rounded bg-emerald-500/15 border border-emerald-400/35 text-[9px] font-bold text-emerald-300"></span>
