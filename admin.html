@@ -2052,7 +2052,7 @@
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-black" style="background:${meta.badgeBg};color:${meta.color}">${meta.name}</span>
               </div>
               <div class="text-[10px] text-slate-400 mt-0.5">ID: <code class="text-sky-300">${it.id}</code> · ${it.slot} · 기본 ${it.statType} +${it.baseVal}</div>
-              <div class="text-[10px] text-emerald-300 mt-0.5">보조: ${it.extraStat} +${it.extraVal}${it.gachaOnly ? ' · 뽑기전용' : ''}</div>
+              <div class="text-[10px] text-emerald-300 mt-0.5">보조: ${it.extraStat} +${it.extraVal}${it.gachaOnly ? ' · 뽑기·승급' : ''}</div>
             `;
             list.appendChild(card);
           });

@@ -4201,9 +4201,9 @@
       function calcItemPromoteCost(item) {
         const t = item.tier;
         return {
-          gold: [400, 900, 1800, 3500, 6500][t] || 6500,
-          gems: [2, 3, 4, 6, 9][t] || 9,
-          shards: [8, 14, 22, 30, 42][t] || 42
+          gold: [400, 900, 1800, 3500, 6500, 19500][t] || 19500,
+          gems: [2, 3, 4, 6, 9, 27][t] || 27,
+          shards: [8, 14, 22, 30, 42, 126][t] || 126
         };
       }
 
@@ -4211,6 +4211,7 @@
         const nextTier = (item?.tier || 0) + 1;
         if (nextTier === 4) return 0.50; // 전설 제작/승급 성공 확률 50%
         if (nextTier === 5) return 0.35; // 신화 제작/승급 성공 확률 35%
+        if (nextTier === 6) return 0.25; // 초월 제작/승급 성공 확률 25%
         return 1.0;
       }
 
@@ -9417,7 +9418,7 @@
                 <div class="flex items-center gap-1.5 min-w-0">
                   <span class="px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0" style="background:${tMeta.badgeBg};color:${tMeta.color}">${tMeta.name}</span>
                   <span class="text-xs font-bold text-slate-100 truncate">${item.name}</span>
-                  ${isGachaOnly ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-fuchsia-950/80 text-fuchsia-300 border border-fuchsia-500/30 shrink-0">뽑기</span>' : ''}
+                  ${isGachaOnly ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-fuchsia-950/80 text-fuchsia-300 border border-fuchsia-500/30 shrink-0">뽑기·승급</span>' : ''}
                 </div>
                 <div class="text-[11px] font-medium text-emerald-300/90 mt-1 truncate">
                   ${mainShort}${extraShort ? ` <span class="text-slate-400">· ${extraShort}</span>` : ''}
@@ -9425,7 +9426,7 @@
               </div>
             </div>
             ${isGachaOnly
-              ? '<button disabled class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-fuchsia-500/30 text-fuchsia-300 text-[10px] font-bold shrink-0 cursor-not-allowed">✨ 뽑기 전용</button>'
+              ? '<button disabled class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-fuchsia-500/30 text-fuchsia-300 text-[10px] font-bold shrink-0 cursor-not-allowed">✨ 뽑기 · 승급 획득</button>'
               : `<button class="game-btn px-3 py-1.5 rounded-lg text-[11px] font-extrabold shrink-0 transition ${canAfford
                   ? (item.costGold > 0 ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow' : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow')
                   : 'bg-slate-900 border border-slate-700 text-slate-400 hover:bg-slate-800'}">${priceStr}</button>`}
@@ -10041,9 +10042,9 @@
               deltaEl.classList.remove('hidden');
             }
           } else {
-            nextEl.textContent = selItem.tier < 5
+            nextEl.textContent = selItem.tier < 6
               ? `승급 가능 (${TIER_META[selItem.tier + 1].name} Lv.0 · 성공률 ${Math.round(calcItemPromoteSuccessRate(selItem) * 100)}%)`
-              : (selItem.tier === 6 ? '최종 초월 5★ +15 완성' : '최종 신화 5★ +15 완성');
+              : '최종 초월 5★ +15 완성';
             if (deltaEl) deltaEl.classList.add('hidden');
           }
 
@@ -10088,7 +10089,7 @@
                 : 'game-btn py-2 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-400');
           }
           if (btnPromote) {
-            if (isMaxBase && selItem.tier < 5) {
+            if (isMaxBase && selItem.tier < 6) {
               const pCost = calcItemPromoteCost(selItem);
               const nextTier = selItem.tier + 1;
               const nextTierName = TIER_META[nextTier].name;
@@ -10096,12 +10097,18 @@
               const canProm = accountGold >= pCost.gold && accountGems >= pCost.gems && accountShards >= pCost.shards;
               const resetTag = exLv > 0 ? ' · 0초월+0 초기화' : '';
               btnPromote.classList.remove('hidden');
-              btnPromote.textContent = nextTier >= 4
-                ? `🔨 [${nextTierName}] 제작·승급 (${ratePct}%${resetTag} · ${pCost.gold.toLocaleString()}G · ${pCost.gems}💎 · ${pCost.shards}✨)`
-                : `🌟 [${nextTierName}] 등급 승급 (100%${resetTag} · ${pCost.gold.toLocaleString()}G · ${pCost.gems}💎 · ${pCost.shards}✨)`;
+              btnPromote.textContent = nextTier >= 6
+                ? `👑 [${nextTierName}] 제작·승급 (${ratePct}%${resetTag} · ${pCost.gold.toLocaleString()}G · ${pCost.gems}💎 · ${pCost.shards}✨)`
+                : (nextTier >= 4
+                  ? `🔨 [${nextTierName}] 제작·승급 (${ratePct}%${resetTag} · ${pCost.gold.toLocaleString()}G · ${pCost.gems}💎 · ${pCost.shards}✨)`
+                  : `🌟 [${nextTierName}] 등급 승급 (100%${resetTag} · ${pCost.gold.toLocaleString()}G · ${pCost.gems}💎 · ${pCost.shards}✨)`);
               btnPromote.className = canProm
-                ? 'game-btn col-span-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-rose-400 text-xs font-black text-slate-950 shadow'
-                : 'game-btn col-span-2 py-2.5 px-3 rounded-xl bg-slate-900 border border-amber-400/35 text-xs font-bold text-amber-200/80';
+                ? (nextTier >= 6
+                  ? 'game-btn col-span-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-teal-300 via-cyan-300 to-amber-300 text-xs font-black text-slate-950 shadow'
+                  : 'game-btn col-span-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-rose-400 text-xs font-black text-slate-950 shadow')
+                : (nextTier >= 6
+                  ? 'game-btn col-span-2 py-2.5 px-3 rounded-xl bg-slate-900 border border-teal-400/40 text-xs font-bold text-teal-200/85'
+                  : 'game-btn col-span-2 py-2.5 px-3 rounded-xl bg-slate-900 border border-amber-400/35 text-xs font-bold text-amber-200/80');
             } else {
               btnPromote.classList.add('hidden');
             }
@@ -10320,7 +10327,7 @@
               { id: 2, label: `레어 (${cntTier(2)})` },
               { id: 1, label: `희귀 (${cntTier(1)})` },
               { id: 0, label: `일반 (${cntTier(0)})` },
-              { id: 'gachaOnly', label: `✨ 초월 · 뽑기 전용 (${gachaOnlyCnt})` }
+              { id: 'gachaOnly', label: `✨ 초월 · 뽑기/승급 (${gachaOnlyCnt})` }
             ];
             tierTabs.forEach(tb => {
               const btn = document.createElement('button');
@@ -10376,7 +10383,7 @@
             const meta = TIER_META[it.tier];
             const isOwned = ownedIds.has(it.id);
             const priceText = it.gachaOnly
-              ? '✨ 고급 뽑기(30💎)'
+              ? '✨ 고급 뽑기(30💎) · 신화 승급'
               : (it.costGold > 0 ? `상점 ${it.costGold.toLocaleString()} G` : `상점 ${it.costGems} 💎`);
             const card = document.createElement('div');
             card.className = `p-3 rounded-xl bg-slate-950/95 border flex flex-col gap-2 transition ${it.gachaOnly ? 'border-fuchsia-500/55' : (isOwned ? 'border-emerald-500/45' : 'border-slate-800')}`;
@@ -11264,7 +11271,7 @@
 
       document.getElementById('btnAnvilPromote').addEventListener('click', () => {
         const it = selectedForgeUid ? inventory.find(x => x.uid === selectedForgeUid) : null;
-        if (!it || it.level < MAX_ITEM_LEVEL || it.tier >= 5) return;
+        if (!it || it.level < MAX_ITEM_LEVEL || it.tier >= 6) return;
         const pCost = calcItemPromoteCost(it);
         if (accountGold < pCost.gold) return showToast(`승급 금화가 부족합니다! (${pCost.gold.toLocaleString()} G 필요)`);
         if (accountGems < pCost.gems) return showToast(`승급 보석이 부족합니다! (${pCost.gems} 💎 필요)`);
@@ -11283,7 +11290,10 @@
           return;
         }
 
-        const candidates = SHOP_CATALOG.filter(x => x.slot === it.slot && x.tier === nextTier && !x.gachaOnly);
+        let candidates = SHOP_CATALOG.filter(x => x.slot === it.slot && x.tier === nextTier && !x.gachaOnly);
+        if (candidates.length === 0) {
+          candidates = SHOP_CATALOG.filter(x => x.slot === it.slot && x.tier === nextTier);
+        }
         const nextTpl = candidates.length > 0 ? candidates[Math.floor(Math.random() * candidates.length)] : null;
         const oldName = it.name;
         it.tier = nextTier;
@@ -11299,8 +11309,9 @@
           it.costGold = nextTpl.costGold;
           it.costGems = nextTpl.costGems;
         }
-        playSound('mythic');
-        showToast(`🌟 [${TIER_META[nextTier].name}] 제작·승급 성공! [${oldName}] → ${it.name} (+0)!`);
+        playSound('mythic', { tier: nextTier, isCraft: true });
+        const promIcon = nextTier >= 6 ? '👑' : '🌟';
+        showToast(`${promIcon} [${TIER_META[nextTier].name}] 제작·승급 성공! [${oldName}] → ${it.name} (+0)!`);
         renderLobbyAll();
       });
 
