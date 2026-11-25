@@ -57,20 +57,22 @@ if (fs.existsSync(stylesPath)) {
   if (!styles.includes('android:statusBarColor')) {
     styles = styles.replace(
       /(<style name="AppTheme\.NoActionBar"[^>]*>)/,
-      `$1\n        <item name="android:statusBarColor">#070b14</item>\n        <item name="android:navigationBarColor">#070b14</item>\n        <item name="android:windowBackground">#070b14</item>\n        <item name="android:windowFullscreen">false</item>`
+      `$1\n        <item name="android:statusBarColor">#070b14</item>\n        <item name="android:navigationBarColor">#070b14</item>\n        <item name="android:windowBackground">#070b14</item>\n        <item name="android:windowFullscreen">true</item>`
     );
   }
   fs.writeFileSync(stylesPath, styles);
 }
 
-// 3. Patch AndroidManifest.xml so rotation never reloads WebView and supports both Portrait & Landscape
+// 3. Patch AndroidManifest.xml so Android APK defaults and locks to sensorLandscape
 const manifestPath = path.join(androidDir, 'app', 'src', 'main', 'AndroidManifest.xml');
 if (fs.existsSync(manifestPath)) {
   let mf = fs.readFileSync(manifestPath, 'utf8');
-  if (!mf.includes('android:screenOrientation=')) {
+  if (mf.includes('android:screenOrientation=')) {
+    mf = mf.replace(/android:screenOrientation="[^"]*"/, 'android:screenOrientation="sensorLandscape"');
+  } else {
     mf = mf.replace(
       /(<activity\s[^>]*android:name="\.MainActivity")/,
-      `$1\n            android:screenOrientation="sensor"`
+      `$1\n            android:screenOrientation="sensorLandscape"`
     );
   }
   fs.writeFileSync(manifestPath, mf);

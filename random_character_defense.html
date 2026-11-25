@@ -1227,6 +1227,11 @@
       visibility: hidden;
       pointer-events: none;
     }
+    @keyframes rotatePhoneHint {
+      0%, 15% { transform: rotate(0deg); }
+      45%, 80% { transform: rotate(-90deg); }
+      100% { transform: rotate(0deg); }
+    }
   </style>
 </head>
 <body class="min-h-[100dvh] flex flex-col">
@@ -2462,6 +2467,27 @@
           🏠 메인화면으로
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Mobile Portrait -> Landscape Lock Guard Overlay -->
+  <div id="mobileRotateOverlay" class="hidden fixed inset-0 z-[65] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center gap-4">
+    <div class="w-16 h-24 rounded-2xl border-2 border-amber-400/85 bg-slate-900/90 shadow-[0_0_30px_rgba(251,191,36,0.25)] flex items-center justify-center text-2xl" style="animation:rotatePhoneHint 2.1s ease-in-out infinite;">
+      📱
+    </div>
+    <div class="max-w-xs flex flex-col gap-1.5">
+      <div class="text-base font-black text-amber-300">가로모드 기본 실행</div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        모바일 환경에서는 <strong>가로모드</strong>가 기본 고정입니다. 기기를 가로로 돌리거나 아래 버튼을 눌러 가로모드로 전환하세요.
+      </p>
+    </div>
+    <div class="flex flex-col gap-2 w-full max-w-xs">
+      <button id="btnForceLandscapeStart" type="button" class="game-btn w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-sm shadow-lg">
+        📲 가로모드로 전환 · 고정하기
+      </button>
+      <button id="btnDismissRotateOverlay" type="button" class="text-[11px] text-slate-400 hover:text-slate-200 underline py-1">
+        세로 화면으로 임시 진행
+      </button>
     </div>
   </div>
 
@@ -12643,23 +12669,56 @@
         syncScreenWakeLock();
       };
 
-      async function enterLandscapeFullscreen() {
+      function isMobileTouchDevice() {
+        const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+        const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+        return (coarse || mobileUa) && Math.min(window.innerWidth, window.innerHeight) <= 920;
+      }
+
+      async function tryLockLandscapeOrientation() {
         try {
+          if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape').catch(async () => {
+              await screen.orientation.lock('landscape-primary').catch(() => {});
+            });
+          }
+        } catch (_) {}
+      }
+
+      function syncMobileLandscapeOverlay() {
+        const ov = document.getElementById('mobileRotateOverlay');
+        if (!ov) return;
+        const isPortrait = window.innerHeight > window.innerWidth;
+        let allowPortrait = false;
+        try { allowPortrait = sessionStorage.getItem('rcd_allow_portrait') === '1'; } catch (_) {}
+        if (isMobileTouchDevice() && isPortrait && !allowPortrait) {
+          ov.classList.remove('hidden');
+        } else {
+          ov.classList.add('hidden');
+        }
+      }
+
+      async function enterLandscapeFullscreen(forceEnter = false) {
+        try {
+          await tryLockLandscapeOrientation();
           const el = document.documentElement;
-          if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+          const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+          if (!isFs) {
             if (el.requestFullscreen) await el.requestFullscreen();
             else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-          } else {
+          } else if (forceEnter !== true) {
             if (document.exitFullscreen) await document.exitFullscreen();
             else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+            syncMobileLandscapeOverlay();
             return;
           }
-          if (screen.orientation && screen.orientation.lock) {
-            await screen.orientation.lock('landscape').catch(() => {});
-          }
-          showToast('📱 가로모드 전체화면으로 전환되었습니다!');
+          await tryLockLandscapeOrientation();
+          syncMobileLandscapeOverlay();
+          showToast('📱 가로모드 고정 · 전체화면으로 전환되었습니다!');
         } catch (_) {
-          showToast('💡 기기를 가로로 회전하면 최적 화면으로 플레이할 수 있습니다.');
+          await tryLockLandscapeOrientation();
+          syncMobileLandscapeOverlay();
+          showToast('💡 기기를 가로로 회전하면 가로모드로 플레이할 수 있습니다.');
         }
       }
 
@@ -12758,15 +12817,33 @@
         }
       });
 
-      document.getElementById('btnLandscapeFs').addEventListener('click', enterLandscapeFullscreen);
+      document.getElementById('btnLandscapeFs').addEventListener('click', () => enterLandscapeFullscreen(false));
       document.getElementById('btnModalLandscapeFs').addEventListener('click', () => {
         document.getElementById('settingsModal').classList.add('hidden');
-        enterLandscapeFullscreen();
+        enterLandscapeFullscreen(true);
       });
       document.getElementById('btnGuideLandscapeFs').addEventListener('click', () => {
         document.getElementById('installAppModal').classList.add('hidden');
-        enterLandscapeFullscreen();
+        enterLandscapeFullscreen(true);
       });
+      document.getElementById('btnForceLandscapeStart')?.addEventListener('click', () => enterLandscapeFullscreen(true));
+      document.getElementById('btnDismissRotateOverlay')?.addEventListener('click', () => {
+        try { sessionStorage.setItem('rcd_allow_portrait', '1'); } catch (_) {}
+        document.getElementById('mobileRotateOverlay')?.classList.add('hidden');
+      });
+
+      window.addEventListener('resize', syncMobileLandscapeOverlay);
+      window.addEventListener('orientationchange', () => {
+        setTimeout(syncMobileLandscapeOverlay, 120);
+      });
+      if (screen.orientation && screen.orientation.addEventListener) {
+        screen.orientation.addEventListener('change', () => {
+          setTimeout(syncMobileLandscapeOverlay, 80);
+        });
+      }
+      if (isMobileTouchDevice()) {
+        document.addEventListener('pointerdown', () => { tryLockLandscapeOrientation(); }, { once: true, passive: true });
+      }
 
       function finishBootSplash() {
         const bar = document.getElementById('splashProgressBar');
@@ -12774,6 +12851,8 @@
         const splash = document.getElementById('mobileSplashOverlay');
         if (bar) bar.style.width = '100%';
         if (txt) txt.textContent = '준비 완료! 실시간 라이브 서버 연결됨';
+        tryLockLandscapeOrientation();
+        syncMobileLandscapeOverlay();
         setTimeout(() => {
           if (splash) splash.classList.add('splash-done');
         }, 260);
@@ -12783,6 +12862,8 @@
         const bar = document.getElementById('splashProgressBar');
         if (bar) bar.style.width = '68%';
         syncHapticBtnUI();
+        tryLockLandscapeOrientation();
+        syncMobileLandscapeOverlay();
         if (isStandalonePWA()) {
           const btn = document.getElementById('btnInstallApp');
           if (btn) btn.innerHTML = isNativeApkRuntime()
