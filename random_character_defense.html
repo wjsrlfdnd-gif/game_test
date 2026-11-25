@@ -3315,11 +3315,11 @@
       let achPrestige = {};    // { achId: 환생 횟수 (보상 +25%씩 영구 증가) }
 
       const TALENT_DEFS = [
-        { key: 'startGoldLv', title: '💰 풍요의 서약', desc: '전투 시작 골드를 영구적으로 증가시킵니다.', unit: 'G', perLv: 40, maxLv: 10, baseCost: 15, stepCost: 14, statKey: 'startGold' },
-        { key: 'atkPctLv',    title: '⚔️ 영원한 결의', desc: '모든 아군 유닛의 기본 공격력을 증가시킵니다.', unit: '%', perLv: 8,  maxLv: 10, baseCost: 20, stepCost: 18, statKey: 'atkPct' },
-        { key: 'skillLv',     title: '⚡ 비전 각성',   desc: '모든 유닛의 5타 고유 스킬 피해를 강화합니다.', unit: '%', perLv: 10, maxLv: 10, baseCost: 20, stepCost: 18, statKey: 'skillPct' },
-        { key: 'luckLv',      title: '🎲 운명의 부름', desc: '유닛 소환 시 희귀 이상 고등급 등장 확률이 오릅니다.', unit: '%p', perLv: 1.5, maxLv: 8, baseCost: 25, stepCost: 24, statKey: 'luckPct' },
-        { key: 'econLv',      title: '🪙 연금술의 손길', desc: '몬스터 처치·유닛 판매 시 획득 전투 골드가 증가합니다.', unit: '%', perLv: 6,  maxLv: 8, baseCost: 20, stepCost: 20, statKey: 'econPct' }
+        { key: 'startGoldLv', title: '💰 풍요의 서약', desc: '전투 시작 골드를 영구적으로 증가시킵니다.', unit: 'G', perLv: 40, maxLv: 20, baseCost: 20, stepCost: 16, statKey: 'startGold' },
+        { key: 'atkPctLv',    title: '⚔️ 영원한 결의', desc: '모든 아군 유닛의 기본 공격력을 증가시킵니다.', unit: '%', perLv: 8,  maxLv: 20, baseCost: 25, stepCost: 20, statKey: 'atkPct' },
+        { key: 'skillLv',     title: '⚡ 비전 각성',   desc: '모든 유닛의 5타 고유 스킬 피해를 강화합니다.', unit: '%', perLv: 10, maxLv: 20, baseCost: 25, stepCost: 20, statKey: 'skillPct' },
+        { key: 'luckLv',      title: '🎲 운명의 부름', desc: '유닛 소환 시 희귀 이상 고등급 등장 확률이 오릅니다.', unit: '%p', perLv: 1.5, maxLv: 15, baseCost: 30, stepCost: 24, statKey: 'luckPct' },
+        { key: 'econLv',      title: '🪙 연금술의 손길', desc: '몬스터 처치·유닛 판매 시 획득 전투 골드가 증가합니다.', unit: '%', perLv: 6,  maxLv: 15, baseCost: 25, stepCost: 20, statKey: 'econPct' }
       ];
       let talents = { startGoldLv: 0, atkPctLv: 0, skillLv: 0, luckLv: 0, econLv: 0 };
       let soundOn = true;
@@ -3340,7 +3340,7 @@
 
       function calcTalentCost(def, curLv) {
         const lv = Math.max(0, Math.floor(curLv || 0));
-        return Math.round((def.baseCost + lv * def.stepCost) * (1 + Math.pow(lv, 1.35) * 0.10));
+        return Math.round((def.baseCost + lv * def.stepCost) * (1 + Math.pow(lv, 1.35) * 0.09));
       }
 
       // 장비 65종 · 소모품 3종 · 영구 특성 5종 전용 고해상도(96x96) 프로시저럴 아이콘 생성
@@ -4247,7 +4247,7 @@
       }
 
       function calcItemSalvageShards(item) {
-        return Math.max(3, (item.tier + 1) * 3 + Math.floor((item.level || 0) * 1.2) + (item.extraLevel || 0) * 14);
+        return Math.max(2, (item.tier + 1) * 2 + Math.floor((item.level || 0) * 0.7) + (item.extraLevel || 0) * 8);
       }
 
       function calcShardForgeCost(item) {
@@ -5221,7 +5221,7 @@
 
         const baseClearGold = Math.round(780 * econScale * ev.goldMult);
         const baseClearGems = Math.max(1, Math.round((7 + Math.floor(wNum * 0.9) + subLv) * dCfg.rewardMult * ev.gemMult));
-        const baseClearShards = Math.max(1, Math.round((8 + wNum * 2 + Math.floor(subLv * 0.8)) * dCfg.rewardMult * ev.shardMult));
+        const baseClearShards = Math.max(1, Math.round((5 + wNum * 1.2 + subLv * 0.5) * Math.pow(dCfg.rewardMult, 0.55) * ev.shardMult));
         const clearGold = isFirstClear ? baseClearGold * 2 : baseClearGold;
         const clearGems = isFirstClear ? baseClearGems * 2 : baseClearGems;
         const clearShards = isFirstClear ? baseClearShards * 2 : baseClearShards;
@@ -5264,11 +5264,11 @@
         return {
           goldTrial: {
             gold: Math.round(3500 * Math.max(1, Math.pow(hiEcon, 0.65)) * ev.goldMult),
-            shards: Math.round(25 * (1 + Math.min(2.5, logTier * 0.35)) * ev.shardMult),
+            shards: Math.round(9 * (1 + Math.min(1.6, logTier * 0.22)) * ev.shardMult),
             potions: 2
           },
           shardTrial: {
-            shards: Math.round(65 * (1 + Math.min(3.5, logTier * 0.48)) * ev.shardMult),
+            shards: Math.round(24 * (1 + Math.min(2.2, logTier * 0.30)) * ev.shardMult),
             gems: Math.max(14, Math.round((14 + Math.min(22, Math.floor(logTier * 3.5))) * ev.gemMult)),
             gold: Math.round(1200 * Math.max(1, Math.pow(hiEcon, 0.55)) * ev.goldMult)
           }
@@ -5521,9 +5521,9 @@
         const luckBonus = getTalentBonus('luckPct') / 100;
         const r = Math.random();
         let tier = 0;
-        if (r > Math.max(0.95, 0.99 - luckBonus * 0.25)) tier = 3;
-        else if (r > Math.max(0.84, 0.93 - luckBonus * 0.6)) tier = 2;
-        else if (r > Math.max(0.50, 0.70 - luckBonus)) tier = 1;
+        if (r > Math.max(0.93, 0.99 - luckBonus * 0.25)) tier = 3;
+        else if (r > Math.max(0.80, 0.93 - luckBonus * 0.6)) tier = 2;
+        else if (r > Math.max(0.45, 0.70 - luckBonus)) tier = 1;
         const sub = Math.floor(Math.random() * UNIT_DB[tier].length);
 
         placeUnit(slotIdx, tier, sub);
@@ -6254,7 +6254,7 @@
             const ev = getLiveEventMultipliers();
             const mGold = Math.round((800 + wave * 120) * ev.goldMult);
             const eGems = Math.round((6 + Math.floor(wave / 10) * 3) * ev.gemMult);
-            const eShards = Math.round((18 + Math.floor(wave / 5) * 5) * ev.shardMult);
+            const eShards = Math.round((8 + Math.floor(wave / 5) * 2) * ev.shardMult);
             accountGold += mGold;
             accountGems += eGems;
             accountShards += eShards;
@@ -6267,7 +6267,7 @@
             const ev = getLiveEventMultipliers();
             const mGold = Math.round((500 + wave * 75) * ev.goldMult);
             const mGems = Math.round((3 + Math.floor(wave / 10) * 2) * ev.gemMult);
-            const mShards = Math.round((8 + Math.floor(wave / 5) * 3) * ev.shardMult);
+            const mShards = Math.round((4 + Math.floor(wave / 5) * 1.2) * ev.shardMult);
             accountGold += mGold;
             accountGems += mGems;
             accountShards += mShards;
@@ -10473,25 +10473,25 @@
       });
 
       const DAILY_QUEST_POOL = [
-        { stat: 'totalKills',     label: '몬스터 토벌',          unit: '마리', baseGoal: 120, stepGoal: 35, g: 1000, gem: 4, sh: 15 },
-        { stat: 'totalSummons',   label: '유닛 소환',            unit: '회',   baseGoal: 25,  stepGoal: 10, g: 850,  gem: 3, sh: 12 },
-        { stat: 'totalMerges',    label: '유닛 합성',            unit: '회',   baseGoal: 18,  stepGoal: 6,  g: 950,  gem: 4, sh: 15 },
-        { stat: 'bossKills',      label: '보스·현상금 토벌',     unit: '회',   baseGoal: 3,   stepGoal: 1,  g: 1500, gem: 6, sh: 22 },
-        { stat: 'enhances',       label: '장비 강화·초월 시도',  unit: '회',   baseGoal: 5,   stepGoal: 2,  g: 1100, gem: 4, sh: 16 },
-        { stat: 'clears',         label: '스테이지·시련 클리어', unit: '회',   baseGoal: 1,   stepGoal: 1,  g: 1600, gem: 7, sh: 25 },
-        { stat: 'salvages',       label: '장비 분해·판매',       unit: '회',   baseGoal: 3,   stepGoal: 2,  g: 900,  gem: 3, sh: 14 },
-        { stat: 'mythicsCrafted', label: '신화·초월 조합',       unit: '회',   baseGoal: 1,   stepGoal: 1,  g: 1800, gem: 8, sh: 28 }
+        { stat: 'totalKills',     label: '몬스터 토벌',          unit: '마리', baseGoal: 120, stepGoal: 35, g: 1000, gem: 4, sh: 6 },
+        { stat: 'totalSummons',   label: '유닛 소환',            unit: '회',   baseGoal: 25,  stepGoal: 10, g: 850,  gem: 3, sh: 5 },
+        { stat: 'totalMerges',    label: '유닛 합성',            unit: '회',   baseGoal: 18,  stepGoal: 6,  g: 950,  gem: 4, sh: 6 },
+        { stat: 'bossKills',      label: '보스·현상금 토벌',     unit: '회',   baseGoal: 3,   stepGoal: 1,  g: 1500, gem: 6, sh: 8 },
+        { stat: 'enhances',       label: '장비 강화·초월 시도',  unit: '회',   baseGoal: 5,   stepGoal: 2,  g: 1100, gem: 4, sh: 6 },
+        { stat: 'clears',         label: '스테이지·시련 클리어', unit: '회',   baseGoal: 1,   stepGoal: 1,  g: 1600, gem: 7, sh: 9 },
+        { stat: 'salvages',       label: '장비 분해·판매',       unit: '회',   baseGoal: 3,   stepGoal: 2,  g: 900,  gem: 3, sh: 5 },
+        { stat: 'mythicsCrafted', label: '신화·초월 조합',       unit: '회',   baseGoal: 1,   stepGoal: 1,  g: 1800, gem: 8, sh: 10 }
       ];
 
       const ACH_DEFS = [
-        { id: 'summon',  title: '소환사',         stat: 'totalSummons',   steps: [20, 80, 250],    rewardGold: 1200, rewardGems: 5,  rewardShards: 20 },
-        { id: 'merge',   title: '연금 합성가',    stat: 'totalMerges',    steps: [15, 60, 180],    rewardGold: 1400, rewardGems: 6,  rewardShards: 24 },
-        { id: 'mythic',  title: '신화 각성자',    stat: 'mythicsCrafted', steps: [1, 5, 15],       rewardGold: 2600, rewardGems: 12, rewardShards: 42 },
-        { id: 'enhance', title: '전설 대장장이',  stat: 'enhances',       steps: [5, 20, 50],      rewardGold: 1600, rewardGems: 6,  rewardShards: 28 },
-        { id: 'boss',    title: '보스 슬레이어',  stat: 'bossKills',      steps: [3, 12, 35],      rewardGold: 2100, rewardGems: 10, rewardShards: 35 },
-        { id: 'clear',   title: '월드 정복자',    stat: 'clears',         steps: [1, 5, 15],       rewardGold: 3000, rewardGems: 14, rewardShards: 48 },
-        { id: 'slayer',  title: '몬스터 학살자',  stat: 'totalKills',     steps: [300, 1200, 3500], rewardGold: 1800, rewardGems: 8,  rewardShards: 30 },
-        { id: 'salvage', title: '장비 해체 전문가', stat: 'salvages',     steps: [5, 20, 60],      rewardGold: 1300, rewardGems: 6,  rewardShards: 25 }
+        { id: 'summon',  title: '소환사',         stat: 'totalSummons',   steps: [20, 80, 250],    rewardGold: 1200, rewardGems: 5,  rewardShards: 9 },
+        { id: 'merge',   title: '연금 합성가',    stat: 'totalMerges',    steps: [15, 60, 180],    rewardGold: 1400, rewardGems: 6,  rewardShards: 10 },
+        { id: 'mythic',  title: '신화 각성자',    stat: 'mythicsCrafted', steps: [1, 5, 15],       rewardGold: 2600, rewardGems: 12, rewardShards: 18 },
+        { id: 'enhance', title: '전설 대장장이',  stat: 'enhances',       steps: [5, 20, 50],      rewardGold: 1600, rewardGems: 6,  rewardShards: 12 },
+        { id: 'boss',    title: '보스 슬레이어',  stat: 'bossKills',      steps: [3, 12, 35],      rewardGold: 2100, rewardGems: 10, rewardShards: 15 },
+        { id: 'clear',   title: '월드 정복자',    stat: 'clears',         steps: [1, 5, 15],       rewardGold: 3000, rewardGems: 14, rewardShards: 20 },
+        { id: 'slayer',  title: '몬스터 학살자',  stat: 'totalKills',     steps: [300, 1200, 3500], rewardGold: 1800, rewardGems: 8,  rewardShards: 13 },
+        { id: 'salvage', title: '장비 해체 전문가', stat: 'salvages',     steps: [5, 20, 60],      rewardGold: 1300, rewardGems: 6,  rewardShards: 11 }
       ];
 
       function getTodayDateKey() {
@@ -10515,12 +10515,13 @@
       function createDynamicQuest(tpl, isBonus = false) {
         const tierBoost = Math.min(4, Math.floor((questStats.clears || 0) / 3) + Math.floor(dailyCompletedToday / 3));
         const bonusMult = isBonus ? 1.25 : 1.0;
+        const shardBonusMult = isBonus ? 0.55 : 1.0;
         const goal = Math.max(1, Math.round((tpl.baseGoal + tpl.stepGoal * tierBoost) * (isBonus ? 1.15 : 1.0)));
         const hiEcon = typeof getBestProgressionEconScale === 'function' ? getBestProgressionEconScale() : 1.0;
         const logTier = Math.log2(Math.max(1, hiEcon));
         const goldScale = Math.max(1 + tierBoost * 0.25, Math.min(35, Math.pow(hiEcon, 0.72))) * bonusMult;
         const gemScale = (1 + tierBoost * 0.22 + Math.min(3.5, logTier * 0.40)) * bonusMult;
-        const shardScale = (1 + tierBoost * 0.28 + Math.min(4.5, logTier * 0.55)) * bonusMult;
+        const shardScale = (1 + tierBoost * 0.14 + Math.min(1.5, logTier * 0.20)) * shardBonusMult;
         return {
           id: `dq_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           stat: tpl.stat,
@@ -10529,7 +10530,7 @@
           goal,
           g: Math.round(tpl.g * goldScale),
           gem: Math.max(1, Math.round(tpl.gem * gemScale)),
-          sh: Math.round(tpl.sh * shardScale),
+          sh: Math.max(2, Math.round(tpl.sh * shardScale)),
           claimed: false,
           isBonus
         };
@@ -10638,7 +10639,7 @@
         const hiEcon = typeof getBestProgressionEconScale === 'function' ? getBestProgressionEconScale() : 1.0;
         const achProgGold = Math.max(1, Math.min(12, Math.pow(hiEcon, 0.50)));
         const achProgGem = 1 + Math.min(1.6, Math.log2(Math.max(1, hiEcon)) * 0.22);
-        const achProgShard = 1 + Math.min(2.4, Math.log2(Math.max(1, hiEcon)) * 0.32);
+        const achProgShard = 1 + Math.min(1.2, Math.log2(Math.max(1, hiEcon)) * 0.16);
 
         aList.innerHTML = '';
         ACH_DEFS.forEach(a => {

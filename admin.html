@@ -876,11 +876,11 @@
       ];
 
       const TALENT_DEFS = [
-        { key: 'startGoldLv', title: '💰 풍요의 서약', unit: 'G', perLv: 40, maxLv: 10 },
-        { key: 'atkPctLv',    title: '⚔️ 영원한 결의', unit: '%', perLv: 8,  maxLv: 10 },
-        { key: 'skillLv',     title: '⚡ 비전 각성',   unit: '%', perLv: 10, maxLv: 10 },
-        { key: 'luckLv',      title: '🎲 운명의 부름', unit: '%p', perLv: 1.5, maxLv: 8 },
-        { key: 'econLv',      title: '🪙 연금술의 손길', unit: '%', perLv: 6,  maxLv: 8 }
+        { key: 'startGoldLv', title: '💰 풍요의 서약', unit: 'G', perLv: 40, maxLv: 20 },
+        { key: 'atkPctLv',    title: '⚔️ 영원한 결의', unit: '%', perLv: 8,  maxLv: 20 },
+        { key: 'skillLv',     title: '⚡ 비전 각성',   unit: '%', perLv: 10, maxLv: 20 },
+        { key: 'luckLv',      title: '🎲 운명의 부름', unit: '%p', perLv: 1.5, maxLv: 15 },
+        { key: 'econLv',      title: '🪙 연금술의 손길', unit: '%', perLv: 6,  maxLv: 15 }
       ];
 
       const DIFFICULTY_MODES = {
@@ -1903,7 +1903,7 @@
           const econScale = Math.pow(stepMult, 0.65) * getRewardWorldMult(wNum) * dCfg.rewardMult;
           const rGold = Math.round(780 * econScale);
           const rGems = Math.round((7 + Math.floor(wNum * 0.9) + subLv) * dCfg.rewardMult);
-          const rShards = Math.round((8 + wNum * 2 + Math.floor(subLv * 0.8)) * dCfg.rewardMult);
+          const rShards = Math.max(1, Math.round((5 + wNum * 1.2 + subLv * 0.5) * Math.pow(dCfg.rewardMult, 0.55)));
 
           const patTxt = wNum >= 10 ? '공허 도약·광폭화' : (wNum === 9 ? 'EMP 마비' : (wNum === 8 ? '성광 공속감소' : (wNum >= 5 ? '2.5% 재생' : '방어 배리어')));
 
@@ -1938,10 +1938,10 @@
           trans:  { atk: 948, aspd: 247, crit: 441, boss: 25,  myth: 142 }
         };
         const gp = gearPresets[gear];
-        const talentAtk = synMax ? 80 : 0;
+        const talentAtk = synMax ? 160 : 0;
         const synAtk = synMax ? 44 : 0;
         const synAspd = synMax ? 33 : 0;
-        const skillAmp = 1 + ((synMax ? 120 : 0)) / 100;
+        const skillAmp = 1 + ((synMax ? 220 : 0)) / 100;
         const upgStep = tier <= 2 ? 0.25 : (tier <= 4 ? 0.30 : (tier >= 6 ? 0.45 : 0.40));
         const mythBonus = tier >= 5 ? (1 + gp.myth / 100) : 1.0;
 
