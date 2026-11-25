@@ -422,16 +422,22 @@
       #battleHudStrip span[id^="hud"] { font-size: 0.64rem !important; }
       #battleScreen .aspect-video { border-radius: 0.62rem !important; }
       #battleCanvasOverlayTop { top: 0.28rem !important; left: 0.28rem !important; right: 0.28rem !important; gap: 0.2rem !important; }
-      #battleQuickBar { flex-wrap: nowrap !important; gap: 0.16rem !important; }
+      #battleQuickBar {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 0.16rem !important;
+        padding: 0.16rem !important;
+        border-radius: 0.6rem !important;
+      }
       #battleQuickBar button {
-        padding: 0.16rem 0.32rem !important;
-        gap: 0.14rem !important;
+        flex-direction: column !important;
+        padding: 0.22rem 0.1rem !important;
+        gap: 0.06rem !important;
         font-size: 0.58rem !important;
-        min-height: 22px !important;
-        border-radius: 0.42rem !important;
+        min-height: 30px !important;
+        border-radius: 0.48rem !important;
         white-space: nowrap;
       }
-      #battleQuickBar button span { font-size: 0.58rem !important; white-space: nowrap; }
+      #battleQuickBar button span { font-size: 0.57rem !important; line-height: 1.1 !important; white-space: nowrap; }
       #gameToast {
         bottom: 0.32rem !important;
         max-width: 92% !important;
@@ -1019,17 +1025,22 @@
       }
       #battleCanvasOverlayTop { top: 0.25rem !important; left: 0.25rem !important; right: 0.25rem !important; }
       #battleQuickBar {
-        flex-wrap: nowrap !important;
-        gap: 0.14rem !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 0.12rem !important;
+        padding: 0.08rem !important;
+        border-radius: 0.45rem !important;
+        flex-shrink: 0;
       }
       #battleQuickBar button {
-        padding: 0.11rem 0.28rem !important;
+        flex-direction: row !important;
+        padding: 0.12rem 0.1rem !important;
         gap: 0.14rem !important;
-        border-radius: 0.4rem !important;
-        font-size: 0.55rem !important;
+        border-radius: 0.36rem !important;
+        font-size: 0.56rem !important;
+        min-height: 22px !important;
         white-space: nowrap;
       }
-      #battleQuickBar button span { font-size: 0.55rem !important; white-space: nowrap; }
+      #battleQuickBar button span { font-size: 0.54rem !important; line-height: 1.1 !important; white-space: nowrap; }
       #gameToast {
         bottom: 0.28rem !important;
         max-width: 92% !important;
@@ -1201,6 +1212,8 @@
       #lobbyStageInfoBox { padding: 0.12rem 0.26rem !important; }
       #btnStartStageBattle { padding: 0.26rem 0.72rem !important; font-size: 0.7rem !important; }
       #battleSynergyBar { display: none !important; }
+      #battleQuickBar { padding: 0.06rem !important; gap: 0.1rem !important; }
+      #battleQuickBar button { padding: 0.08rem 0.08rem !important; min-height: 20px !important; }
     }
     @keyframes splashPulse {
       0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.45)); }
@@ -1854,8 +1867,8 @@
         <div class="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden border border-slate-700/80 ring-1 ring-white/10 shadow-[0_8px_36px_rgba(2,6,23,0.95)]">
           <canvas id="battleCanvas" class="w-full h-full block cursor-pointer"></canvas>
 
-          <!-- Top Overlay Bar: Boss Timer Banner (left) + Quick Action Bar (right), non-overlapping -->
-          <div id="battleCanvasOverlayTop" class="absolute top-2 left-2 right-2 flex flex-wrap items-start justify-between gap-1.5 pointer-events-none z-10">
+          <!-- Top Overlay Bar: Boss Timer Banner -->
+          <div id="battleCanvasOverlayTop" class="absolute top-2 left-2 right-2 flex items-start justify-start gap-1.5 pointer-events-none z-10">
             <!-- Boss Countdown Timer Banner -->
             <div id="bossTimerBanner" class="hidden flex-1 min-w-[180px] max-w-md bg-slate-950/92 backdrop-blur-md border border-rose-500/75 rounded-xl px-3 py-1.5 shadow-xl pointer-events-none">
               <div id="bossBannerName" class="text-[11px] font-extrabold text-rose-300 truncate">👑 보스 출현</div>
@@ -1865,27 +1878,6 @@
                   <div id="bossBannerBar" class="h-full bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400 transition-all duration-100" style="width:100%"></div>
                 </div>
               </div>
-            </div>
-
-            <!-- Wave Skip / Bounty Boss / All Ultimate / Exit to Main Quick Bar -->
-            <div id="battleQuickBar" class="flex flex-wrap items-center justify-end gap-1.5 ml-auto pointer-events-auto">
-              <button id="btnBattleExitMain" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/90 backdrop-blur-sm hover:bg-rose-900/80 border border-rose-400/50 text-[10px] sm:text-[11px] font-extrabold text-rose-200 shadow" title="메인화면으로 나가기">
-                🏠<span class="mobile-label-hide"> 메인</span>
-              </button>
-              <button id="btnAutoArrange" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/90 backdrop-blur-sm hover:bg-emerald-900/80 border border-emerald-400/50 text-[10px] sm:text-[11px] font-extrabold text-emerald-200 shadow" title="고등급·고화력 유닛을 중앙 핵심 명당에 자동 정렬 [A]">
-                📐<span class="mobile-label-hide"> 자동</span> 배치<span class="mobile-label-hide"> [A]</span>
-              </button>
-              <button id="btnNextWaveNow" class="game-btn px-2.5 py-1 rounded-lg bg-slate-950/85 backdrop-blur-sm hover:bg-slate-800 border border-sky-500/40 text-[10px] sm:text-[11px] font-extrabold text-sky-300 shadow">
-                ⏩ 다음<span class="mobile-label-hide"> 웨이브</span>
-              </button>
-              <button id="btnBountyBoss" class="game-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-orange-600/95 to-rose-700/95 backdrop-blur-sm hover:from-orange-500 hover:to-rose-600 border border-orange-400/60 text-white font-bold shadow">
-                <span class="text-[10px] sm:text-[11px]">🎯 현상금<span class="mobile-label-hide"> [B]</span></span>
-                <span id="lblBountyCd" class="text-[9px] sm:text-[10px] font-semibold text-orange-100 opacity-95">보상: 전투 골드</span>
-              </button>
-              <button id="btnAllUltimate" class="game-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-fuchsia-600/95 to-purple-700/95 backdrop-blur-sm hover:from-fuchsia-500 hover:to-purple-600 border border-fuchsia-400/60 text-white font-bold shadow">
-                <span class="text-[10px] sm:text-[11px]">⚡ 궁극기<span class="mobile-label-hide"> [S]</span></span>
-                <span id="lblUltCd" class="text-[9px] sm:text-[10px] font-semibold text-fuchsia-100 opacity-95">즉시 발동</span>
-              </button>
             </div>
           </div>
 
@@ -1969,6 +1961,27 @@
         <button id="btnUseBossBane" class="game-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl bg-fuchsia-950/80 hover:bg-fuchsia-900/80 border border-fuchsia-500/45 text-fuchsia-200 font-bold shadow text-center">
           <span class="text-[11px] leading-tight flex items-center gap-1 max-w-full">💥 영약 <span class="keycap">E</span></span>
           <span class="text-[10px] font-semibold text-fuchsia-300">+50% (<span id="cntBossBane" class="font-black text-white">0</span>)</span>
+        </button>
+      </div>
+
+      <!-- Bottom Quick Action Bar: Exit to Main / Auto Arrange / Next Wave / Bounty Boss / All Ultimate -->
+      <div id="battleQuickBar" class="grid grid-cols-5 gap-1.5 panel-glass border border-slate-700/75 rounded-xl p-1.5">
+        <button id="btnBattleExitMain" class="game-btn flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl bg-slate-900/95 hover:bg-rose-900/80 border border-rose-400/50 text-[11px] font-extrabold text-rose-200 shadow" title="메인화면으로 나가기">
+          <span>🏠 메인</span>
+        </button>
+        <button id="btnAutoArrange" class="game-btn flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl bg-slate-900/95 hover:bg-emerald-900/80 border border-emerald-400/50 text-[11px] font-extrabold text-emerald-200 shadow" title="고등급·고화력 유닛을 중앙 핵심 명당에 자동 정렬 [A]">
+          <span>📐 <span class="mobile-label-hide">자동 </span>배치</span><span class="keycap">A</span>
+        </button>
+        <button id="btnNextWaveNow" class="game-btn flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-sky-500/40 text-[11px] font-extrabold text-sky-300 shadow">
+          <span>⏩ 다음<span class="mobile-label-hide"> 웨이브</span></span>
+        </button>
+        <button id="btnBountyBoss" class="game-btn flex flex-col items-center justify-center py-1 px-1.5 rounded-xl bg-gradient-to-b from-orange-600/95 to-rose-700/95 hover:from-orange-500 hover:to-rose-600 border border-orange-400/60 text-white font-bold shadow text-center min-w-0">
+          <span class="text-[11px] leading-tight flex items-center gap-1">🎯 현상금 <span class="keycap bg-slate-950/25 border-white/25 text-white">B</span></span>
+          <span id="lblBountyCd" class="text-[9px] sm:text-[10px] font-semibold text-orange-100 opacity-95 truncate max-w-full">보상: 전투 골드</span>
+        </button>
+        <button id="btnAllUltimate" class="game-btn flex flex-col items-center justify-center py-1 px-1.5 rounded-xl bg-gradient-to-b from-fuchsia-600/95 to-purple-700/95 hover:from-fuchsia-500 hover:to-purple-600 border border-fuchsia-400/60 text-white font-bold shadow text-center min-w-0">
+          <span class="text-[11px] leading-tight flex items-center gap-1">⚡ 궁극기 <span class="keycap bg-slate-950/25 border-white/25 text-white">S</span></span>
+          <span id="lblUltCd" class="text-[9px] sm:text-[10px] font-semibold text-fuchsia-100 opacity-95 truncate max-w-full">즉시 발동</span>
         </button>
       </div>
     </section>
