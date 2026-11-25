@@ -1534,6 +1534,9 @@
             </div>
           </div>
           <div id="shopSellAllBtns" class="flex flex-wrap gap-1.5">
+            <button id="btnShopAutoEquipAll" type="button" class="game-btn px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-400 to-emerald-400 hover:from-amber-300 hover:to-emerald-300 text-[11px] font-black text-slate-950 shadow whitespace-nowrap">
+              ✨ 추천 전체 장착
+            </button>
             <button id="btnSellAllLow" class="game-btn px-2.5 py-1 rounded-lg bg-sky-900/70 hover:bg-sky-800 border border-sky-500/40 text-[11px] font-bold text-sky-200">
               <span class="mobile-label-hide">미장착 </span>일반~레어 판매
             </button>
@@ -1561,12 +1564,15 @@
       <!-- Left: Character Loadout (4 Equipment Slots + Target Character Preview) -->
       <div id="forgeLoadoutPane" class="lg:col-span-6 panel-glass border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
         <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
-          <div class="flex items-center gap-2">
-            <h3 class="text-sm font-black text-white">개별 장착 슬롯</h3>
-            <button id="btnForgeAutoEquip" type="button" class="game-btn px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-[11px] font-bold text-emerald-300">
-              ⚡ 최적 자동 장착
+          <div class="flex flex-wrap items-center gap-1.5">
+            <h3 class="text-sm font-black text-white mr-1">개별 장착 슬롯</h3>
+            <button id="btnForgeAutoEquipAll" type="button" class="game-btn px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-400 to-emerald-400 hover:from-amber-300 hover:to-emerald-300 text-[11px] font-black text-slate-950 shadow whitespace-nowrap">
+              ✨ 추천 아이템 전체 자동 장착
             </button>
-            <button id="btnForgeUnequipAll" type="button" class="game-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-[11px] font-semibold text-slate-300">
+            <button id="btnForgeAutoEquip" type="button" class="game-btn px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-[11px] font-bold text-emerald-300 whitespace-nowrap">
+              ⚡ 선택 추천 장착
+            </button>
+            <button id="btnForgeUnequipAll" type="button" class="game-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-[11px] font-semibold text-slate-300 whitespace-nowrap">
               전체 해제
             </button>
           </div>
@@ -11001,9 +11007,143 @@
         renderLobbyAll();
       });
 
-      function scoreItemForAutoEquip(it) {
-        return (it.tier + 1) * 2000 + (it.extraLevel || 0) * 1050 + (it.level || 0) * 60 + (it.baseVal || 0) * 2 + (it.extraVal || 0) * 2;
+      function scoreItemForAutoEquip(it, unitKey = selectedForgeCharKey) {
+        if (!it) return -1;
+        const { tier, sub } = parseUnitKey(unitKey);
+        const uDb = (UNIT_DB[tier] && UNIT_DB[tier][sub]) || { dmg: 20, cd: 0.7, range: 150, splash: 0, slow: 0, role: '', skill: '' };
+        const mech = getUnitMechSpec(tier, sub);
+        const mainVal = calcItemValue(it);
+        const ex = calcItemExtraValue(it);
+
+        let score = (it.tier + 1) * 5000 + (it.extraLevel || 0) * 1800 + (it.level || 0) * 100;
+        if (it.statType === 'atkPct') score += mainVal * 8;
+        else if (it.statType === 'aspdPct') score += mainVal * 22;
+        else if (it.statType === 'critPct') score += mainVal * 12;
+        else if (it.statType === 'startGold') score += mainVal * 3;
+
+        if (ex.type && ex.val > 0) {
+          if (ex.type === 'mythicDmgPct') {
+            score += tier >= 5 ? ex.val * 38 : -50;
+          } else if (ex.type === 'auraBoostPct') {
+            score += (mech.auraAtk > 0 || mech.auraAspd > 0) ? ex.val * 32 : ex.val * 5;
+          } else if (ex.type === 'bossDmgPct') {
+            const isBossKiller = uDb.splash <= 65 || /보스|저격|처형|파멸|용기사|패왕|사신/.test(`${uDb.role || ''} ${uDb.skill || ''}`);
+            score += ex.val * (isBossKiller ? 26 : 16);
+          } else if (ex.type === 'splashPct') {
+            score += ex.val * (uDb.splash > 0 ? 26 : 15);
+          } else if (ex.type === 'slowPct') {
+            const netSlow = Math.max(0, Math.min(70, ex.val) - Math.round((uDb.slow || 0) * 100));
+            score += netSlow * 28;
+          } else if (ex.type === 'goldKillPct') {
+            const isFarmer = mech.goldBonus > 0 || uDb.splash >= 60 || uDb.cd <= 0.55;
+            score += ex.val * (isFarmer ? 24 : 15);
+          } else if (ex.type === 'atkPct') {
+            score += ex.val * 22;
+          } else if (ex.type === 'aspdPct') {
+            score += ex.val * 24;
+          } else if (ex.type === 'critPct') {
+            score += ex.val * 18;
+          } else if (ex.type === 'startGold') {
+            score += ex.val * 8;
+          }
+        }
+        return score;
       }
+
+      function autoEquipRecommendedAllUnits() {
+        if (inventory.length === 0) {
+          return showToast('보유 중인 장비가 없습니다. 상점에서 장비를 구매해 보세요!');
+        }
+        const prevSnapshot = {};
+        Object.entries(unitEquipped).forEach(([uKey, slots]) => {
+          if (slots) prevSnapshot[uKey] = Object.assign({}, slots);
+        });
+
+        const orderedUnits = [];
+        for (let t = UNIT_DB.length - 1; t >= 0; t--) {
+          const tierEntries = UNIT_DB[t].map((u, s) => ({
+            key: `u_t${t}_${s}`,
+            dps: (u.dmg || 1) / Math.max(0.2, u.cd || 0.7),
+            isSelected: `u_t${t}_${s}` === selectedForgeCharKey
+          }));
+          tierEntries.sort((a, b) => (b.isSelected ? 1 : 0) - (a.isSelected ? 1 : 0) || b.dps - a.dps);
+          tierEntries.forEach(entry => orderedUnits.push(entry.key));
+        }
+
+        const slotBuckets = { weapon: [], armor: [], ring: [], relic: [] };
+        inventory.forEach(it => {
+          if (it && slotBuckets[it.slot]) slotBuckets[it.slot].push(it);
+        });
+
+        const usedUids = new Set();
+        const nextEquipped = {};
+        let equippedUnitsCount = 0;
+        let equippedItemsCount = 0;
+        let firstGearedKey = null;
+
+        orderedUnits.forEach(uKey => {
+          const clean = { weapon: null, armor: null, ring: null, relic: null };
+          let count = 0;
+          ['weapon', 'armor', 'ring', 'relic'].forEach(sk => {
+            const avail = slotBuckets[sk].filter(it => !usedUids.has(it.uid));
+            if (avail.length === 0) return;
+            let best = avail[0];
+            let bestScore = scoreItemForAutoEquip(best, uKey);
+            for (let i = 1; i < avail.length; i++) {
+              const cand = avail[i];
+              const sc = scoreItemForAutoEquip(cand, uKey);
+              if (sc > bestScore || (sc === bestScore && cand.uid > best.uid)) {
+                best = cand;
+                bestScore = sc;
+              }
+            }
+            clean[sk] = best.uid;
+            usedUids.add(best.uid);
+            count++;
+            equippedItemsCount++;
+          });
+          if (count > 0) {
+            nextEquipped[uKey] = clean;
+            equippedUnitsCount++;
+            if (!firstGearedKey) firstGearedKey = uKey;
+          }
+        });
+
+        let changedSlots = 0;
+        const allKeys = new Set([...Object.keys(prevSnapshot), ...Object.keys(nextEquipped)]);
+        allKeys.forEach(uKey => {
+          const p = prevSnapshot[uKey] || {};
+          const n = nextEquipped[uKey] || {};
+          ['weapon', 'armor', 'ring', 'relic'].forEach(sk => {
+            if ((p[sk] || null) !== (n[sk] || null)) changedSlots++;
+          });
+        });
+
+        Object.keys(unitEquipped).forEach(k => delete unitEquipped[k]);
+        Object.entries(nextEquipped).forEach(([uKey, clean]) => {
+          unitEquipped[uKey] = clean;
+        });
+
+        if (getUnitEquippedCount(selectedForgeCharKey) === 0 && firstGearedKey) {
+          selectedForgeCharKey = firstGearedKey;
+        }
+        const curSlots = unitEquipped[selectedForgeCharKey];
+        if (curSlots) {
+          const firstUid = curSlots.weapon || curSlots.armor || curSlots.ring || curSlots.relic;
+          if (firstUid && (!selectedForgeUid || findEquippedOwner(selectedForgeUid)?.unitKey !== selectedForgeCharKey)) {
+            selectedForgeUid = firstUid;
+          }
+        }
+
+        playSound('merge');
+        showToast(changedSlots > 0
+          ? `✨ 추천 아이템 전체 자동 장착 완료! (${equippedUnitsCount}개 캐릭터 · ${equippedItemsCount}부위 최적 배정)`
+          : `✅ 이미 모든 캐릭터에 추천 최적 장비가 장착되어 있습니다! (${equippedUnitsCount}명 · ${equippedItemsCount}부위)`);
+        renderLobbyAll();
+      }
+
+      document.getElementById('btnForgeAutoEquipAll')?.addEventListener('click', autoEquipRecommendedAllUnits);
+      document.getElementById('btnShopAutoEquipAll')?.addEventListener('click', autoEquipRecommendedAllUnits);
 
       document.getElementById('btnForgeAutoEquip').addEventListener('click', () => {
         const targetSlots = getUnitEquippedSlots(selectedForgeCharKey);
@@ -11016,7 +11156,7 @@
         ['weapon', 'armor', 'ring', 'relic'].forEach(sk => {
           const pool = candidates.filter(it => it.slot === sk);
           if (pool.length === 0) return;
-          pool.sort((a, b) => scoreItemForAutoEquip(b) - scoreItemForAutoEquip(a));
+          pool.sort((a, b) => scoreItemForAutoEquip(b, selectedForgeCharKey) - scoreItemForAutoEquip(a, selectedForgeCharKey));
           const best = pool[0];
           if (targetSlots[sk] !== best.uid) changedCount++;
           targetSlots[sk] = best.uid;
@@ -11028,7 +11168,7 @@
         }
         playSound('merge');
         showToast(changedCount > 0
-          ? `⚡ [${getUnitShortName(selectedForgeCharKey)}] 최고 등급 미장착 장비 자동 장착 완료!`
+          ? `⚡ [${getUnitShortName(selectedForgeCharKey)}] 추천 미장착 장비 자동 장착 완료!`
           : `✅ [${getUnitShortName(selectedForgeCharKey)}] 이미 최적 장비를 장착 중입니다.`);
         renderLobbyAll();
       });
