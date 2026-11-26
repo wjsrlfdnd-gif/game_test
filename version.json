@@ -1,8 +1,8 @@
 {
-  "buildId": "2026.11.24-mobile-live-v7",
+  "buildId": "2026.11.26-rebalance-ui-v8",
   "commit": "local",
-  "cacheName": "rcd-offline-v7",
-  "deployedAt": "2026-11-24T00:00:00Z",
-  "notes": "모바일 게임 앱(PWA+APK) 패키지, 실시간 OTA 업데이트 & 라이브 이벤트 엔진 적용",
+  "cacheName": "rcd-offline-v22",
+  "deployedAt": "2026-11-26T00:00:00Z",
+  "notes": "스테이지 단조 난이도(A안), 3개 등급군 공용 장비(B안), 시련/소모품/보안 개편, 오프라인 정적 Tailwind PWA & 모바일/데스크톱 UI 전면 개편",
   "forceReload": false
 }

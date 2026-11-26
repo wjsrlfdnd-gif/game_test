@@ -1,10 +1,10 @@
-// Random Character Defense — Mobile Game Real-Time OTA & Offline Service Worker (v21)
-const CACHE_NAME = 'rcd-offline-v21';
+// Random Character Defense — Mobile Game Real-Time OTA & Offline Service Worker (v22)
+const CACHE_NAME = 'rcd-offline-v22';
+const CANONICAL_HTML = './random_character_defense.html';
 const CORE_ASSETS = [
-  './',
-  './index.html',
-  './random_character_defense.html',
+  CANONICAL_HTML,
   './manifest.webmanifest',
+  './firebase-config.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
@@ -56,11 +56,11 @@ self.addEventListener('fetch', (event) => {
         .then((res) => {
           if (res && res.ok) {
             const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+            caches.open(CACHE_NAME).then((cache) => cache.put('./firebase-config.js', copy));
           }
           return res;
         })
-        .catch(() => caches.match(req))
+        .catch(() => caches.match('./firebase-config.js') || caches.match(req))
     );
     return;
   }
@@ -89,23 +89,19 @@ self.addEventListener('fetch', (event) => {
 
   const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
 
-  // HTML 문서는 항상 Network-First (cache: 'no-store')로 최신 배포본 즉시 동기화, 오프라인 시 캐시 폴백
+  // HTML 문서는 항상 Network-First로 최신 배포본 동기화, 단일 캐시 키에 저장하여 오프라인 100% 폴백
   if (isNav) {
     event.respondWith(
       fetch(req, { cache: 'no-store' })
         .then((res) => {
           if (res && res.ok) {
             const copy = res.clone();
-            caches.open(CACHE_NAME).then((c) => {
-              c.put(req, copy.clone());
-              c.put('./index.html', copy);
-            });
+            caches.open(CACHE_NAME).then((c) => c.put(CANONICAL_HTML, copy));
           }
           return res;
         })
         .catch(() =>
-          caches.match(req)
-            .then((m) => m || caches.match('./index.html') || caches.match('./random_character_defense.html') || caches.match('./'))
+          caches.match(CANONICAL_HTML).then((m) => m || caches.match(req))
         )
     );
     return;

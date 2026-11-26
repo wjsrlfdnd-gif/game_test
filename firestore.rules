@@ -53,16 +53,18 @@ service cloud.firestore {
       }
     }
 
-    // 5. 실시간 챌린지 리더보드 (전체 읽기, 로그인 유저 본인 최고기록 등록, 운영자 삭제)
+    // 5. 실시간 챌린지 리더보드 (전체 읽기, 로그인 유저 본인 최고기록 등록, 보드별 정상 범위 검증, 운영자 삭제)
     match /leaderboards/{board}/entries/{uid} {
       allow read: if true;
       allow create, update: if isSignedIn()
         && request.auth.uid == uid
-        && (board in ['endless', 'boss_rush', 'speed_rush'])
         && request.resource.data.uid == uid
         && request.resource.data.score is number
-        && request.resource.data.score > 0
-        && request.resource.data.score <= 100000;
+        && (
+          (board == 'endless' && request.resource.data.score >= 1 && request.resource.data.score <= 500) ||
+          (board == 'speed_rush' && request.resource.data.score >= 1 && request.resource.data.score <= 200) ||
+          (board == 'boss_rush' && request.resource.data.score >= 15 && request.resource.data.score <= 3600)
+        );
       allow delete: if isAdmin();
     }
   }
