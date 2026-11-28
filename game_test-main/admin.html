@@ -1,0 +1,2735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <script src="./firebase-config.js"></script>
+  <title>RCD 운영자 관리 콘솔 (Random Character Defense Admin)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    .hidden { display: none !important; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(56, 189, 248, 0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 45% at 85% 15%, rgba(245, 158, 11, 0.12) 0%, transparent 55%),
+        radial-gradient(circle at 50% 0%, #0d1526 0%, #050912 75%);
+      color: #f1f5f9;
+      min-height: 100dvh;
+    }
+    .panel-glass {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.94) 0%, rgba(9, 14, 28, 0.96) 100%);
+      box-shadow: 0 12px 32px rgba(2, 6, 23, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    .btn-press { transition: transform 0.1s ease, filter 0.15s ease; }
+    .btn-press:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn-press:active:not(:disabled) { transform: scale(0.96); }
+    * { scrollbar-width: thin; scrollbar-color: rgba(71, 85, 105, 0.7) transparent; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.72); border-radius: 9999px; }
+  </style>
+</head>
+<body class="flex flex-col">
+
+  <!-- Toast Banner -->
+  <div id="adminToast" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-slate-900/95 border border-amber-400/70 text-xs font-extrabold text-amber-200 shadow-2xl backdrop-blur-md"></div>
+
+  <!-- ===================================================================== -->
+  <!-- OPERATOR PASSCODE GATE                                                -->
+  <!-- ===================================================================== -->
+  <div id="loginGate" class="flex-1 flex items-center justify-center p-4">
+    <div class="panel-glass border border-slate-700/80 rounded-2xl max-w-md w-full p-6 flex flex-col gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-indigo-600 flex items-center justify-center font-black text-slate-950 text-sm shadow-lg">
+          ADM
+        </div>
+        <div>
+          <h1 class="text-lg font-black text-white leading-tight">RCD 운영자 관리 콘솔</h1>
+          <p class="text-xs text-slate-400">이벤트 쿠폰 발급 · 세이브 편집 · 난이도 밸런스</p>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300 leading-relaxed">
+        <div class="font-bold text-amber-300 mb-1">🔐 운영자 인증 안내</div>
+        <div id="lblLoginModeNote" class="text-sky-300 font-semibold mb-1.5">연결 상태를 확인 중입니다...</div>
+        오프라인/로컬 초기 패스코드는 <code class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-200 font-bold">rcd-admin-2026</code> 입니다.
+      </div>
+
+      <form id="fbLoginForm" class="p-3 rounded-xl bg-slate-950/75 border border-emerald-500/35 flex flex-col gap-2">
+        <div class="text-xs font-black text-emerald-300">🔥 Firebase 운영자 계정 로그인 (클라우드 DB 관리용)</div>
+        <input id="txtAdminEmail" type="email" autocomplete="username" placeholder="운영자 이메일 (Firebase Auth)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400" />
+        <input id="txtAdminFbPass" type="password" autocomplete="current-password" placeholder="운영자 비밀번호" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400" />
+        <div id="lblFbLoginError" class="hidden text-[11px] font-bold text-rose-400 break-all"></div>
+        <button type="submit" class="btn-press w-full py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs shadow">
+          Firebase 운영자 로그인
+        </button>
+      </form>
+
+      <div class="text-center text-[10px] text-slate-500 font-bold">— 또는 오프라인 / 로컬 패스코드 잠금 해제 —</div>
+
+      <form id="loginForm" class="flex flex-col gap-2.5">
+        <label class="flex flex-col gap-1">
+          <span class="text-xs font-bold text-slate-300">운영자 패스코드</span>
+          <input id="txtAdminPass" type="password" autocomplete="current-password" placeholder="패스코드 입력..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400" />
+        </label>
+        <div id="lblLoginError" class="hidden text-xs font-bold text-rose-400">❌ 패스코드가 올바르지 않습니다.</div>
+        <button type="submit" class="btn-press w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-sm shadow-lg">
+          관리 콘솔 잠금 해제
+        </button>
+      </form>
+
+      <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-[11px]">
+        <a href="./random_character_defense.html" class="text-sky-400 hover:text-sky-300 font-bold">← 게임 본체로 돌아가기</a>
+        <button id="btnResetAdminPass" type="button" class="text-slate-500 hover:text-slate-300 underline">패스코드 기본값 복원</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- ADMIN CONSOLE MAIN                                                    -->
+  <!-- ===================================================================== -->
+  <div id="adminApp" class="hidden flex-1 flex flex-col">
+    <!-- Top Header -->
+    <header class="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 via-rose-500 to-indigo-600 flex items-center justify-center font-black text-slate-950 text-xs shadow">
+          ADM
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-black text-white leading-tight">랜덤 캐릭터 디펜스 · 운영자 관리 콘솔</h1>
+          <div id="lblLocalSaveBadge" class="text-[10px] text-slate-400 font-semibold">로컬 세이브 확인 중...</div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <span id="lblAdminCloudBadge" class="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300">⚡ 로컬 모드</span>
+        <a href="./random_character_defense.html" class="btn-press px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow">
+          🎮 게임 실행
+        </a>
+        <button id="btnLockAdmin" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-xs">
+          🔒 잠금
+        </button>
+      </div>
+    </header>
+
+    <!-- Tab Bar -->
+    <nav class="max-w-[1440px] w-full mx-auto px-3 sm:px-5 pt-3">
+      <div class="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+        <button data-tab="coupons" class="admin-tab-btn btn-press px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs shadow">
+          🎟️ 이벤트 쿠폰 발급·관리
+        </button>
+        <button data-tab="save" class="admin-tab-btn btn-press px-3.5 py-2 rounded-xl text-slate-300 hover:bg-slate-800 font-bold text-xs">
+          💾 유저 세이브 편집기
+        </button>
+        <button data-tab="balance" class="admin-tab-btn btn-press px-3.5 py-2 rounded-xl text-slate-300 hover:bg-slate-800 font-bold text-xs">
+          ⚖️ 난이도·밸런스 시뮬레이터
+        </button>
+        <button data-tab="master" class="admin-tab-btn btn-press px-3.5 py-2 rounded-xl text-slate-300 hover:bg-slate-800 font-bold text-xs">
+          📚 마스터 데이터·보안 설정
+        </button>
+      </div>
+    </nav>
+
+    <main class="max-w-[1440px] w-full mx-auto p-3 sm:p-5 flex-1 flex flex-col gap-4">
+
+      <!-- ================================================================= -->
+      <!-- TAB 1: EVENT COUPON STUDIO                                        -->
+      <!-- ================================================================= -->
+      <section id="tabCoupons" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Left: Signed Coupon Generator (RCD1-...) -->
+        <div class="lg:col-span-6 panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800">
+            <div>
+              <h2 class="text-sm font-black text-amber-300">🎟️ 서명 쿠폰 즉시 발급기 (<code class="text-xs">RCD1-...</code>)</h2>
+              <p class="text-[11px] text-slate-400">서버 배포 없이 즉시 게임 내 설정창/퀘스트 탭에서 사용 가능한 암호화 서명 쿠폰을 발급합니다.</p>
+            </div>
+          </div>
+
+          <!-- Presets -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[10px] font-bold text-slate-400 mr-1">빠른 프리셋:</span>
+            <button type="button" data-preset="welcome" class="coupon-preset-btn btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] font-bold text-emerald-300">오픈 기념</button>
+            <button type="button" data-preset="weekend" class="coupon-preset-btn btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] font-bold text-sky-300">주말 보너스</button>
+            <button type="button" data-preset="compensate" class="coupon-preset-btn btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] font-bold text-amber-300">점검 보상</button>
+            <button type="button" data-preset="legendary" class="coupon-preset-btn btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] font-bold text-fuchsia-300">전설 장비 패키지</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-slate-300">쿠폰 식별 ID (중복 사용 방지 키)</span>
+              <div class="flex gap-1.5">
+                <input id="cpnId" type="text" value="EVENT_2026_01" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-amber-200 uppercase focus:outline-none focus:border-amber-400" />
+                <button id="btnGenCpnId" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-slate-200 shrink-0">자동생성</button>
+              </div>
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-slate-300">만료일 (선택 · 비우면 무기한)</span>
+              <input id="cpnExp" type="date" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-400" />
+            </label>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-amber-300">🪙 금화 (G)</span>
+              <input id="cpnGold" type="number" min="0" value="3000" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-cyan-300">💎 보석</span>
+              <input id="cpnGems" type="number" min="0" value="30" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-fuchsia-300">✨ 마력 파편</span>
+              <input id="cpnShards" type="number" min="0" value="25" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-amber-200">🧪 황금 비약</span>
+              <input id="cpnGp" type="number" min="0" value="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-sky-200">⚡ 충격파 두루마리</span>
+              <input id="cpnSs" type="number" min="0" value="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-purple-200">💥 거신 파쇄 영약</span>
+              <input id="cpnBb" type="number" min="0" value="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+          </div>
+
+          <!-- Optional Item Reward -->
+          <div class="p-3 rounded-xl bg-slate-950/75 border border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-2">
+            <label class="sm:col-span-6 flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-emerald-300">🛡️ 장비 아이템 지급 (선택)</span>
+              <select id="cpnItemId" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100"></select>
+            </label>
+            <label class="sm:col-span-3 flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-slate-300">기본 강화 (+0~15)</span>
+              <input id="cpnItemLv" type="number" min="0" max="15" value="0" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+            <label class="sm:col-span-3 flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-teal-300">초월 단계 (★0~5)</span>
+              <input id="cpnItemEx" type="number" min="0" max="5" value="0" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+            <label class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-emerald-300">🔥 서버 쿠폰 선착순 수량 (0 = 무제한)</span>
+              <input id="cpnMaxUses" type="number" min="0" value="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-400" />
+            </label>
+            <button id="btnPublishFbCoupon" type="button" class="btn-press py-2 px-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs shadow-lg">
+              🔥 Firestore 서버 쿠폰 즉시 발급
+            </button>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button id="btnIssueSignedCoupon" type="button" class="btn-press flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow-lg">
+              ✨ 서명 쿠폰 발급하기
+            </button>
+            <button id="btnAddToCouponTable" type="button" class="btn-press py-2.5 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow">
+              + 원격/고정 테이블에도 등록
+            </button>
+          </div>
+
+          <!-- Issued Output -->
+          <div class="p-3 rounded-xl bg-slate-950 border border-amber-500/40 flex flex-col gap-2">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-extrabold text-amber-300">발급된 서명 쿠폰 코드</span>
+              <button id="btnCopyIssuedCoupon" type="button" class="btn-press px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-200 font-bold text-[10px]">복사하기</button>
+            </div>
+            <input id="txtIssuedCoupon" type="text" readonly placeholder="여기에 발급된 쿠폰 코드가 표시됩니다" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs font-mono text-emerald-300 select-all" />
+          </div>
+
+          <!-- Verifier -->
+          <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col gap-1.5">
+            <span class="text-[11px] font-bold text-sky-300">🔍 쿠폰 코드 검증 테스트</span>
+            <div class="flex gap-1.5">
+              <input id="txtVerifyCoupon" type="text" placeholder="RCD1-... 코드를 붙여넣어 서명/만료/보상 확인" class="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200" />
+              <button id="btnVerifyCoupon" type="button" class="btn-press px-3 py-1.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-xs font-bold text-white shrink-0">검증</button>
+            </div>
+            <div id="lblVerifyResult" class="text-[11px] text-slate-400">검증 결과가 여기에 표시됩니다.</div>
+          </div>
+        </div>
+
+        <!-- Right: Coupon History + Static/Remote coupons.json Manager -->
+        <div class="lg:col-span-6 flex flex-col gap-4">
+          <!-- Live Config (live_config.json) & Remote Coupons Manager -->
+          <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800">
+              <div>
+                <h2 class="text-sm font-black text-indigo-300">📡 라이브 설정(<code class="text-xs">live_config.json</code>) · 쿠폰 관리</h2>
+                <p class="text-[11px] text-slate-400">실시간 공지, 이벤트 배율, 짧은 코드 쿠폰(예: <code class="text-slate-200">MOBILE2026</code>)을 편집·내보냅니다.</p>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button id="btnLoadLiveConfigJson" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-[11px] font-bold text-white">현재 불러오기</button>
+                <button id="btnDownloadLiveConfigJson" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[11px] font-extrabold text-white">live_config.json 저장</button>
+                <button id="btnCopyLiveConfigJson" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-slate-200">JSON 복사</button>
+                <button id="btnDownloadCouponsJson" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-sky-200">coupons.json</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-950/75 border border-slate-800 rounded-xl p-2.5">
+              <label class="sm:col-span-12 flex flex-col gap-1">
+                <span class="text-[10px] font-bold text-emerald-300">📢 실시간 공지 배너 문구</span>
+                <input id="lcBannerText" type="text" placeholder="공지 문구 입력..." class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100" />
+              </label>
+              <label class="sm:col-span-6 flex flex-col gap-1">
+                <span class="text-[10px] font-bold text-slate-400">이벤트명</span>
+                <input id="lcEventName" type="text" value="모바일 런칭 라이브 서버" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100" />
+              </label>
+              <label class="sm:col-span-2 flex flex-col gap-1">
+                <span class="text-[10px] font-bold text-amber-300">금화 배율</span>
+                <input id="lcGoldMult" type="number" step="0.1" min="0.5" max="10" value="1.0" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-white" />
+              </label>
+              <label class="sm:col-span-2 flex flex-col gap-1">
+                <span class="text-[10px] font-bold text-cyan-300">보석 배율</span>
+                <input id="lcGemMult" type="number" step="0.1" min="0.5" max="10" value="1.0" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-white" />
+              </label>
+              <label class="sm:col-span-2 flex flex-col gap-1">
+                <span class="text-[10px] font-bold text-fuchsia-300">파편 배율</span>
+                <input id="lcShardMult" type="number" step="0.1" min="0.5" max="10" value="1.0" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-white" />
+              </label>
+            </div>
+
+            <div id="couponTableList" class="flex flex-col gap-1.5 max-h-[190px] overflow-y-auto pr-1"></div>
+
+            <div class="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <span class="text-[11px] font-bold text-sky-300">🔥 Firestore 실시간 공지·배율 연동</span>
+              <div class="flex gap-1.5">
+                <button id="btnFetchFbLiveConfig" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200">DB 불러오기</button>
+                <button id="btnPublishFbLiveConfig" type="button" class="btn-press px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[11px] font-extrabold text-white shadow">🔥 Firestore 실시간 반영</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Firestore Live Coupons Manager -->
+          <div id="fbCouponsPanel" class="panel-glass border border-emerald-500/30 rounded-2xl p-4 flex flex-col gap-2.5">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div>
+                <h2 class="text-sm font-black text-emerald-300">🔥 Firestore 서버 쿠폰 목록 (1인 1회 · 선착순)</h2>
+                <div id="lblFbCouponsStatus" class="text-[10px] text-slate-400">Firebase 연결 대기 중...</div>
+              </div>
+              <button id="btnRefreshFbCoupons" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200">🔄 새로고침</button>
+            </div>
+            <div id="fbCouponsList" class="flex flex-col gap-1.5 max-h-[210px] overflow-y-auto pr-1"></div>
+          </div>
+
+          <!-- Issued History -->
+          <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3 flex-1">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h2 class="text-sm font-black text-slate-200">🕘 최근 발급한 서명 쿠폰 이력</h2>
+              <button id="btnClearCouponHistory" type="button" class="text-[11px] font-bold text-rose-400 hover:text-rose-300">이력 비우기</button>
+            </div>
+            <div id="couponHistoryList" class="flex flex-col gap-1.5 max-h-[280px] overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 2: SAVE DATA INSPECTOR & EDITOR                               -->
+      <!-- ================================================================= -->
+      <section id="tabSave" class="hidden flex-col gap-4">
+        <!-- Save Load / Export Bar -->
+        <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-black text-emerald-300">💾 유저 세이브 데이터 불러오기 · 수정 · 적용</h2>
+              <p class="text-[11px] text-slate-400">브라우저에 저장된 세이브(<code class="text-slate-200">rcd_save_v1</code>)를 직접 편집하거나, 유저가 보낸 JSON / <code class="text-slate-200">RCD1:</code> 백업 코드를 수정해 반환할 수 있습니다.</p>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button id="btnLoadLocalSave" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-extrabold text-white shadow">📥 현재 브라우저 세이브 불러오기</button>
+              <label class="btn-press px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 cursor-pointer">
+                📂 JSON 파일 열기
+                <input id="fileImportSave" type="file" accept=".json,application/json,text/plain" class="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="txtAdminSaveInput" type="text" placeholder="여기에 유저의 세이브 JSON 또는 RCD1:... 백업 코드를 붙여넣으세요" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-400" />
+            <button id="btnParseAdminSave" type="button" class="btn-press px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-extrabold text-white shrink-0">코드 불러오기</button>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
+            <div id="lblEditingSaveInfo" class="text-xs font-bold text-amber-300">편집 중인 데이터가 없습니다. 상단 버튼으로 불러오세요.</div>
+            <div class="flex flex-wrap gap-1.5">
+              <button id="btnApplyLocalSave" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-black text-slate-950 shadow">💾 현재 브라우저에 저장</button>
+              <button id="btnSaveFbCloudSave" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-black text-white shadow">☁️ 클라우드 DB에 저장</button>
+              <button id="btnExportAdminJson" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white">JSON 복사</button>
+              <button id="btnExportAdminRcd1" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white">RCD1 코드 복사</button>
+              <button id="btnDownloadAdminJson" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200">JSON 다운로드</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Firestore Cloud Saves List -->
+        <div id="fbCloudSavesPanel" class="panel-glass border border-sky-500/30 rounded-2xl p-4 flex flex-col gap-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xs font-black text-sky-300 uppercase tracking-wider">☁️ Firebase 클라우드 유저 세이브 목록 (saves 컬렉션)</h3>
+              <div id="lblSelectedCloudUid" class="text-[11px] text-slate-400">선택된 클라우드 계정 없음 (유저 클릭 시 편집기로 로드됨)</div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <input id="txtFbSaveSearch" type="text" placeholder="이메일 또는 UID 검색..." class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white w-48" />
+              <button id="btnLoadFbSaves" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-extrabold text-white">🔄 유저 목록 불러오기</button>
+            </div>
+          </div>
+          <div id="fbSavesList" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[210px] overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Firebase Challenge Leaderboard Management -->
+        <div id="fbLeaderboardPanel" class="panel-glass border border-amber-500/35 rounded-2xl p-4 flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xs font-black text-amber-300 uppercase tracking-wider">🏆 실시간 챌린지 리더보드 관리 (Firestore)</h3>
+              <p class="text-[11px] text-slate-400">무한 심연 · 성좌 보스 러시 · 3분 폭풍 러시 순위를 조회하고 이상 기록 삭제 또는 시즌 초기화를 실행합니다.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="selAdminLbBoard" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-amber-200">
+                <option value="endless">🌌 무한 심연 TOP 50</option>
+                <option value="boss_rush">👑 성좌 보스 러시 TOP 50</option>
+                <option value="speed_rush">⚡ 3분 폭풍 러시 TOP 50</option>
+              </select>
+              <button id="btnLoadAdminLb" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-extrabold text-white">🔄 순위 불러오기</button>
+              <button id="btnResetAdminLb" type="button" class="btn-press px-3 py-1.5 rounded-xl bg-rose-700 hover:bg-rose-600 text-xs font-extrabold text-white">🗑️ 보드 초기화</button>
+            </div>
+          </div>
+          <div id="adminLbList" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1">
+            <div class="col-span-full text-center text-xs text-slate-500 py-4">Firebase 운영자 로그인 후 [순위 불러오기]를 누르세요.</div>
+          </div>
+        </div>
+
+        <!-- Save Editor Panels -->
+        <div id="saveEditorPanels" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <!-- Currencies, Consumables & Talents -->
+          <div class="lg:col-span-5 flex flex-col gap-4">
+            <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+              <h3 class="text-xs font-black text-amber-300 uppercase tracking-wider">재화 · 소모품 · 도전 기록</h3>
+              <div class="grid grid-cols-2 gap-2.5">
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-amber-300">🪙 계정 금화</span>
+                  <input id="edAccGold" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-cyan-300">💎 보석</span>
+                  <input id="edAccGems" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-fuchsia-300">✨ 마력 파편</span>
+                  <input id="edAccShards" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-rose-300">🌌 무한 심연 최고 웨이브</span>
+                  <input id="edEndlessWave" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-orange-300">👑 보스 러시 최단 기록(초)</span>
+                  <input id="edBossRushSec" type="number" min="0" step="0.01" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-sky-300">⚡ 3분 폭풍 최고 웨이브</span>
+                  <input id="edSpeedRushWave" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-amber-200">🧪 황금 비약</span>
+                  <input id="edGp" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span class="text-[11px] font-bold text-sky-200">⚡ 충격파 두루마리</span>
+                  <input id="edSs" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="flex flex-col gap-1 col-span-2">
+                  <span class="text-[11px] font-bold text-purple-200">💥 거신 파쇄의 영약</span>
+                  <input id="edBb" type="number" min="0" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Talents -->
+            <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-fuchsia-300 uppercase tracking-wider">🧬 영구 특성 연구소</h3>
+                <div class="flex gap-1.5">
+                  <button id="btnEdTalentsMax" type="button" class="btn-press px-2 py-1 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-[10px] font-extrabold text-white">전체 MAX</button>
+                  <button id="btnEdTalentsReset" type="button" class="btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-300">초기화</button>
+                </div>
+              </div>
+              <div id="edTalentsList" class="flex flex-col gap-2"></div>
+            </div>
+
+            <!-- Stage & Difficulty Progress -->
+            <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+              <h3 class="text-xs font-black text-emerald-300 uppercase tracking-wider">🗺️ 난이도 · 스테이지 해금 관리</h3>
+              <div id="edDiffSummary" class="grid grid-cols-3 gap-1.5 text-[11px]"></div>
+
+              <div class="grid grid-cols-2 gap-1.5">
+                <button type="button" data-stage-preset="normal_all" class="ed-stage-preset btn-press py-1.5 px-2 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/70 border border-emerald-500/40 text-[11px] font-bold text-emerald-200">노멀 10-10 올클리어</button>
+                <button type="button" data-stage-preset="hard_all" class="ed-stage-preset btn-press py-1.5 px-2 rounded-lg bg-amber-950/70 hover:bg-amber-900/70 border border-amber-500/40 text-[11px] font-bold text-amber-200">하드 10-10 올클리어</button>
+                <button type="button" data-stage-preset="nightmare_all" class="ed-stage-preset btn-press py-1.5 px-2 rounded-lg bg-rose-950/70 hover:bg-rose-900/70 border border-rose-500/40 text-[11px] font-bold text-rose-200">나이트메어 올클리어</button>
+                <button type="button" data-stage-preset="clear_all" class="ed-stage-preset btn-press py-1.5 px-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300">스테이지 기록 초기화</button>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex flex-col gap-2">
+                <span class="text-[11px] font-bold text-slate-300">특정 단계까지 일괄 클리어 설정</span>
+                <div class="grid grid-cols-4 gap-1.5">
+                  <select id="edTargetDiff" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100">
+                    <option value="normal">노멀</option>
+                    <option value="hard">하드</option>
+                    <option value="nightmare">나이트메어</option>
+                  </select>
+                  <select id="edTargetWorld" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100"></select>
+                  <select id="edTargetSub" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100"></select>
+                  <button id="btnApplyTargetStage" type="button" class="btn-press rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-extrabold text-white">적용</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inventory & Redeemed Coupons -->
+          <div class="lg:col-span-7 flex flex-col gap-4">
+            <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-sky-300 uppercase tracking-wider">🎒 장비 인벤토리 지급 · 강화 편집</h3>
+                <span id="edInvCount" class="text-[11px] font-bold text-slate-400">0개 보유</span>
+              </div>
+
+              <!-- Grant Item Form -->
+              <div class="p-3 rounded-xl bg-slate-950/75 border border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
+                <label class="sm:col-span-5 flex flex-col gap-1">
+                  <span class="text-[10px] font-bold text-slate-400">지급할 장비 선택 (65종)</span>
+                  <select id="edAddItemId" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100"></select>
+                </label>
+                <label class="sm:col-span-2 flex flex-col gap-1">
+                  <span class="text-[10px] font-bold text-slate-400">강화 (0~15)</span>
+                  <input id="edAddItemLv" type="number" min="0" max="15" value="15" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="sm:col-span-2 flex flex-col gap-1">
+                  <span class="text-[10px] font-bold text-teal-300">초월 (0~5)</span>
+                  <input id="edAddItemEx" type="number" min="0" max="5" value="5" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <label class="sm:col-span-1 flex flex-col gap-1">
+                  <span class="text-[10px] font-bold text-slate-400">수량</span>
+                  <input id="edAddItemQty" type="number" min="1" max="20" value="1" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs font-bold text-white" />
+                </label>
+                <button id="btnEdAddItem" type="button" class="sm:col-span-2 btn-press py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-extrabold text-white">+ 지급</button>
+              </div>
+
+              <div id="edInventoryList" class="flex flex-col gap-1.5 max-h-[380px] overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- Redeemed Coupons -->
+            <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-2.5">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-indigo-300 uppercase tracking-wider">🎟️ 사용 완료 쿠폰 기록</h3>
+                <button id="btnEdClearCoupons" type="button" class="text-[11px] font-bold text-rose-400 hover:text-rose-300">전체 초기화</button>
+              </div>
+              <div id="edRedeemedCouponList" class="flex flex-wrap gap-1.5 text-xs"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 3: DIFFICULTY & DPS SIMULATOR                                 -->
+      <!-- ================================================================= -->
+      <section id="tabBalance" class="hidden flex-col gap-4">
+        <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800">
+            <div>
+              <h2 class="text-sm font-black text-amber-300">⚖️ 월드 · 단계 · 난이도별 스펙 &amp; 보상 테이블</h2>
+              <p class="text-[11px] text-slate-400">게임 본체와 동일한 수식으로 각 월드의 몬스터·보스 체력/방어력 및 클리어 보상을 계산합니다.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="simDiff" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-amber-300">
+                <option value="normal">🟢 노멀 (HP 3.5x · DEF 1.35x · 보상 1.35x)</option>
+                <option value="hard">🔥 하드 (HP 12.0x · DEF 1.80x · 보상 2.20x)</option>
+                <option value="nightmare">💀 나이트메어 (HP 40.0x · DEF 2.40x · 보상 3.50x)</option>
+              </select>
+              <select id="simSub" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-sky-300"></select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-800 text-[11px] text-slate-400">
+                  <th class="py-2 px-2">월드</th>
+                  <th class="py-2 px-2">W1 일반 HP/DEF</th>
+                  <th class="py-2 px-2">W15 중간보스 HP/DEF</th>
+                  <th class="py-2 px-2">W30 메인보스 HP/DEF</th>
+                  <th class="py-2 px-2">보스 패턴</th>
+                  <th class="py-2 px-2">반복 클리어 보상</th>
+                  <th class="py-2 px-2">초회 2배 보상</th>
+                </tr>
+              </thead>
+              <tbody id="simBalanceTableBody" class="divide-y divide-slate-800/70"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- DPS Simulator -->
+        <div class="panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+          <h2 class="text-sm font-black text-cyan-300">⚔️ 아군 1기 60초 W30 메인보스 누적 딜 시뮬레이터</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
+            <label class="flex flex-col gap-1">
+              <span class="text-[10px] font-bold text-slate-400">유닛 선택</span>
+              <select id="dpsUnit" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"></select>
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[10px] font-bold text-slate-400">장비 4세트 (풀강)</span>
+              <select id="dpsGear" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white">
+                <option value="none">노장비</option>
+                <option value="legend">전설 풀강 4세트</option>
+                <option value="mythic">신화 풀강 4세트</option>
+                <option value="trans">초월 풀강 4세트</option>
+              </select>
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[10px] font-bold text-slate-400">전투 업글 Lv</span>
+              <input id="dpsUpgLv" type="number" min="1" max="50" value="10" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[10px] font-bold text-slate-400">방어력 감소 (%)</span>
+              <input id="dpsShred" type="number" min="0" max="80" value="80" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-[10px] font-bold text-slate-400">대상 월드</span>
+              <select id="dpsWorld" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"></select>
+            </label>
+            <label class="flex flex-col gap-1 justify-end">
+              <span class="flex items-center gap-1.5 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-fuchsia-300 cursor-pointer">
+                <input id="dpsTalentMax" type="checkbox" checked class="accent-fuchsia-400" />
+                특성 MAX + 시너지
+              </span>
+            </label>
+          </div>
+          <div id="dpsSimResult" class="p-3 rounded-xl bg-slate-950/85 border border-cyan-500/35 text-xs text-slate-200 leading-relaxed"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 4: MASTER DATA & SECURITY SETTINGS                            -->
+      <!-- ================================================================= -->
+      <section id="tabMaster" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div class="lg:col-span-5 panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+          <h2 class="text-sm font-black text-rose-300">🔐 보안 · 패스코드 · 서명 키 설정</h2>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            정적 웹 환경 특성상 기본 서명 키는 게임 본체(<code class="text-slate-200">random_character_defense.html</code>)와 일치해야 즉시 검증됩니다.
+            보안을 높이려면 아래 서명 키를 변경하고, 생성된 코드를 본체 파일에도 함께 반영해 배포하세요.
+          </p>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-[11px] font-bold text-slate-300">새 운영자 패스코드 변경</span>
+            <div class="flex gap-1.5">
+              <input id="txtNewAdminPass" type="password" placeholder="새 패스코드 (4자 이상)" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white" />
+              <button id="btnSaveAdminPass" type="button" class="btn-press px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-xs font-extrabold text-white">변경</button>
+            </div>
+          </label>
+
+          <label class="flex flex-col gap-1 pt-2 border-t border-slate-800">
+            <span class="text-[11px] font-bold text-amber-300">쿠폰 서명 비밀키 (<code class="text-[10px]">COUPON_SIGN_SECRET</code>)</span>
+            <div class="flex gap-1.5">
+              <input id="txtSignSecret" type="text" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-amber-200" />
+              <button id="btnSaveSignSecret" type="button" class="btn-press px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-xs font-black text-slate-950">저장</button>
+              <button id="btnResetSignSecret" type="button" class="btn-press px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">기본값</button>
+            </div>
+          </label>
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300">
+            본체 반영용 상수: <span id="lblSecretSnippet" class="text-emerald-300 select-all"></span>
+          </div>
+
+          <!-- Firebase Config Setup Helper -->
+          <div id="fbConfigCard" class="mt-2 pt-3 border-t border-slate-800 flex flex-col gap-2">
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-xs font-black text-sky-300">🔥 Firebase 프로젝트 연동 (<code class="text-[10px]">firebase-config.js</code>)</h3>
+              <span id="lblFbConfigStatus" class="text-[11px] font-bold text-amber-300">확인 중...</span>
+            </div>
+            <p class="text-[10px] text-slate-400 leading-relaxed">
+              Firebase 콘솔(프로젝트 설정 → 내 앱 → 웹 앱)에서 받은 <code class="text-slate-200">firebaseConfig</code> 코드 또는 JSON을 붙여넣으세요.
+              브라우저 테스트 적용 또는 <code class="text-slate-200">firebase-config.js</code> 다운로드가 가능합니다.
+            </p>
+            <textarea id="txtFbConfigInput" rows="4" placeholder='{ "apiKey": "...", "authDomain": "...", "projectId": "...", "appId": "..." }' class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-[11px] font-mono text-sky-200 focus:outline-none focus:border-sky-400"></textarea>
+            <div class="flex flex-wrap gap-1.5">
+              <button id="btnSaveFbConfigOverride" type="button" class="btn-press flex-1 py-1.5 px-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-extrabold text-white">⚡ 로컬 테스트 적용</button>
+              <button id="btnDownloadFbConfigJs" type="button" class="btn-press flex-1 py-1.5 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-extrabold text-white">📄 firebase-config.js 저장</button>
+              <button id="btnClearFbConfigOverride" type="button" class="btn-press py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">초기화</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 panel-glass border border-slate-700/80 rounded-2xl p-4 flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-sm font-black text-slate-200">📚 마스터 데이터 조회 (유닛 34종 · 장비 65종)</h2>
+            <div class="flex gap-1.5">
+              <button id="btnMasterUnits" type="button" class="btn-press px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 text-xs font-black">유닛 (34)</button>
+              <button id="btnMasterItems" type="button" class="btn-press px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold">장비 (65)</button>
+              <input id="txtMasterSearch" type="text" placeholder="이름·ID 검색..." class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white w-36" />
+            </div>
+          </div>
+          <div id="masterDataList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[460px] overflow-y-auto pr-1"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const SAVE_KEY = 'rcd_save_v1';
+      const ADMIN_AUTH_KEY = 'rcd_admin_auth_v1';
+      const ADMIN_SESSION_KEY = 'rcd_admin_session_v1';
+      const ADMIN_COUPON_HISTORY_KEY = 'rcd_admin_coupons_v1';
+      const ADMIN_COUPON_TABLE_KEY = 'rcd_admin_coupon_table_v1';
+      const DEFAULT_PASS = 'rcd-admin-2026';
+      const DEFAULT_SIGN_SECRET = 'RCD_ADMIN_SIG_2026_V1';
+
+      // =====================================================================
+      // PURE-JS SHA-256 & BASE64URL (Matches random_character_defense.html)
+      // =====================================================================
+      function sha256Hex(str) {
+        const bytes = new TextEncoder().encode(str);
+        const K = [
+          0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+          0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+          0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+          0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+          0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+          0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+          0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+          0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+        ];
+        const bitLen = bytes.length * 8;
+        const withOne = bytes.length + 1;
+        const padLen = (withOne % 64 <= 56) ? (56 - (withOne % 64)) : (64 + 56 - (withOne % 64));
+        const padded = new Uint8Array(withOne + padLen + 8);
+        padded.set(bytes);
+        padded[bytes.length] = 0x80;
+        const dv = new DataView(padded.buffer);
+        dv.setUint32(padded.length - 8, Math.floor(bitLen / 0x100000000), false);
+        dv.setUint32(padded.length - 4, bitLen >>> 0, false);
+        let H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+        const W = new Uint32Array(64);
+        const rotr = (n, x) => (x >>> n) | (x << (32 - n));
+        for (let i = 0; i < padded.length; i += 64) {
+          for (let t = 0; t < 16; t++) W[t] = dv.getUint32(i + t * 4, false);
+          for (let t = 16; t < 64; t++) {
+            const s0 = rotr(7, W[t - 15]) ^ rotr(18, W[t - 15]) ^ (W[t - 15] >>> 3);
+            const s1 = rotr(17, W[t - 2]) ^ rotr(19, W[t - 2]) ^ (W[t - 2] >>> 10);
+            W[t] = (W[t - 16] + s0 + W[t - 7] + s1) >>> 0;
+          }
+          let [a, b, c, d, e, f, g, h] = H;
+          for (let t = 0; t < 64; t++) {
+            const S1 = rotr(6, e) ^ rotr(11, e) ^ rotr(25, e);
+            const ch = (e & f) ^ (~e & g);
+            const temp1 = (h + S1 + ch + K[t] + W[t]) >>> 0;
+            const S0 = rotr(2, a) ^ rotr(13, a) ^ rotr(22, a);
+            const maj = (a & b) ^ (a & c) ^ (b & c);
+            const temp2 = (S0 + maj) >>> 0;
+            h = g; g = f; f = e; e = (d + temp1) >>> 0;
+            d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+          }
+          H = [(H[0]+a)>>>0,(H[1]+b)>>>0,(H[2]+c)>>>0,(H[3]+d)>>>0,(H[4]+e)>>>0,(H[5]+f)>>>0,(H[6]+g)>>>0,(H[7]+h)>>>0];
+        }
+        return H.map(x => x.toString(16).padStart(8, '0')).join('');
+      }
+
+      function encodeB64UrlUtf8(str) {
+        const bytes = new TextEncoder().encode(str);
+        let bin = '';
+        bytes.forEach(b => { bin += String.fromCharCode(b); });
+        return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      }
+
+      function decodeB64UrlUtf8(b64u) {
+        let b64 = b64u.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) b64 += '=';
+        const bin = atob(b64);
+        const bytes = Uint8Array.from(bin, ch => ch.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+      }
+
+      function encodeRcd1Save(obj) {
+        const bytes = new TextEncoder().encode(JSON.stringify(obj));
+        let bin = '';
+        bytes.forEach(b => { bin += String.fromCharCode(b); });
+        return 'RCD1:' + btoa(bin);
+      }
+
+      // =====================================================================
+      // MASTER GAME TABLES (Synced with random_character_defense.html)
+      // =====================================================================
+      const TIER_META = [
+        { name: '일반', color: '#cbd5e1', badgeBg: '#334155', sellGold: 25 },
+        { name: '희귀', color: '#4ade80', badgeBg: '#065f46', sellGold: 55 },
+        { name: '레어', color: '#38bdf8', badgeBg: '#075985', sellGold: 120 },
+        { name: '영웅', color: '#c084fc', badgeBg: '#581c87', sellGold: 260 },
+        { name: '전설', color: '#fbbf24', badgeBg: '#78350f', sellGold: 550 },
+        { name: '신화', color: '#fb7185', badgeBg: '#881337', sellGold: 1200 },
+        { name: '초월', color: '#2dd4bf', badgeBg: '#134e4a', sellGold: 2500 }
+      ];
+
+      const UNIT_DB = [
+        [
+          { name: '견습 병사', role: '근접 단일 물리', dmg: 24, cd: 0.75, range: 135, splash: 0, slow: 0, skill: '전진 베기 (2배 강타)' },
+          { name: '견습 투석병', role: '원거리 단일 물리', dmg: 20, cd: 0.60, range: 195, splash: 0, slow: 0, skill: '강타 투석 (소형 폭발)' },
+          { name: '수습 마법사', role: '원거리 기초 마법', dmg: 28, cd: 0.85, range: 185, splash: 35, slow: 0, skill: '마력탄 (범위 타격)' },
+          { name: '견습 창병', role: '근접 관통 찌르기 [신규]', dmg: 26, cd: 0.70, range: 155, splash: 25, slow: 0, skill: '연속 창격 (관통 2연타)' },
+          { name: '견습 도끼병', role: '근접 중타격 파쇄 [신규]', dmg: 32, cd: 0.88, range: 135, splash: 30, slow: 0, skill: '대지 가르기 (강타 스플래시)' },
+          { name: '견습 궁수', role: '원거리 고속 연사 [신규]', dmg: 22, cd: 0.52, range: 215, splash: 0, slow: 0, skill: '더블 샷 (고속 2연사)' },
+          { name: '견습 방패병', role: '근접 저지 & 둔화 [신규]', dmg: 25, cd: 0.78, range: 130, splash: 25, slow: 0.20, skill: '방패 밀치기 (둔화 충격)' }
+        ],
+        [
+          { name: '숲의 정찰자', role: '초고속 원거리 연사', dmg: 42, cd: 0.45, range: 220, splash: 0, slow: 0, skill: '질풍 연사 (관통 화살)' },
+          { name: '맹독 도적', role: '근접 방어무시 중독', dmg: 56, cd: 0.52, range: 145, splash: 0, slow: 0.15, skill: '치명적 맹독 (지속 피해)' },
+          { name: '바람 술사', role: '광역 바람 회오리', dmg: 48, cd: 0.75, range: 205, splash: 55, slow: 0.20, skill: '돌풍 회오리 (광역 둔화)' }
+        ],
+        [
+          { name: '빙결 마법사', role: '광역 빙결 슬로우(CC)', dmg: 85, cd: 0.80, range: 225, splash: 75, slow: 0.45, skill: '프로스트 노바 (광역 빙결)' },
+          { name: '파도 창술사', role: '중거리 물결 강타', dmg: 115, cd: 0.62, range: 175, splash: 45, slow: 0.15, skill: '해일 찌르기 (직선 폭발)' },
+          { name: '마도 포병', role: '장거리 마력 포격', dmg: 130, cd: 0.90, range: 260, splash: 80, slow: 0, skill: '마도 포격 (대형 스플래시)' },
+          { name: '서리 궁수', role: '원거리 빙결 화살 [신규]', dmg: 105, cd: 0.55, range: 250, splash: 40, slow: 0.35, skill: '절대영도 화살 (빙결 관통)' },
+          { name: '청옥 성기사', role: '근접 룬 충격파 [신규]', dmg: 125, cd: 0.68, range: 165, splash: 65, slow: 0.20, skill: '사파이어 심판 (성광 폭발)' },
+          { name: '영혼 인도자', role: '유도 영혼 마법탄 [신규]', dmg: 110, cd: 0.60, range: 240, splash: 55, slow: 0.25, skill: '원혼의 속박 (광역 영혼불)' },
+          { name: '폭풍 검사', role: '근접 연쇄 검기 [신규]', dmg: 120, cd: 0.50, range: 180, splash: 45, slow: 0, skill: '질풍참 (초고속 검기)' }
+        ],
+        [
+          { name: '공허의 쌍검 기사', role: '고속 연쇄 번개 베기', dmg: 235, cd: 0.50, range: 180, splash: 65, slow: 0, skill: '뇌전 일섬 (광역 번개)' },
+          { name: '뇌전 저격수', role: '초장거리 보스 저격', dmg: 340, cd: 0.78, range: 330, splash: 40, slow: 0, skill: '차원 관통탄 (보스 추가피해)' },
+          { name: '공허 대마법사', role: '중력장 광역 폭격', dmg: 270, cd: 0.72, range: 245, splash: 95, slow: 0.35, skill: '중력 붕괴 (블랙홀 폭발)' },
+          { name: '그림자 처형자', role: '단일 암살 폭딜 [신규]', dmg: 365, cd: 0.48, range: 170, splash: 35, slow: 0, skill: '암영 단두대 (치명타 처형)' },
+          { name: '암흑 대검기사', role: '대검 광역 강타 [신규]', dmg: 310, cd: 0.65, range: 190, splash: 90, slow: 0.20, skill: '흑염 대지참 (광역 암흑파)' },
+          { name: '영혼 수확자', role: '사슬 수확 & 둔화 [신규]', dmg: 285, cd: 0.58, range: 220, splash: 80, slow: 0.40, skill: '사신의 낫질 (영혼 착취)' }
+        ],
+        [
+          { name: '태양 용기사', role: '보스 극딜 & 화염 참격', dmg: 560, cd: 0.55, range: 210, splash: 85, slow: 0, skill: '태양룡의 일격 (초고열 검기)' },
+          { name: '불사조 대마도사', role: '초광역 화염 메테오', dmg: 620, cd: 0.75, range: 270, splash: 125, slow: 0.25, skill: '피닉스 메테오 (화염 폭격)' },
+          { name: '황금의 발키리', role: '신성 창격 & 방어파괴', dmg: 530, cd: 0.50, range: 235, splash: 75, slow: 0.30, skill: '천상의 성창 (신성 섬광)' },
+          { name: '천둥 제왕', role: '광역 뇌전 폭격 [신규]', dmg: 610, cd: 0.58, range: 260, splash: 115, slow: 0.30, skill: '천벌의 뇌우 (번개 폭풍)' },
+          { name: '태양 궁수', role: '초장거리 태양 레이저 [신규]', dmg: 680, cd: 0.52, range: 350, splash: 60, slow: 0, skill: '솔라 레이 (초장거리 관통광)' },
+          { name: '사막의 여제', role: '광역 화염 모래폭풍 [신규]', dmg: 590, cd: 0.62, range: 255, splash: 130, slow: 0.40, skill: '태양의 모래폭풍 (광역 열파)' }
+        ],
+        [
+          { name: '성좌의 대천사', role: '전장 성좌 심판 (신화)', dmg: 1400, cd: 0.48, range: 350, splash: 150, slow: 0.40, skill: '천상 성좌 심판 (초광역 성광)' },
+          { name: '차원의 사신', role: '시공간 절단 처형 (신화)', dmg: 1650, cd: 0.52, range: 310, splash: 120, slow: 0.35, skill: '시공간 절단 (체력비례 극딜)' },
+          { name: '창세의 용신', role: '은하 브레스 폭격 (신화)', dmg: 1520, cd: 0.50, range: 340, splash: 165, slow: 0.45, skill: '성운 용언 브레스 (전역 초토화)' },
+          { name: '무한의 성좌술사', role: '전장 시간왜곡 & 운석 (신화) [신규]', dmg: 1580, cd: 0.46, range: 360, splash: 160, slow: 0.50, skill: '아스트랄 메테오 (시공간 운석우)' },
+          { name: '심판의 오메가 군주', role: '최종 연쇄 참격 & 심판 (신화) [신규]', dmg: 1750, cd: 0.45, range: 330, splash: 155, slow: 0.40, skill: '오메가 라그나로크 (종언의 일격)' },
+          { name: '사막의 영혼황제', role: '사막 열파 & 영혼 수확 (신화) [신규]', dmg: 1680, cd: 0.47, range: 350, splash: 165, slow: 0.48, skill: '황금 영혼폭풍 (열파 & 영혼 착취)' }
+        ],
+        [
+          { name: '별빛 창세의 초월신', role: '전역 성좌 개벽 (초월)', dmg: 3800, cd: 0.42, range: 390, splash: 195, slow: 0.50, skill: '코스믹 제네시스 (초광역 성광)' },
+          { name: '무한 종언의 시공패왕', role: '차원 붕괴 극딜 (초월)', dmg: 4400, cd: 0.40, range: 365, splash: 175, slow: 0.45, skill: '시공 붕괴참 (차원 처형)' },
+          { name: '영겁 시공의 오메가 절대자', role: '절대 시공 지배 (초월)', dmg: 4100, cd: 0.38, range: 400, splash: 210, slow: 0.55, skill: '이터니티 아포칼립스 (전역 심판)' }
+        ]
+      ];
+
+      const MAPS_META = [
+        { key: 'meadow',    worldNum: 1,  title: '초원 왕국 성곽',   mbName: '오크 대장군',            bbName: '고대 숲의 킹 트롤' },
+        { key: 'desert',    worldNum: 2,  title: '사막 태양 신전',   mbName: '자칼 심판관 아누비스',   bbName: '태양 파라오 거신' },
+        { key: 'glacier',   worldNum: 3,  title: '만년설 빙하 협곡', mbName: '폭설의 예티 족장',       bbName: '절대영도 빙하 드래곤' },
+        { key: 'volcano',   worldNum: 4,  title: '용암 화산 요새',   mbName: '용암 대장장이 이프리트', bbName: '파멸의 화산 마왕' },
+        { key: 'forest',    worldNum: 5,  title: '고대 엘프 신비림', mbName: '타락한 정령왕 엔트',     bbName: '달빛 에메랄드 히드라' },
+        { key: 'atlantis',  worldNum: 6,  title: '심해 산호 유적',   mbName: '심해의 나가 군주',       bbName: '심해 제왕 크라켄' },
+        { key: 'graveyard', worldNum: 7,  title: '유령 묘지 성채',   mbName: '저주받은 듀라한 기사',   bbName: '불멸의 리치 황제' },
+        { key: 'sky',       worldNum: 8,  title: '천공 구름 신전',   mbName: '폭풍 날개 그리핀 로드',  bbName: '타락한 천공 심판자' },
+        { key: 'clockwork', worldNum: 9,  title: '마법 시계탑 공방', mbName: '증기 거신 크로노 골렘',  bbName: '시계탑 오메가 기계신' },
+        { key: 'void',      worldNum: 10, title: '성좌 공허 차원',   mbName: '심연의 차원 포식자',     bbName: '창세의 공허 성좌신' }
+      ];
+
+      const SHOP_CATALOG = [
+        { id: 'w_0', name: '수습생의 철검', slot: 'weapon', tier: 0, statType: 'atkPct', baseVal: 10, costGold: 440, costGems: 0, extraStat: 'bossDmgPct', extraVal: 4 },
+        { id: 'w_1', name: '에메랄드 장궁', slot: 'weapon', tier: 1, statType: 'atkPct', baseVal: 18, costGold: 1090, costGems: 0, extraStat: 'critPct', extraVal: 4 },
+        { id: 'w_2', name: '혹한의 수정 지팡이', slot: 'weapon', tier: 2, statType: 'atkPct', baseVal: 30, costGold: 2600, costGems: 0, extraStat: 'slowPct', extraVal: 12 },
+        { id: 'w_3', name: '공허의 쌍검', slot: 'weapon', tier: 3, statType: 'atkPct', baseVal: 48, costGold: 5800, costGems: 0, extraStat: 'aspdPct', extraVal: 8 },
+        { id: 'w_4', name: '태양룡의 대검', slot: 'weapon', tier: 4, statType: 'atkPct', baseVal: 72, costGold: 0, costGems: 87, extraStat: 'bossDmgPct', extraVal: 18 },
+        { id: 'w_5', name: '성좌의 창세 할버드', slot: 'weapon', tier: 5, statType: 'atkPct', baseVal: 105, costGold: 0, costGems: 198, extraStat: 'mythicDmgPct', extraVal: 25 },
+        { id: 'a_0', name: '모험가의 천 튜닉', slot: 'armor', tier: 0, statType: 'aspdPct', baseVal: 4, costGold: 440, costGems: 0, extraStat: 'startGold', extraVal: 15 },
+        { id: 'a_1', name: '숲 정찰자 가죽갑옷', slot: 'armor', tier: 1, statType: 'aspdPct', baseVal: 8, costGold: 1040, costGems: 0, extraStat: 'goldKillPct', extraVal: 8 },
+        { id: 'a_2', name: '미스릴 사슬갑옷', slot: 'armor', tier: 2, statType: 'aspdPct', baseVal: 12, costGold: 2490, costGems: 0, extraStat: 'auraBoostPct', extraVal: 12 },
+        { id: 'a_3', name: '암흑 기사단 중갑', slot: 'armor', tier: 3, statType: 'aspdPct', baseVal: 18, costGold: 5460, costGems: 0, extraStat: 'bossDmgPct', extraVal: 14 },
+        { id: 'a_4', name: '황금 용린 갑옷', slot: 'armor', tier: 4, statType: 'aspdPct', baseVal: 24, costGold: 0, costGems: 84, extraStat: 'goldKillPct', extraVal: 20 },
+        { id: 'a_5', name: '대천사의 날개 성갑', slot: 'armor', tier: 5, statType: 'aspdPct', baseVal: 32, costGold: 0, costGems: 185, extraStat: 'auraBoostPct', extraVal: 30 },
+        { id: 'r_0', name: '구리 훈련 반지', slot: 'ring', tier: 0, statType: 'critPct', baseVal: 6, costGold: 420, costGems: 0, extraStat: 'atkPct', extraVal: 4 },
+        { id: 'r_1', name: '비취 집중 반지', slot: 'ring', tier: 1, statType: 'critPct', baseVal: 10, costGold: 1040, costGems: 0, extraStat: 'aspdPct', extraVal: 4 },
+        { id: 'r_2', name: '청옥 마력 반지', slot: 'ring', tier: 2, statType: 'critPct', baseVal: 15, costGold: 2440, costGems: 0, extraStat: 'splashPct', extraVal: 15 },
+        { id: 'r_3', name: '혈석 광전사 반지', slot: 'ring', tier: 3, statType: 'critPct', baseVal: 24, costGold: 5630, costGems: 0, extraStat: 'atkPct', extraVal: 16 },
+        { id: 'r_4', name: '불사조의 태양 반지', slot: 'ring', tier: 4, statType: 'critPct', baseVal: 35, costGold: 0, costGems: 87, extraStat: 'splashPct', extraVal: 28 },
+        { id: 'r_5', name: '무한 성좌의 고리', slot: 'ring', tier: 5, statType: 'critPct', baseVal: 60, costGold: 0, costGems: 198, extraStat: 'mythicDmgPct', extraVal: 28 },
+        { id: 'l_0', name: '낡은 동전 주머니', slot: 'relic', tier: 0, statType: 'startGold', baseVal: 30, costGold: 440, costGems: 0, extraStat: 'goldKillPct', extraVal: 5 },
+        { id: 'l_1', name: '풍요의 나뭇잎 부적', slot: 'relic', tier: 1, statType: 'startGold', baseVal: 60, costGold: 1090, costGems: 0, extraStat: 'auraBoostPct', extraVal: 8 },
+        { id: 'l_2', name: '고대 상인의 저울', slot: 'relic', tier: 2, statType: 'startGold', baseVal: 95, costGold: 2550, costGems: 0, extraStat: 'goldKillPct', extraVal: 14 },
+        { id: 'l_3', name: '심연의 황금 성배', slot: 'relic', tier: 3, statType: 'startGold', baseVal: 140, costGold: 5540, costGems: 0, extraStat: 'bossDmgPct', extraVal: 15 },
+        { id: 'l_4', name: '별빛 왕관 성유물', slot: 'relic', tier: 4, statType: 'startGold', baseVal: 195, costGold: 0, costGems: 84, extraStat: 'auraBoostPct', extraVal: 24 },
+        { id: 'l_5', name: '창세신의 차원 나침반', slot: 'relic', tier: 5, statType: 'startGold', baseVal: 260, costGold: 0, costGems: 188, extraStat: 'goldKillPct', extraVal: 35 },
+        { id: 'c_w1', name: '민병대의 단창', slot: 'weapon', tier: 0, statType: 'atkPct', baseVal: 11, costGold: 470, costGems: 0, extraStat: 'bossDmgPct', extraVal: 6 },
+        { id: 'c_w2', name: '사냥꾼의 떡갈나무 활', slot: 'weapon', tier: 0, statType: 'atkPct', baseVal: 9, costGold: 450, costGems: 0, extraStat: 'aspdPct', extraVal: 3 },
+        { id: 'c_w3', name: '초보 술사의 참나무 봉', slot: 'weapon', tier: 0, statType: 'atkPct', baseVal: 10, costGold: 470, costGems: 0, extraStat: 'slowPct', extraVal: 6 },
+        { id: 'c_a1', name: '경비병의 가죽 흉갑', slot: 'armor', tier: 0, statType: 'aspdPct', baseVal: 5, costGold: 450, costGems: 0, extraStat: 'atkPct', extraVal: 4 },
+        { id: 'c_a2', name: '순례자의 바람 망토', slot: 'armor', tier: 0, statType: 'aspdPct', baseVal: 4, costGold: 470, costGems: 0, extraStat: 'auraBoostPct', extraVal: 6 },
+        { id: 'c_r1', name: '주석 행운 반지', slot: 'ring', tier: 0, statType: 'critPct', baseVal: 7, costGold: 440, costGems: 0, extraStat: 'goldKillPct', extraVal: 6 },
+        { id: 'c_r2', name: '서리 조각 은반지', slot: 'ring', tier: 0, statType: 'critPct', baseVal: 6, costGold: 450, costGems: 0, extraStat: 'slowPct', extraVal: 7 },
+        { id: 'c_r3', name: '불꽃 부싯돌 가락지', slot: 'ring', tier: 0, statType: 'critPct', baseVal: 6, costGold: 470, costGems: 0, extraStat: 'splashPct', extraVal: 8 },
+        { id: 'c_l1', name: '길잡이의 낡은 나침반', slot: 'relic', tier: 0, statType: 'startGold', baseVal: 35, costGold: 490, costGems: 0, extraStat: 'aspdPct', extraVal: 3 },
+        { id: 'c_l2', name: '대장간의 숫돌 부적', slot: 'relic', tier: 0, statType: 'startGold', baseVal: 28, costGold: 470, costGems: 0, extraStat: 'bossDmgPct', extraVal: 6 },
+        { id: 'u_w1', name: '은빛 결투사의 레이피어', slot: 'weapon', tier: 1, statType: 'atkPct', baseVal: 20, costGold: 1140, costGems: 0, extraStat: 'aspdPct', extraVal: 5 },
+        { id: 'u_w2', name: '화염 파편 도끼', slot: 'weapon', tier: 1, statType: 'atkPct', baseVal: 19, costGold: 1180, costGems: 0, extraStat: 'splashPct', extraVal: 12 },
+        { id: 'u_a1', name: '질풍 추적자의 외투', slot: 'armor', tier: 1, statType: 'aspdPct', baseVal: 9, costGold: 1110, costGems: 0, extraStat: 'critPct', extraVal: 6 },
+        { id: 'u_a2', name: '강철 요새의 판금갑', slot: 'armor', tier: 1, statType: 'aspdPct', baseVal: 7, costGold: 1140, costGems: 0, extraStat: 'bossDmgPct', extraVal: 10 },
+        { id: 'u_r1', name: '황금 상단의 인장 반지', slot: 'ring', tier: 1, statType: 'critPct', baseVal: 11, costGold: 1080, costGems: 0, extraStat: 'goldKillPct', extraVal: 10 },
+        { id: 'u_r2', name: '빙하 수정 고리', slot: 'ring', tier: 1, statType: 'critPct', baseVal: 10, costGold: 1110, costGems: 0, extraStat: 'slowPct', extraVal: 10 },
+        { id: 'u_l1', name: '지휘관의 전투 뿔피리', slot: 'relic', tier: 1, statType: 'startGold', baseVal: 55, costGold: 1140, costGems: 0, extraStat: 'auraBoostPct', extraVal: 12 },
+        { id: 'u_l2', name: '연금술사의 황금 플라스크', slot: 'relic', tier: 1, statType: 'startGold', baseVal: 65, costGold: 1210, costGems: 0, extraStat: 'mythicDmgPct', extraVal: 8 },
+        { id: 'e_w1', name: '폭풍 뇌전의 창', slot: 'weapon', tier: 2, statType: 'atkPct', baseVal: 32, costGold: 2690, costGems: 0, extraStat: 'splashPct', extraVal: 16 },
+        { id: 'e_w2', name: '거신 사냥꾼의 대궁', slot: 'weapon', tier: 2, statType: 'atkPct', baseVal: 34, costGold: 2790, costGems: 0, extraStat: 'bossDmgPct', extraVal: 14 },
+        { id: 'e_a1', name: '서리 수호자의 미스릴 갑', slot: 'armor', tier: 2, statType: 'aspdPct', baseVal: 13, costGold: 2620, costGems: 0, extraStat: 'slowPct', extraVal: 14 },
+        { id: 'e_r1', name: '성광 사제의 축복 반지', slot: 'ring', tier: 2, statType: 'critPct', baseVal: 17, costGold: 2650, costGems: 0, extraStat: 'auraBoostPct', extraVal: 16 },
+        { id: 'e_l1', name: '황실 보물창고 열쇠', slot: 'relic', tier: 2, statType: 'startGold', baseVal: 105, costGold: 2760, costGems: 0, extraStat: 'goldKillPct', extraVal: 18 },
+        { id: 'e_l2', name: '용혈석 각성 촛대', slot: 'relic', tier: 2, statType: 'startGold', baseVal: 90, costGold: 2820, costGems: 0, extraStat: 'mythicDmgPct', extraVal: 14 },
+        { id: 'h_w1', name: '심연 절단자의 대검', slot: 'weapon', tier: 3, statType: 'atkPct', baseVal: 52, costGold: 6130, costGems: 0, extraStat: 'bossDmgPct', extraVal: 20 },
+        { id: 'h_a1', name: '천둥 군주의 비늘 갑옷', slot: 'armor', tier: 3, statType: 'aspdPct', baseVal: 20, costGold: 5880, costGems: 0, extraStat: 'splashPct', extraVal: 22 },
+        { id: 'h_r1', name: '만월의 비전 마도 반지', slot: 'ring', tier: 3, statType: 'critPct', baseVal: 26, costGold: 6010, costGems: 0, extraStat: 'mythicDmgPct', extraVal: 18 },
+        { id: 'h_l1', name: '선대 왕의 지휘 홀', slot: 'relic', tier: 3, statType: 'startGold', baseVal: 155, costGold: 6220, costGems: 0, extraStat: 'auraBoostPct', extraVal: 22 },
+        { id: 'lg_w1', name: '별부수기 성검 엑스칼리버', slot: 'weapon', tier: 4, statType: 'atkPct', baseVal: 78, costGold: 13100, costGems: 0, extraStat: 'splashPct', extraVal: 30 },
+        { id: 'lg_a1', name: '영겁의 성역 수호갑', slot: 'armor', tier: 4, statType: 'aspdPct', baseVal: 26, costGold: 0, costGems: 91, extraStat: 'slowPct', extraVal: 22 },
+        { id: 'lg_l1', name: '황금 제국의 무한 화수분', slot: 'relic', tier: 4, statType: 'startGold', baseVal: 215, costGold: 14110, costGems: 0, extraStat: 'goldKillPct', extraVal: 28 },
+        { id: 'my_w1', name: '종말의 성좌 파멸창 롱기누스', slot: 'weapon', tier: 5, statType: 'atkPct', baseVal: 115, costGold: 0, costGems: 208, extraStat: 'bossDmgPct', extraVal: 35 },
+        { id: 'my_a1', name: '시공 초월자의 성좌 예복', slot: 'armor', tier: 5, statType: 'aspdPct', baseVal: 36, costGold: 0, costGems: 205, extraStat: 'mythicDmgPct', extraVal: 35 },
+        { id: 'tr_g_w1', name: '여명의 성좌 대검', slot: 'weapon', tier: 6, statType: 'atkPct', baseVal: 145, costGold: 0, costGems: 320, gachaOnly: true, extraStat: 'mythicDmgPct', extraVal: 40 },
+        { id: 'tr_g_w2', name: '용살자의 파멸 창', slot: 'weapon', tier: 6, statType: 'atkPct', baseVal: 140, costGold: 0, costGems: 320, gachaOnly: true, extraStat: 'bossDmgPct', extraVal: 45 },
+        { id: 'tr_g_a1', name: '폭풍 군주의 비늘 갑옷', slot: 'armor', tier: 6, statType: 'aspdPct', baseVal: 44, costGold: 0, costGems: 310, gachaOnly: true, extraStat: 'atkPct', extraVal: 32 },
+        { id: 'tr_g_a2', name: '천공 수호자의 성갑', slot: 'armor', tier: 6, statType: 'aspdPct', baseVal: 42, costGold: 0, costGems: 310, gachaOnly: true, extraStat: 'auraBoostPct', extraVal: 42 },
+        { id: 'tr_g_r1', name: '심연 마왕의 혈옥 반지', slot: 'ring', tier: 6, statType: 'critPct', baseVal: 78, costGold: 0, costGems: 320, gachaOnly: true, extraStat: 'splashPct', extraVal: 45 },
+        { id: 'tr_g_r2', name: '태양신의 불멸 가락지', slot: 'ring', tier: 6, statType: 'critPct', baseVal: 75, costGold: 0, costGems: 320, gachaOnly: true, extraStat: 'aspdPct', extraVal: 26 },
+        { id: 'tr_g_l1', name: '고대 용왕의 황금 성배', slot: 'relic', tier: 6, statType: 'startGold', baseVal: 340, costGold: 0, costGems: 315, gachaOnly: true, extraStat: 'goldKillPct', extraVal: 48 },
+        { id: 'tr_g_l2', name: '별빛 예언자의 시간 모래시계', slot: 'relic', tier: 6, statType: 'startGold', baseVal: 325, costGold: 0, costGems: 315, gachaOnly: true, extraStat: 'slowPct', extraVal: 38 }
+      ];
+
+      const TALENT_DEFS = [
+        { key: 'startGoldLv', title: '💰 풍요의 서약', unit: 'G', perLv: 40, maxLv: 20 },
+        { key: 'atkPctLv',    title: '⚔️ 영원한 결의', unit: '%', perLv: 8,  maxLv: 20 },
+        { key: 'skillLv',     title: '⚡ 비전 각성',   unit: '%', perLv: 10, maxLv: 20 },
+        { key: 'luckLv',      title: '🎲 운명의 부름', unit: '%p', perLv: 1.5, maxLv: 15 },
+        { key: 'econLv',      title: '🪙 연금술의 손길', unit: '%', perLv: 6,  maxLv: 15 }
+      ];
+
+      const DIFFICULTY_MODES = {
+        normal:    { key: 'normal',    label: '노멀',       badge: '🟢 노멀',       hpMult: 3.5,  defMult: 1.35, rewardMult: 1.35 },
+        hard:      { key: 'hard',      label: '하드',       badge: '🔥 하드',       hpMult: 12.0, defMult: 1.80, rewardMult: 2.20 },
+        nightmare: { key: 'nightmare', label: '나이트메어', badge: '💀 나이트메어', hpMult: 40.0, defMult: 2.40, rewardMult: 3.50 }
+      };
+
+      // =====================================================================
+      // ADMIN AUTH & STATE
+      // =====================================================================
+      function getAdminAuth() {
+        try {
+          const raw = localStorage.getItem(ADMIN_AUTH_KEY);
+          if (raw) {
+            const obj = JSON.parse(raw);
+            if (obj && obj.passHash) {
+              return {
+                passHash: obj.passHash,
+                signSecret: obj.signSecret || DEFAULT_SIGN_SECRET
+              };
+            }
+          }
+        } catch (_) {}
+        return {
+          passHash: sha256Hex(DEFAULT_PASS),
+          signSecret: DEFAULT_SIGN_SECRET
+        };
+      }
+
+      function saveAdminAuth(auth) {
+        try { localStorage.setItem(ADMIN_AUTH_KEY, JSON.stringify(auth)); } catch (_) {}
+      }
+
+      function showToast(msg) {
+        const el = document.getElementById('adminToast');
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        clearTimeout(el._t);
+        el._t = setTimeout(() => el.classList.add('hidden'), 3000);
+      }
+
+      function copyText(str, okMsg) {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(str).catch(() => {});
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = str;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+          }
+          showToast(okMsg);
+        } catch (_) {
+          showToast('클립보드 복사에 실패했습니다.');
+        }
+      }
+
+      function downloadFile(filename, content, mime = 'application/json') {
+        const blob = new Blob([content], { type: mime });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      }
+
+      function getTodayDateKey() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+
+      function unlockAdminUI() {
+        document.getElementById('loginGate').classList.add('hidden');
+        document.getElementById('adminApp').classList.remove('hidden');
+        refreshLocalSaveBadge();
+        renderSecurityTab();
+      }
+
+      document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pass = document.getElementById('txtAdminPass').value;
+        const auth = getAdminAuth();
+        if (sha256Hex(pass) === auth.passHash) {
+          sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+          document.getElementById('lblLoginError').classList.add('hidden');
+          document.getElementById('txtAdminPass').value = '';
+          unlockAdminUI();
+        } else {
+          document.getElementById('lblLoginError').classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('btnResetAdminPass').addEventListener('click', () => {
+        const auth = getAdminAuth();
+        auth.passHash = sha256Hex(DEFAULT_PASS);
+        saveAdminAuth(auth);
+        showToast(`기본 패스코드(${DEFAULT_PASS})로 복원되었습니다.`);
+      });
+
+      document.getElementById('btnLockAdmin').addEventListener('click', () => {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+        document.getElementById('adminApp').classList.add('hidden');
+        document.getElementById('loginGate').classList.remove('hidden');
+      });
+
+      // Tab Switching
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tab = btn.dataset.tab;
+          document.querySelectorAll('.admin-tab-btn').forEach(b => {
+            const active = b.dataset.tab === tab;
+            b.className = active
+              ? 'admin-tab-btn btn-press px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs shadow'
+              : 'admin-tab-btn btn-press px-3.5 py-2 rounded-xl text-slate-300 hover:bg-slate-800 font-bold text-xs';
+          });
+          document.getElementById('tabCoupons').classList.toggle('hidden', tab !== 'coupons');
+          document.getElementById('tabSave').classList.toggle('hidden', tab !== 'save');
+          document.getElementById('tabBalance').classList.toggle('hidden', tab !== 'balance');
+          document.getElementById('tabMaster').classList.toggle('hidden', tab !== 'master');
+        });
+      });
+
+      function refreshLocalSaveBadge() {
+        const el = document.getElementById('lblLocalSaveBadge');
+        if (!el) return;
+        try {
+          const raw = localStorage.getItem(SAVE_KEY);
+          if (!raw) {
+            el.textContent = '로컬 세이브 없음 (새 게임 상태)';
+            return;
+          }
+          const d = JSON.parse(raw);
+          const hardOk = !!(d.stageRecords && d.stageRecords.void_10 && d.stageRecords.void_10.cleared);
+          const nmOk = !!(d.stageRecords && d.stageRecords['hard:void_10'] && d.stageRecords['hard:void_10'].cleared);
+          const diffStr = nmOk ? '나이트메어 해금' : (hardOk ? '하드 해금' : '노멀 진행중');
+          el.textContent = `로컬 세이브 감지 · ${(d.accountGold || 0).toLocaleString()}G · ${d.accountGems || 0}💎 · ${d.accountShards || 0}✨ · 장비 ${(d.inventory || []).length}개 (${diffStr})`;
+        } catch (_) {
+          el.textContent = '로컬 세이브 파싱 불가';
+        }
+      }
+
+      // =====================================================================
+      // TAB 1: EVENT COUPON STUDIO
+      // =====================================================================
+      let couponHistory = [];
+      let couponTable = {};
+      try { couponHistory = JSON.parse(localStorage.getItem(ADMIN_COUPON_HISTORY_KEY) || '[]') || []; } catch (_) { couponHistory = []; }
+      try { couponTable = JSON.parse(localStorage.getItem(ADMIN_COUPON_TABLE_KEY) || '{}') || {}; } catch (_) { couponTable = {}; }
+
+      function populateItemSelect(selectEl, includeNone = false) {
+        if (!selectEl) return;
+        selectEl.innerHTML = '';
+        if (includeNone) {
+          const noneOpt = document.createElement('option');
+          noneOpt.value = '';
+          noneOpt.textContent = '지급 안 함';
+          selectEl.appendChild(noneOpt);
+        }
+        for (let t = 6; t >= 0; t--) {
+          const items = SHOP_CATALOG.filter(it => it.tier === t);
+          if (!items.length) continue;
+          const grp = document.createElement('optgroup');
+          grp.label = `[${TIER_META[t].name}] 등급`;
+          items.forEach(it => {
+            const opt = document.createElement('option');
+            opt.value = it.id;
+            opt.textContent = `[${TIER_META[t].name}] ${it.name} (${it.slot})`;
+            grp.appendChild(opt);
+          });
+          selectEl.appendChild(grp);
+        }
+      }
+
+      populateItemSelect(document.getElementById('cpnItemId'), true);
+      populateItemSelect(document.getElementById('edAddItemId'), false);
+
+      function getCouponFormData() {
+        return {
+          couponId: (document.getElementById('cpnId').value || '').trim().toUpperCase(),
+          gold: Math.max(0, Math.floor(Number(document.getElementById('cpnGold').value) || 0)),
+          gems: Math.max(0, Math.floor(Number(document.getElementById('cpnGems').value) || 0)),
+          shards: Math.max(0, Math.floor(Number(document.getElementById('cpnShards').value) || 0)),
+          goldPotion: Math.max(0, Math.floor(Number(document.getElementById('cpnGp').value) || 0)),
+          shockScroll: Math.max(0, Math.floor(Number(document.getElementById('cpnSs').value) || 0)),
+          bossBane: Math.max(0, Math.floor(Number(document.getElementById('cpnBb').value) || 0)),
+          itemId: document.getElementById('cpnItemId').value || '',
+          itemLv: Math.max(0, Math.min(15, Math.floor(Number(document.getElementById('cpnItemLv').value) || 0))),
+          itemEx: Math.max(0, Math.min(5, Math.floor(Number(document.getElementById('cpnItemEx').value) || 0))),
+          expiresAt: (document.getElementById('cpnExp').value || '').trim()
+        };
+      }
+
+      function buildSignedCouponCode(data) {
+        const auth = getAdminAuth();
+        const payload = { c: data.couponId };
+        if (data.gold > 0) payload.g = data.gold;
+        if (data.gems > 0) payload.d = data.gems;
+        if (data.shards > 0) payload.s = data.shards;
+        if (data.goldPotion > 0) payload.gp = data.goldPotion;
+        if (data.shockScroll > 0) payload.ss = data.shockScroll;
+        if (data.bossBane > 0) payload.bb = data.bossBane;
+        if (data.itemId) {
+          payload.it = data.itemId;
+          if (data.itemLv > 0) payload.lv = data.itemLv;
+          if (data.itemEx > 0) payload.ex = data.itemEx;
+        }
+        if (data.expiresAt) payload.exp = data.expiresAt;
+        const b64 = encodeB64UrlUtf8(JSON.stringify(payload));
+        const sig = sha256Hex(`${auth.signSecret}|${b64}`).slice(0, 10).toUpperCase();
+        return `RCD1-${b64}-${sig}`;
+      }
+
+      function verifySignedCouponAdmin(rawCode) {
+        const auth = getAdminAuth();
+        const raw = (rawCode || '').trim();
+        if (!raw.startsWith('RCD1-')) return { ok: false, msg: 'RCD1- 으로 시작하는 서명 쿠폰이 아닙니다.' };
+        const firstDash = raw.indexOf('-');
+        const lastDash = raw.lastIndexOf('-');
+        if (lastDash <= firstDash) return { ok: false, msg: '형식 오류입니다.' };
+        const b64 = raw.slice(firstDash + 1, lastDash);
+        const sig = raw.slice(lastDash + 1).toUpperCase();
+        const expected = sha256Hex(`${auth.signSecret}|${b64}`).slice(0, 10).toUpperCase();
+        if (sig !== expected) return { ok: false, msg: '서명 불일치 (비밀키가 다르거나 코드가 변조되었습니다).' };
+        try {
+          const obj = JSON.parse(decodeB64UrlUtf8(b64));
+          const expired = obj.exp && getTodayDateKey() > obj.exp;
+          const itemTpl = obj.it ? SHOP_CATALOG.find(x => x.id === obj.it) : null;
+          const parts = [];
+          if (obj.g) parts.push(`${Number(obj.g).toLocaleString()}G`);
+          if (obj.d) parts.push(`${obj.d}💎`);
+          if (obj.s) parts.push(`${obj.s}✨`);
+          if (obj.gp) parts.push(`비약x${obj.gp}`);
+          if (obj.ss) parts.push(`충격파x${obj.ss}`);
+          if (obj.bb) parts.push(`영약x${obj.bb}`);
+          if (itemTpl) parts.push(`${itemTpl.name} +${obj.lv || 0}${obj.ex ? ` ★${obj.ex}` : ''}`);
+          return {
+            ok: !expired,
+            msg: `ID: ${obj.c} | 보상: ${parts.join(', ') || '없음'} | 만료: ${obj.exp || '무기한'}${expired ? ' (만료됨)' : ' ✅ 유효'}`
+          };
+        } catch (_) {
+          return { ok: false, msg: '페이로드 디코딩 오류' };
+        }
+      }
+
+      document.querySelectorAll('.coupon-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const p = btn.dataset.preset;
+          const d = getTodayDateKey().replace(/-/g, '').slice(2);
+          if (p === 'welcome') {
+            document.getElementById('cpnId').value = `OPEN_${d}`;
+            document.getElementById('cpnGold').value = 5000;
+            document.getElementById('cpnGems').value = 30;
+            document.getElementById('cpnShards').value = 20;
+            document.getElementById('cpnGp').value = 2;
+            document.getElementById('cpnSs').value = 1;
+            document.getElementById('cpnBb').value = 0;
+            document.getElementById('cpnItemId').value = '';
+          } else if (p === 'weekend') {
+            document.getElementById('cpnId').value = `WKND_${d}`;
+            document.getElementById('cpnGold').value = 3000;
+            document.getElementById('cpnGems').value = 50;
+            document.getElementById('cpnShards').value = 40;
+            document.getElementById('cpnGp').value = 1;
+            document.getElementById('cpnSs').value = 2;
+            document.getElementById('cpnBb').value = 1;
+            document.getElementById('cpnItemId').value = '';
+          } else if (p === 'compensate') {
+            document.getElementById('cpnId').value = `PATCH_${d}`;
+            document.getElementById('cpnGold').value = 10000;
+            document.getElementById('cpnGems').value = 80;
+            document.getElementById('cpnShards').value = 50;
+            document.getElementById('cpnGp').value = 3;
+            document.getElementById('cpnSs').value = 3;
+            document.getElementById('cpnBb').value = 2;
+            document.getElementById('cpnItemId').value = '';
+          } else if (p === 'legendary') {
+            document.getElementById('cpnId').value = `LEGEND_${d}`;
+            document.getElementById('cpnGold').value = 2000;
+            document.getElementById('cpnGems').value = 20;
+            document.getElementById('cpnShards').value = 30;
+            document.getElementById('cpnGp').value = 0;
+            document.getElementById('cpnSs').value = 0;
+            document.getElementById('cpnBb').value = 0;
+            document.getElementById('cpnItemId').value = 'lg_w1';
+            document.getElementById('cpnItemLv').value = 10;
+            document.getElementById('cpnItemEx').value = 0;
+          }
+          showToast('프리셋 값이 채워졌습니다.');
+        });
+      });
+
+      document.getElementById('btnGenCpnId').addEventListener('click', () => {
+        const d = getTodayDateKey().replace(/-/g, '').slice(2);
+        const rnd = Math.random().toString(36).slice(2, 6).toUpperCase();
+        document.getElementById('cpnId').value = `EVT_${d}_${rnd}`;
+      });
+
+      function formatCouponSummaryText(d) {
+        const parts = [];
+        if (d.gold) parts.push(`${d.gold.toLocaleString()}G`);
+        if (d.gems) parts.push(`${d.gems}💎`);
+        if (d.shards) parts.push(`${d.shards}✨`);
+        if (d.goldPotion) parts.push(`비약+${d.goldPotion}`);
+        if (d.shockScroll) parts.push(`충격파+${d.shockScroll}`);
+        if (d.bossBane) parts.push(`영약+${d.bossBane}`);
+        if (d.itemId) {
+          const tpl = SHOP_CATALOG.find(x => x.id === d.itemId);
+          if (tpl) parts.push(`${tpl.name} ${d.itemEx ? `★${d.itemEx} +${d.itemLv || 0}` : `+${d.itemLv || 0}`}`);
+        }
+        return parts.join(' · ');
+      }
+
+      document.getElementById('btnIssueSignedCoupon').addEventListener('click', () => {
+        const data = getCouponFormData();
+        if (!data.couponId) return showToast('쿠폰 식별 ID를 입력하세요.');
+        if (!formatCouponSummaryText(data)) return showToast('최소 1개 이상의 보상을 입력하세요.');
+        const code = buildSignedCouponCode(data);
+        document.getElementById('txtIssuedCoupon').value = code;
+        document.getElementById('txtVerifyCoupon').value = code;
+        const vRes = verifySignedCouponAdmin(code);
+        const vrEl = document.getElementById('lblVerifyResult');
+        vrEl.textContent = vRes.msg;
+        vrEl.className = `text-[11px] font-bold ${vRes.ok ? 'text-emerald-300' : 'text-rose-400'}`;
+
+        couponHistory.unshift({
+          couponId: data.couponId,
+          code,
+          summary: formatCouponSummaryText(data),
+          expiresAt: data.expiresAt || '무기한',
+          issuedAt: new Date().toLocaleString()
+        });
+        if (couponHistory.length > 40) couponHistory.length = 40;
+        localStorage.setItem(ADMIN_COUPON_HISTORY_KEY, JSON.stringify(couponHistory));
+        renderCouponHistory();
+        showToast(`🎟️ 서명 쿠폰 [${data.couponId}] 발급 완료!`);
+      });
+
+      document.getElementById('btnCopyIssuedCoupon').addEventListener('click', () => {
+        const v = document.getElementById('txtIssuedCoupon').value.trim();
+        if (!v) return showToast('먼저 쿠폰을 발급하세요.');
+        copyText(v, '서명 쿠폰 코드가 복사되었습니다!');
+      });
+
+      document.getElementById('btnVerifyCoupon').addEventListener('click', () => {
+        const raw = document.getElementById('txtVerifyCoupon').value.trim();
+        const res = verifySignedCouponAdmin(raw);
+        const el = document.getElementById('lblVerifyResult');
+        el.textContent = res.msg;
+        el.className = `text-[11px] font-bold ${res.ok ? 'text-emerald-300' : 'text-rose-400'}`;
+      });
+
+      function renderCouponHistory() {
+        const list = document.getElementById('couponHistoryList');
+        list.innerHTML = '';
+        if (!couponHistory.length) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">아직 발급한 서명 쿠폰 이력이 없습니다.</div>';
+          return;
+        }
+        couponHistory.forEach((h, idx) => {
+          const row = document.createElement('div');
+          row.className = 'p-2.5 rounded-xl bg-slate-950/85 border border-slate-800 flex items-center justify-between gap-2';
+          row.innerHTML = `
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-black text-amber-300">${h.couponId}</span>
+                <span class="text-[10px] text-slate-400">${h.expiresAt}</span>
+              </div>
+              <div class="text-[11px] text-emerald-300 truncate">${h.summary}</div>
+              <div class="text-[10px] text-slate-500 font-mono truncate">${h.code}</div>
+            </div>
+            <div class="flex gap-1 shrink-0">
+              <button type="button" class="btn-press px-2 py-1 rounded-lg bg-sky-700 hover:bg-sky-600 text-[10px] font-bold text-white">복사</button>
+              <button type="button" class="btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-900/70 text-[10px] font-bold text-rose-300">삭제</button>
+            </div>
+          `;
+          const [copyBtn, delBtn] = row.querySelectorAll('button');
+          copyBtn.addEventListener('click', () => copyText(h.code, `[${h.couponId}] 복사 완료!`));
+          delBtn.addEventListener('click', () => {
+            couponHistory.splice(idx, 1);
+            localStorage.setItem(ADMIN_COUPON_HISTORY_KEY, JSON.stringify(couponHistory));
+            renderCouponHistory();
+          });
+          list.appendChild(row);
+        });
+      }
+
+      document.getElementById('btnClearCouponHistory').addEventListener('click', () => {
+        couponHistory = [];
+        localStorage.setItem(ADMIN_COUPON_HISTORY_KEY, '[]');
+        renderCouponHistory();
+        showToast('쿠폰 발급 이력을 비웠습니다.');
+      });
+
+      document.getElementById('btnAddToCouponTable').addEventListener('click', () => {
+        const d = getCouponFormData();
+        if (!d.couponId) return showToast('쿠폰 식별 ID를 입력하세요.');
+        if (!formatCouponSummaryText(d)) return showToast('보상을 최소 1개 이상 입력하세요.');
+        couponTable[d.couponId] = {
+          gold: d.gold,
+          gems: d.gems,
+          shards: d.shards,
+          goldPotion: d.goldPotion,
+          shockScroll: d.shockScroll,
+          bossBane: d.bossBane,
+          itemId: d.itemId || undefined,
+          itemLv: d.itemId ? d.itemLv : undefined,
+          itemEx: d.itemId ? d.itemEx : undefined,
+          expiresAt: d.expiresAt || undefined,
+          enabled: true
+        };
+        localStorage.setItem(ADMIN_COUPON_TABLE_KEY, JSON.stringify(couponTable));
+        renderCouponTable();
+        showToast(`[${d.couponId}] 원격/고정 쿠폰 테이블에 등록했습니다.`);
+      });
+
+      function renderCouponTable() {
+        const list = document.getElementById('couponTableList');
+        list.innerHTML = '';
+        const entries = Object.entries(couponTable);
+        if (!entries.length) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">등록된 테이블 쿠폰이 없습니다. 왼쪽 폼에서 [+ 원격/고정 테이블에도 등록]을 누르세요.</div>';
+          return;
+        }
+        entries.forEach(([code, entry]) => {
+          const row = document.createElement('div');
+          row.className = 'p-2.5 rounded-xl bg-slate-950/85 border border-slate-800 flex items-center justify-between gap-2';
+          const summary = formatCouponSummaryText(entry);
+          row.innerHTML = `
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-black ${entry.enabled !== false ? 'text-indigo-300' : 'text-slate-500 line-through'}">${code}</span>
+                <span class="text-[10px] text-slate-400">${entry.expiresAt || '무기한'}</span>
+              </div>
+              <div class="text-[11px] text-slate-300 truncate">${summary}</div>
+            </div>
+            <div class="flex gap-1 shrink-0">
+              <button type="button" class="btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-amber-200">${entry.enabled !== false ? '활성' : '중지'}</button>
+              <button type="button" class="btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-900/70 text-[10px] font-bold text-rose-300">삭제</button>
+            </div>
+          `;
+          const [togBtn, delBtn] = row.querySelectorAll('button');
+          togBtn.addEventListener('click', () => {
+            entry.enabled = entry.enabled === false;
+            localStorage.setItem(ADMIN_COUPON_TABLE_KEY, JSON.stringify(couponTable));
+            renderCouponTable();
+          });
+          delBtn.addEventListener('click', () => {
+            delete couponTable[code];
+            localStorage.setItem(ADMIN_COUPON_TABLE_KEY, JSON.stringify(couponTable));
+            renderCouponTable();
+          });
+          list.appendChild(row);
+        });
+      }
+
+      let liveConfigDraft = {
+        configVersion: 1,
+        updatedAt: new Date().toISOString(),
+        maintenanceNotice: '',
+        banner: { enabled: true, id: 'mobile-live-v7', text: '📱 모바일 앱 & 실시간 라이브 연결 완료 · 쿠폰: MOBILE2026', accent: 'emerald' },
+        events: { name: '모바일 런칭 라이브 서버', goldMult: 1.0, gemMult: 1.0, shardMult: 1.0 },
+        coupons: {}
+      };
+      if (Object.keys(couponTable).length === 0) {
+        couponTable = {
+          MOBILE2026: { gold: 2000, gems: 30, shards: 20, label: '모바일 게임 런칭 기념 선물', enabled: true },
+          LIVEUPDATE: { gold: 1500, gems: 20, shards: 15, label: '실시간 업데이트 연동 기념 보상', enabled: true }
+        };
+      }
+
+      function syncLiveConfigDraftInputs() {
+        document.getElementById('lcBannerText').value = (liveConfigDraft.banner && liveConfigDraft.banner.text) || '';
+        document.getElementById('lcEventName').value = (liveConfigDraft.events && liveConfigDraft.events.name) || '';
+        document.getElementById('lcGoldMult').value = (liveConfigDraft.events && liveConfigDraft.events.goldMult) ?? 1.0;
+        document.getElementById('lcGemMult').value = (liveConfigDraft.events && liveConfigDraft.events.gemMult) ?? 1.0;
+        document.getElementById('lcShardMult').value = (liveConfigDraft.events && liveConfigDraft.events.shardMult) ?? 1.0;
+      }
+
+      function buildLiveConfigPayload() {
+        const bText = (document.getElementById('lcBannerText').value || '').trim();
+        const evName = (document.getElementById('lcEventName').value || '').trim();
+        const gm = Math.max(0.5, Math.min(10, Number(document.getElementById('lcGoldMult').value) || 1));
+        const dm = Math.max(0.5, Math.min(10, Number(document.getElementById('lcGemMult').value) || 1));
+        const sm = Math.max(0.5, Math.min(10, Number(document.getElementById('lcShardMult').value) || 1));
+        liveConfigDraft.configVersion = (Number(liveConfigDraft.configVersion) || 0) + 1;
+        liveConfigDraft.updatedAt = new Date().toISOString();
+        liveConfigDraft.banner = {
+          enabled: !!bText,
+          id: `live-${Date.now()}`,
+          text: bText,
+          accent: 'emerald'
+        };
+        liveConfigDraft.events = { name: evName, goldMult: gm, gemMult: dm, shardMult: sm };
+        liveConfigDraft.coupons = couponTable;
+        return liveConfigDraft;
+      }
+
+      async function loadCurrentLiveConfig() {
+        try {
+          const res = await fetch(`./live_config.json?t=${Date.now()}`, { cache: 'no-store' });
+          if (!res || !res.ok) return false;
+          const cfg = await res.json();
+          if (!cfg || typeof cfg !== 'object') return false;
+          liveConfigDraft = Object.assign(liveConfigDraft, cfg);
+          if (cfg.coupons && typeof cfg.coupons === 'object') {
+            couponTable = cfg.coupons;
+            localStorage.setItem(ADMIN_COUPON_TABLE_KEY, JSON.stringify(couponTable));
+          }
+          syncLiveConfigDraftInputs();
+          renderCouponTable();
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      syncLiveConfigDraftInputs();
+      loadCurrentLiveConfig();
+
+      document.getElementById('btnLoadLiveConfigJson').addEventListener('click', async () => {
+        const ok = await loadCurrentLiveConfig();
+        showToast(ok ? '✅ 현재 live_config.json을 불러왔습니다!' : '로컬 파일 모드에서는 ./live_config.json을 불러올 수 없습니다.');
+      });
+      document.getElementById('btnDownloadLiveConfigJson').addEventListener('click', () => {
+        const payload = buildLiveConfigPayload();
+        downloadFile('live_config.json', JSON.stringify(payload, null, 2));
+        showToast('live_config.json 저장 완료! 저장소에 커밋하면 30초 내 실시간 반영됩니다.');
+      });
+      document.getElementById('btnCopyLiveConfigJson').addEventListener('click', () => {
+        const payload = buildLiveConfigPayload();
+        copyText(JSON.stringify(payload, null, 2), 'live_config.json 내용이 복사되었습니다!');
+      });
+
+      document.getElementById('btnDownloadCouponsJson').addEventListener('click', () => {
+        downloadFile('coupons.json', JSON.stringify(couponTable, null, 2));
+        showToast('coupons.json 다운로드 완료! 저장소 루트에 업로드하면 즉시 반영됩니다.');
+      });
+
+      renderCouponHistory();
+      renderCouponTable();
+
+      // =====================================================================
+      // TAB 2: SAVE DATA INSPECTOR & EDITOR
+      // =====================================================================
+      let editingSave = null;
+
+      const edWorldSel = document.getElementById('edTargetWorld');
+      const edSubSel = document.getElementById('edTargetSub');
+      MAPS_META.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.key;
+        opt.textContent = `${m.worldNum}월드`;
+        edWorldSel.appendChild(opt);
+      });
+      for (let s = 1; s <= 10; s++) {
+        const opt = document.createElement('option');
+        opt.value = String(s);
+        opt.textContent = `${s}단계`;
+        edSubSel.appendChild(opt);
+      }
+
+      function normalizeSaveObject(parsed) {
+        const obj = Object.assign({
+          accountGold: 1500,
+          accountGems: 10,
+          accountShards: 10,
+          nextUid: 1,
+          inventory: [],
+          unitEquipped: {},
+          selectedForgeCharKey: 'u_t5_0',
+          consumables: { goldPotion: 1, shockScroll: 1, bossBane: 0 },
+          currentMap: 'meadow',
+          currentStageSub: 1,
+          stageDifficulty: 'normal',
+          autoProtectMythicMats: true,
+          stageRecords: {},
+          bestEndlessWave: 0,
+          bestBossRushSec: 0,
+          bestSpeedRushWave: 0,
+          mutatorDate: '',
+          mutatorClearsToday: 0,
+          playerNickname: '',
+          claimedCoupons: [],
+          talents: { startGoldLv: 0, atkPctLv: 0, skillLv: 0, luckLv: 0, econLv: 0 }
+        }, parsed || {});
+        if (!Array.isArray(obj.inventory)) obj.inventory = [];
+        if (!obj.consumables || typeof obj.consumables !== 'object') obj.consumables = { goldPotion: 1, shockScroll: 1, bossBane: 0 };
+        if (!obj.stageRecords || typeof obj.stageRecords !== 'object') obj.stageRecords = {};
+        if (!Array.isArray(obj.claimedCoupons)) obj.claimedCoupons = [];
+        if (Array.isArray(obj.redeemedCoupons)) {
+          obj.redeemedCoupons.forEach(c => {
+            const up = String(c).trim().toUpperCase();
+            if (up && !obj.claimedCoupons.includes(up)) obj.claimedCoupons.push(up);
+          });
+          delete obj.redeemedCoupons;
+        }
+        if (!obj.talents || typeof obj.talents !== 'object') obj.talents = { startGoldLv: 0, atkPctLv: 0, skillLv: 0, luckLv: 0, econLv: 0 };
+        if (!obj.unitEquipped || typeof obj.unitEquipped !== 'object') obj.unitEquipped = {};
+        return obj;
+      }
+
+      function parseRawSaveInput(rawInput) {
+        let raw = (rawInput || '').trim();
+        if (!raw) throw new Error('EMPTY');
+        if (raw.startsWith('RCD1:')) raw = raw.slice(5);
+        if (!raw.startsWith('{')) {
+          const bin = atob(raw);
+          const bytes = Uint8Array.from(bin, ch => ch.charCodeAt(0));
+          raw = new TextDecoder().decode(bytes);
+        }
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') throw new Error('INVALID');
+        return normalizeSaveObject(parsed);
+      }
+
+      function syncEditorFieldsToObj() {
+        if (!editingSave) return;
+        editingSave.accountGold = Math.max(0, Math.floor(Number(document.getElementById('edAccGold').value) || 0));
+        editingSave.accountGems = Math.max(0, Math.floor(Number(document.getElementById('edAccGems').value) || 0));
+        editingSave.accountShards = Math.max(0, Math.floor(Number(document.getElementById('edAccShards').value) || 0));
+        editingSave.bestEndlessWave = Math.max(0, Math.floor(Number(document.getElementById('edEndlessWave').value) || 0));
+        editingSave.bestBossRushSec = Math.max(0, Number((Number(document.getElementById('edBossRushSec').value) || 0).toFixed(2)));
+        editingSave.bestSpeedRushWave = Math.max(0, Math.floor(Number(document.getElementById('edSpeedRushWave').value) || 0));
+        editingSave.consumables.goldPotion = Math.max(0, Math.floor(Number(document.getElementById('edGp').value) || 0));
+        editingSave.consumables.shockScroll = Math.max(0, Math.floor(Number(document.getElementById('edSs').value) || 0));
+        editingSave.consumables.bossBane = Math.max(0, Math.floor(Number(document.getElementById('edBb').value) || 0));
+      }
+
+      function findOwnerLabel(uid) {
+        if (!editingSave || !editingSave.unitEquipped) return '';
+        for (const [uKey, slots] of Object.entries(editingSave.unitEquipped)) {
+          if (!slots) continue;
+          for (const sk of ['weapon', 'armor', 'ring', 'relic']) {
+            if (slots[sk] === uid) {
+              const m = /^u_t(\d+)_(\d+)$/.exec(uKey);
+              if (m) {
+                const u = UNIT_DB[Number(m[1])] && UNIT_DB[Number(m[1])][Number(m[2])];
+                return u ? u.name : uKey;
+              }
+              return uKey;
+            }
+          }
+        }
+        return '';
+      }
+
+      function renderSaveEditor() {
+        if (!editingSave) return;
+        document.getElementById('saveEditorPanels').classList.remove('hidden');
+        document.getElementById('lblEditingSaveInfo').textContent =
+          `편집 중: ${(editingSave.accountGold || 0).toLocaleString()}G · ${editingSave.accountGems || 0}💎 · ${editingSave.accountShards || 0}✨ · 장비 ${editingSave.inventory.length}개`;
+
+        document.getElementById('edAccGold').value = editingSave.accountGold || 0;
+        document.getElementById('edAccGems').value = editingSave.accountGems || 0;
+        document.getElementById('edAccShards').value = editingSave.accountShards || 0;
+        document.getElementById('edEndlessWave').value = editingSave.bestEndlessWave || 0;
+        document.getElementById('edBossRushSec').value = editingSave.bestBossRushSec || 0;
+        document.getElementById('edSpeedRushWave').value = editingSave.bestSpeedRushWave || 0;
+        document.getElementById('edGp').value = editingSave.consumables.goldPotion || 0;
+        document.getElementById('edSs').value = editingSave.consumables.shockScroll || 0;
+        document.getElementById('edBb').value = editingSave.consumables.bossBane || 0;
+
+        // Talents
+        const tList = document.getElementById('edTalentsList');
+        tList.innerHTML = '';
+        TALENT_DEFS.forEach(td => {
+          const cur = Math.max(0, Math.min(td.maxLv, Math.floor(Number(editingSave.talents[td.key]) || 0)));
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between gap-2 bg-slate-950/80 border border-slate-800 rounded-xl px-2.5 py-1.5';
+          row.innerHTML = `
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-bold text-slate-200 truncate">${td.title}</div>
+              <div class="text-[10px] text-fuchsia-300">+${cur * td.perLv}${td.unit} (Lv.${cur}/${td.maxLv})</div>
+            </div>
+            <input type="range" min="0" max="${td.maxLv}" value="${cur}" class="w-24 accent-fuchsia-400 cursor-pointer" />
+          `;
+          row.querySelector('input').addEventListener('input', (e) => {
+            editingSave.talents[td.key] = Number(e.target.value);
+            renderSaveEditor();
+          });
+          tList.appendChild(row);
+        });
+
+        // Difficulty summary
+        const dSum = document.getElementById('edDiffSummary');
+        dSum.innerHTML = '';
+        ['normal', 'hard', 'nightmare'].forEach(diff => {
+          const cfg = DIFFICULTY_MODES[diff];
+          let cleared = 0;
+          MAPS_META.forEach(m => {
+            for (let s = 1; s <= 10; s++) {
+              const rk = diff === 'normal' ? `${m.key}_${s}` : `${diff}:${m.key}_${s}`;
+              if (editingSave.stageRecords[rk] && editingSave.stageRecords[rk].cleared) cleared++;
+            }
+          });
+          const box = document.createElement('div');
+          box.className = 'p-2 rounded-xl bg-slate-950/85 border border-slate-800 text-center';
+          box.innerHTML = `<div class="font-extrabold text-white">${cfg.badge}</div><div class="text-[10px] text-emerald-300 font-bold mt-0.5">${cleared} / 100</div>`;
+          dSum.appendChild(box);
+        });
+
+        // Inventory
+        document.getElementById('edInvCount').textContent = `${editingSave.inventory.length}개 보유`;
+        const invList = document.getElementById('edInventoryList');
+        invList.innerHTML = '';
+        if (!editingSave.inventory.length) {
+          invList.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">보유 장비가 없습니다.</div>';
+        } else {
+          editingSave.inventory.slice().reverse().forEach(it => {
+            const meta = TIER_META[it.tier] || TIER_META[0];
+            const owner = findOwnerLabel(it.uid);
+            const row = document.createElement('div');
+            row.className = 'p-2 rounded-xl bg-slate-950/85 border border-slate-800 flex flex-wrap items-center justify-between gap-2';
+            row.style.borderLeftWidth = '3px';
+            row.style.borderLeftColor = meta.color;
+            row.innerHTML = `
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-black" style="background:${meta.badgeBg};color:${meta.color}">${meta.name}</span>
+                  <span class="text-xs font-bold text-white truncate">${it.name}</span>
+                  ${owner ? `<span class="px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-500/35 text-[9px] font-bold">${owner}</span>` : ''}
+                </div>
+                <div class="text-[10px] text-slate-400">UID:${it.uid} · ★${it.extraLevel || 0} +${it.level || 0}</div>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" class="btn-press px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[10px] font-bold">풀강</button>
+                <button type="button" class="btn-press px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold">+1</button>
+                <button type="button" class="btn-press px-2 py-1 rounded bg-rose-950/70 hover:bg-rose-900 text-rose-300 text-[10px] font-bold">삭제</button>
+              </div>
+            `;
+            const [maxBtn, plusBtn, delBtn] = row.querySelectorAll('button');
+            maxBtn.addEventListener('click', () => {
+              it.level = 15; it.extraLevel = 5;
+              renderSaveEditor();
+            });
+            plusBtn.addEventListener('click', () => {
+              if ((it.level || 0) < 15) {
+                it.level = (it.level || 0) + 1;
+              } else if ((it.extraLevel || 0) < 5) {
+                it.extraLevel = (it.extraLevel || 0) + 1;
+                it.level = 0;
+              }
+              renderSaveEditor();
+            });
+            delBtn.addEventListener('click', () => {
+              const i = editingSave.inventory.indexOf(it);
+              if (i >= 0) editingSave.inventory.splice(i, 1);
+              Object.values(editingSave.unitEquipped || {}).forEach(slots => {
+                if (!slots) return;
+                ['weapon', 'armor', 'ring', 'relic'].forEach(sk => { if (slots[sk] === it.uid) slots[sk] = null; });
+              });
+              renderSaveEditor();
+            });
+            invList.appendChild(row);
+          });
+        }
+
+        // Redeemed coupons
+        const cpnList = document.getElementById('edRedeemedCouponList');
+        cpnList.innerHTML = '';
+        if (!editingSave.claimedCoupons.length) {
+          cpnList.innerHTML = '<span class="text-xs text-slate-500">사용한 쿠폰이 없습니다.</span>';
+        } else {
+          editingSave.claimedCoupons.forEach((cid, idx) => {
+            const pill = document.createElement('button');
+            pill.type = 'button';
+            pill.className = 'btn-press px-2.5 py-1 rounded-full bg-indigo-950/80 border border-indigo-500/40 text-indigo-200 font-bold text-[11px]';
+            pill.textContent = `${cid} ✕`;
+            pill.title = '클릭 시 해당 쿠폰 사용 기록 삭제';
+            pill.addEventListener('click', () => {
+              editingSave.claimedCoupons.splice(idx, 1);
+              renderSaveEditor();
+            });
+            cpnList.appendChild(pill);
+          });
+        }
+      }
+
+      document.getElementById('btnLoadLocalSave').addEventListener('click', () => {
+        try {
+          const raw = localStorage.getItem(SAVE_KEY);
+          editingSave = raw ? parseRawSaveInput(raw) : normalizeSaveObject({});
+          renderSaveEditor();
+          showToast(raw ? '로컬 세이브를 불러왔습니다.' : '로컬 세이브가 없어 기본 템플릿으로 시작합니다.');
+        } catch (_) {
+          showToast('세이브 파싱에 실패했습니다.');
+        }
+      });
+
+      document.getElementById('btnParseAdminSave').addEventListener('click', () => {
+        try {
+          editingSave = parseRawSaveInput(document.getElementById('txtAdminSaveInput').value);
+          renderSaveEditor();
+          showToast('세이브 코드 파싱 완료!');
+        } catch (_) {
+          showToast('올바른 세이브 JSON 또는 RCD1: 코드가 아닙니다.');
+        }
+      });
+
+      document.getElementById('fileImportSave').addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            editingSave = parseRawSaveInput(String(reader.result || ''));
+            renderSaveEditor();
+            showToast(`파일 [${file.name}] 불러오기 성공!`);
+          } catch (_) {
+            showToast('올바른 세이브 JSON 파일이 아닙니다.');
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById('btnApplyLocalSave').addEventListener('click', () => {
+        if (!editingSave) return showToast('먼저 세이브 데이터를 불러오세요.');
+        syncEditorFieldsToObj();
+        localStorage.setItem(SAVE_KEY, JSON.stringify(editingSave));
+        refreshLocalSaveBadge();
+        showToast('✅ 현재 브라우저에 저장 완료! (게임 창 새로고침 시 반영)');
+      });
+
+      document.getElementById('btnExportAdminJson').addEventListener('click', () => {
+        if (!editingSave) return showToast('먼저 세이브 데이터를 불러오세요.');
+        syncEditorFieldsToObj();
+        copyText(JSON.stringify(editingSave), '수정된 세이브 JSON을 복사했습니다!');
+      });
+
+      document.getElementById('btnExportAdminRcd1').addEventListener('click', () => {
+        if (!editingSave) return showToast('먼저 세이브 데이터를 불러오세요.');
+        syncEditorFieldsToObj();
+        copyText(encodeRcd1Save(editingSave), 'RCD1: 백업 코드를 복사했습니다!');
+      });
+
+      document.getElementById('btnDownloadAdminJson').addEventListener('click', () => {
+        if (!editingSave) return showToast('먼저 세이브 데이터를 불러오세요.');
+        syncEditorFieldsToObj();
+        downloadFile(`rcd_save_${getTodayDateKey()}.json`, JSON.stringify(editingSave, null, 2));
+        showToast('세이브 JSON 파일을 다운로드했습니다.');
+      });
+
+      document.getElementById('btnEdTalentsMax').addEventListener('click', () => {
+        if (!editingSave) return;
+        TALENT_DEFS.forEach(td => { editingSave.talents[td.key] = td.maxLv; });
+        renderSaveEditor();
+      });
+      document.getElementById('btnEdTalentsReset').addEventListener('click', () => {
+        if (!editingSave) return;
+        TALENT_DEFS.forEach(td => { editingSave.talents[td.key] = 0; });
+        renderSaveEditor();
+      });
+
+      function setStagesUpTo(diff, worldIdxMax, subMax) {
+        if (!editingSave) return;
+        for (let wIdx = 0; wIdx <= worldIdxMax; wIdx++) {
+          const m = MAPS_META[wIdx];
+          const maxS = (wIdx === worldIdxMax) ? subMax : 10;
+          for (let s = 1; s <= maxS; s++) {
+            const rk = diff === 'normal' ? `${m.key}_${s}` : `${diff}:${m.key}_${s}`;
+            const prev = editingSave.stageRecords[rk] || { cleared: false, bestWave: 30, clearCount: 0 };
+            prev.cleared = true;
+            prev.bestWave = 30;
+            prev.clearCount = Math.max(1, prev.clearCount || 0);
+            editingSave.stageRecords[rk] = prev;
+          }
+        }
+      }
+
+      document.querySelectorAll('.ed-stage-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!editingSave) return;
+          const p = btn.dataset.stagePreset;
+          if (p === 'clear_all') {
+            editingSave.stageRecords = {};
+            editingSave.stageDifficulty = 'normal';
+            editingSave.currentMap = 'meadow';
+            editingSave.currentStageSub = 1;
+          } else if (p === 'normal_all') {
+            setStagesUpTo('normal', 9, 10);
+          } else if (p === 'hard_all') {
+            setStagesUpTo('normal', 9, 10);
+            setStagesUpTo('hard', 9, 10);
+          } else if (p === 'nightmare_all') {
+            setStagesUpTo('normal', 9, 10);
+            setStagesUpTo('hard', 9, 10);
+            setStagesUpTo('nightmare', 9, 10);
+          }
+          renderSaveEditor();
+          showToast('스테이지 진행도 프리셋이 적용되었습니다.');
+        });
+      });
+
+      document.getElementById('btnApplyTargetStage').addEventListener('click', () => {
+        if (!editingSave) return;
+        const diff = document.getElementById('edTargetDiff').value;
+        const wKey = document.getElementById('edTargetWorld').value;
+        const sLv = Number(document.getElementById('edTargetSub').value) || 1;
+        const wIdx = Math.max(0, MAPS_META.findIndex(m => m.key === wKey));
+        if (diff === 'hard' || diff === 'nightmare') setStagesUpTo('normal', 9, 10);
+        if (diff === 'nightmare') setStagesUpTo('hard', 9, 10);
+        setStagesUpTo(diff, wIdx, sLv);
+        renderSaveEditor();
+        showToast(`[${DIFFICULTY_MODES[diff].label}] ${wIdx + 1}-${sLv}까지 클리어 처리 완료!`);
+      });
+
+      document.getElementById('btnEdAddItem').addEventListener('click', () => {
+        if (!editingSave) return;
+        const itemId = document.getElementById('edAddItemId').value;
+        const lv = Math.max(0, Math.min(15, Math.floor(Number(document.getElementById('edAddItemLv').value) || 0)));
+        const ex = Math.max(0, Math.min(5, Math.floor(Number(document.getElementById('edAddItemEx').value) || 0)));
+        const qty = Math.max(1, Math.min(20, Math.floor(Number(document.getElementById('edAddItemQty').value) || 1)));
+        const tpl = SHOP_CATALOG.find(x => x.id === itemId);
+        if (!tpl) return;
+        let maxUid = Math.max(editingSave.nextUid || 1, ...editingSave.inventory.map(x => (x.uid || 0) + 1));
+        for (let i = 0; i < qty; i++) {
+          editingSave.inventory.push({
+            uid: maxUid++,
+            id: tpl.id,
+            name: tpl.name,
+            slot: tpl.slot,
+            tier: tpl.tier,
+            statType: tpl.statType,
+            baseVal: tpl.baseVal,
+            extraStat: tpl.extraStat || null,
+            extraVal: tpl.extraVal || 0,
+            costGold: tpl.costGold,
+            costGems: tpl.costGems,
+            level: lv,
+            extraLevel: ex
+          });
+        }
+        editingSave.nextUid = maxUid;
+        renderSaveEditor();
+        showToast(`[${tpl.name} ★${ex} +${lv}] x${qty} 지급 완료!`);
+      });
+
+      document.getElementById('btnEdClearCoupons').addEventListener('click', () => {
+        if (!editingSave) return;
+        editingSave.claimedCoupons = [];
+        renderSaveEditor();
+      });
+
+      // =====================================================================
+      // TAB 3: BALANCE & DPS SIMULATOR (Exact Formula Parity)
+      // =====================================================================
+      const simSubSel = document.getElementById('simSub');
+      const dpsWorldSel = document.getElementById('dpsWorld');
+      const dpsUnitSel = document.getElementById('dpsUnit');
+      for (let s = 1; s <= 10; s++) {
+        const opt = document.createElement('option');
+        opt.value = String(s);
+        opt.textContent = `${s}단계 (x${Math.pow(1.5, s - 1).toFixed(2)})`;
+        if (s === 10) opt.selected = true;
+        simSubSel.appendChild(opt);
+      }
+      MAPS_META.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = String(m.worldNum);
+        opt.textContent = `${m.worldNum}월드 (${m.title})`;
+        if (m.worldNum === 10) opt.selected = true;
+        dpsWorldSel.appendChild(opt);
+      });
+      for (let t = 6; t >= 0; t--) {
+        const grp = document.createElement('optgroup');
+        grp.label = TIER_META[t].name;
+        UNIT_DB[t].forEach((u, sub) => {
+          const opt = document.createElement('option');
+          opt.value = `${t}:${sub}`;
+          opt.textContent = `[${TIER_META[t].name}] ${u.name} (공 ${u.dmg} · 쿨 ${u.cd}s)`;
+          if (t === 6 && sub === 1) opt.selected = true;
+          grp.appendChild(opt);
+        });
+        dpsUnitSel.appendChild(grp);
+      }
+
+      function getWorldBaseMult(wNum) {
+        const base = Math.pow(1.18, wNum - 1);
+        if (wNum === 8) return base * 1.35;
+        if (wNum === 9) return base * 1.68;
+        if (wNum >= 10) return base * 2.15;
+        return base;
+      }
+
+      function getLateWorldBossBoost(wNum) {
+        if (wNum === 8) return { hpMult: 1.25, defMult: 1.25 };
+        if (wNum === 9) return { hpMult: 1.45, defMult: 1.40 };
+        if (wNum >= 10) return { hpMult: 1.70, defMult: 1.60 };
+        if (wNum >= 5) return { hpMult: 1.10, defMult: 1.10 };
+        return { hpMult: 1.0, defMult: 1.0 };
+      }
+
+      function getRewardWorldMult(wNum) {
+        const base = Math.pow(1.16, wNum - 1);
+        if (wNum === 8) return base * 1.20;
+        if (wNum === 9) return base * 1.38;
+        if (wNum >= 10) return base * 1.65;
+        return base;
+      }
+
+      function renderBalanceSimulator() {
+        const diff = document.getElementById('simDiff').value;
+        const subLv = Number(document.getElementById('simSub').value) || 1;
+        const dCfg = DIFFICULTY_MODES[diff];
+        const stepMult = Math.pow(1.5, subLv - 1);
+
+        const tbody = document.getElementById('simBalanceTableBody');
+        tbody.innerHTML = '';
+        MAPS_META.forEach(m => {
+          const wNum = m.worldNum;
+          const wm = getWorldBaseMult(wNum);
+          const bb = getLateWorldBossBoost(wNum);
+          const w1Scale = stepMult * wm * dCfg.hpMult;
+          const w15Scale = Math.pow(1.13, 14) * w1Scale;
+          const w30Scale = Math.pow(1.13, 29) * w1Scale;
+
+          const nHp = Math.round(120 * w1Scale);
+          const nDef = Math.round(12.5 * Math.pow(1.12, subLv - 1) * Math.pow(1.10, wNum - 1) * dCfg.defMult);
+          const eDef = nDef * 1.25 * 1.25;
+          const mbHp = Math.round(2400 * w15Scale * bb.hpMult);
+          const mbDef = Math.round(eDef * 1.5 * bb.defMult);
+          const bbHp = Math.round(7600 * w30Scale * bb.hpMult);
+          const bbDef = Math.round(eDef * 3.0 * bb.defMult);
+
+          const econScale = Math.pow(stepMult, 0.65) * getRewardWorldMult(wNum) * dCfg.rewardMult;
+          const rGold = Math.round(780 * econScale);
+          const rGems = Math.round((7 + Math.floor(wNum * 0.9) + subLv) * dCfg.rewardMult);
+          const rShards = Math.max(1, Math.round((5 + wNum * 1.2 + subLv * 0.5) * Math.pow(dCfg.rewardMult, 0.55)));
+
+          const patTxt = wNum >= 10 ? '공허 도약·광폭화' : (wNum === 9 ? 'EMP 마비' : (wNum === 8 ? '성광 공속감소' : (wNum >= 5 ? '2.5% 재생' : '방어 배리어')));
+
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-900/60';
+          tr.innerHTML = `
+            <td class="py-2 px-2 font-bold text-white whitespace-nowrap">${wNum}-${subLv} ${m.title}</td>
+            <td class="py-2 px-2 tabular-nums text-emerald-300">${nHp.toLocaleString()} / ${nDef}</td>
+            <td class="py-2 px-2 tabular-nums text-amber-300">${mbHp.toLocaleString()} / ${mbDef}</td>
+            <td class="py-2 px-2 tabular-nums font-bold text-rose-300">${bbHp.toLocaleString()} / ${bbDef}</td>
+            <td class="py-2 px-2 text-slate-300">${patTxt}</td>
+            <td class="py-2 px-2 tabular-nums text-sky-300">${rGold.toLocaleString()}G · ${rGems}💎 · ${rShards}✨</td>
+            <td class="py-2 px-2 tabular-nums text-emerald-300 font-bold">${(rGold * 2).toLocaleString()}G · ${rGems * 2}💎 · ${rShards * 2}✨</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // DPS Simulator
+        const [tStr, sStr] = document.getElementById('dpsUnit').value.split(':');
+        const tier = Number(tStr), sub = Number(sStr);
+        const unit = UNIT_DB[tier][sub];
+        const gear = document.getElementById('dpsGear').value;
+        const upgLv = Math.max(1, Number(document.getElementById('dpsUpgLv').value) || 1);
+        const shred = Math.max(0, Math.min(80, Number(document.getElementById('dpsShred').value) || 0)) / 100;
+        const targetW = Number(document.getElementById('dpsWorld').value) || 10;
+        const synMax = document.getElementById('dpsTalentMax').checked;
+
+        const gearPresets = {
+          none:   { atk: 0,   aspd: 0,   crit: 0,   boss: 0,   myth: 0 },
+          legend: { atk: 419, aspd: 135, crit: 182, boss: 79,  myth: 0 },
+          mythic: { atk: 678, aspd: 205, crit: 347, boss: 149, myth: 224 },
+          trans:  { atk: 948, aspd: 247, crit: 441, boss: 25,  myth: 142 }
+        };
+        const gp = gearPresets[gear];
+        const talentAtk = synMax ? 160 : 0;
+        const synAtk = synMax ? 44 : 0;
+        const synAspd = synMax ? 33 : 0;
+        const skillAmp = 1 + ((synMax ? 220 : 0)) / 100;
+        const upgStep = tier <= 2 ? 0.25 : (tier <= 4 ? 0.30 : (tier >= 6 ? 0.45 : 0.40));
+        const mythBonus = tier >= 5 ? (1 + gp.myth / 100) : 1.0;
+
+        const tierMult = (1 + (upgLv - 1) * upgStep) * (1 + (gp.atk + talentAtk + synAtk) / 100) * mythBonus;
+        const effCd = Math.max(0.18, unit.cd / (1 + (gp.aspd + synAspd) / 100));
+        const hits60 = 60.0 / effCd;
+        const tierSkillMult = tier >= 6 ? 3.5 : (tier === 5 ? 2.8 : 2.1);
+
+        const bbBoost = getLateWorldBossBoost(targetW);
+        const bossHp = Math.round(7600 * Math.pow(1.13, 29) * stepMult * getWorldBaseMult(targetW) * dCfg.hpMult * bbBoost.hpMult);
+        const nDefT = 12.5 * Math.pow(1.12, subLv - 1) * Math.pow(1.10, targetW - 1) * dCfg.defMult;
+        const bossDef = Math.round((nDefT * 1.25 * 1.25) * 3.0 * bbBoost.defMult);
+
+        const rawHit = unit.dmg * tierMult * (1 + gp.boss / 100);
+        const dNorm = rawHit * (100 / (100 + bossDef * (1 - shred)));
+        const dSkill = rawHit * tierSkillMult * (1 + gp.crit / 100) * skillAmp * (100 / (100 + bossDef * (1 - shred) * 0.65));
+        const total60 = Math.round(((4 * dNorm + dSkill) / 5) * hits60);
+        const ratio = bossHp > 0 ? ((total60 / bossHp) * 100) : 0;
+
+        document.getElementById('dpsSimResult').innerHTML =
+          `대상: <strong class="text-white">[${dCfg.label}] ${targetW}-${subLv} 메인보스</strong> (HP <strong class="text-rose-300">${bossHp.toLocaleString()}</strong> · 방어 <strong class="text-amber-300">${bossDef}</strong>)<br/>` +
+          `선택 유닛: <strong class="text-cyan-300">${unit.name}</strong> · 실공속 <strong class="text-emerald-300">${effCd.toFixed(2)}s</strong> (${Math.round(hits60)}타/60초)<br/>` +
+          `60초 예상 누적 피해량: <strong class="text-amber-300 text-sm">${total60.toLocaleString()}</strong> (보스 체력의 <strong class="${ratio >= 100 ? 'text-emerald-300' : 'text-rose-300'}">${ratio.toFixed(1)}%</strong> — 필요 동일급 유닛 약 <strong>${Math.max(1, Math.ceil(bossHp / Math.max(1, total60)))}기</strong>)`;
+      }
+
+      ['simDiff', 'simSub', 'dpsUnit', 'dpsGear', 'dpsUpgLv', 'dpsShred', 'dpsWorld', 'dpsTalentMax'].forEach(id => {
+        document.getElementById(id).addEventListener('input', renderBalanceSimulator);
+        document.getElementById(id).addEventListener('change', renderBalanceSimulator);
+      });
+      renderBalanceSimulator();
+
+      // =====================================================================
+      // TAB 4: MASTER DATA & SECURITY
+      // =====================================================================
+      let masterTab = 'units';
+
+      function renderSecurityTab() {
+        const auth = getAdminAuth();
+        document.getElementById('txtSignSecret').value = auth.signSecret;
+        document.getElementById('lblSecretSnippet').textContent = `const COUPON_SIGN_SECRET = '${auth.signSecret}';`;
+      }
+
+      document.getElementById('btnSaveAdminPass').addEventListener('click', () => {
+        const p = document.getElementById('txtNewAdminPass').value;
+        if (!p || p.length < 4) return showToast('패스코드는 4자 이상 입력하세요.');
+        const auth = getAdminAuth();
+        auth.passHash = sha256Hex(p);
+        saveAdminAuth(auth);
+        document.getElementById('txtNewAdminPass').value = '';
+        showToast('🔐 운영자 패스코드가 변경되었습니다.');
+      });
+
+      document.getElementById('btnSaveSignSecret').addEventListener('click', () => {
+        const s = document.getElementById('txtSignSecret').value.trim();
+        if (!s) return showToast('서명 비밀키를 입력하세요.');
+        const auth = getAdminAuth();
+        auth.signSecret = s;
+        saveAdminAuth(auth);
+        renderSecurityTab();
+        showToast('쿠폰 서명 키가 저장되었습니다. (변경 시 본체 파일 상수도 동기화하세요)');
+      });
+
+      document.getElementById('btnResetSignSecret').addEventListener('click', () => {
+        const auth = getAdminAuth();
+        auth.signSecret = DEFAULT_SIGN_SECRET;
+        saveAdminAuth(auth);
+        renderSecurityTab();
+        showToast('기본 서명 비밀키로 복원되었습니다.');
+      });
+
+      function renderMasterData() {
+        const list = document.getElementById('masterDataList');
+        const q = (document.getElementById('txtMasterSearch').value || '').trim().toLowerCase();
+        list.innerHTML = '';
+        if (masterTab === 'units') {
+          for (let t = 6; t >= 0; t--) {
+            UNIT_DB[t].forEach((u, sub) => {
+              const txt = `${u.name} ${u.role} ${u.skill}`.toLowerCase();
+              if (q && !txt.includes(q)) return;
+              const meta = TIER_META[t];
+              const card = document.createElement('div');
+              card.className = 'p-2.5 rounded-xl bg-slate-950/85 border border-slate-800';
+              card.style.borderLeftWidth = '3px';
+              card.style.borderLeftColor = meta.color;
+              card.innerHTML = `
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-xs font-black text-white">${u.name}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-black" style="background:${meta.badgeBg};color:${meta.color}">${meta.name}</span>
+                </div>
+                <div class="text-[10px] text-slate-400 mt-0.5">${u.role} · 공 ${u.dmg} · 쿨 ${u.cd}s · 사거리 ${u.range}</div>
+                <div class="text-[10px] text-amber-300 mt-0.5">${u.skill}</div>
+              `;
+              list.appendChild(card);
+            });
+          }
+        } else {
+          SHOP_CATALOG.slice().reverse().forEach(it => {
+            const txt = `${it.id} ${it.name} ${it.slot} ${it.statType} ${it.extraStat || ''}`.toLowerCase();
+            if (q && !txt.includes(q)) return;
+            const meta = TIER_META[it.tier];
+            const card = document.createElement('div');
+            card.className = 'p-2.5 rounded-xl bg-slate-950/85 border border-slate-800';
+            card.style.borderLeftWidth = '3px';
+            card.style.borderLeftColor = meta.color;
+            card.innerHTML = `
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-xs font-black text-white">${it.name}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-black" style="background:${meta.badgeBg};color:${meta.color}">${meta.name}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">ID: <code class="text-sky-300">${it.id}</code> · ${it.slot} · 기본 ${it.statType} +${it.baseVal}</div>
+              <div class="text-[10px] text-emerald-300 mt-0.5">보조: ${it.extraStat} +${it.extraVal}${it.gachaOnly ? ' · 뽑기·승급' : ''}</div>
+            `;
+            list.appendChild(card);
+          });
+        }
+      }
+
+      document.getElementById('btnMasterUnits').addEventListener('click', () => {
+        masterTab = 'units';
+        document.getElementById('btnMasterUnits').className = 'btn-press px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 text-xs font-black';
+        document.getElementById('btnMasterItems').className = 'btn-press px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold';
+        renderMasterData();
+      });
+      document.getElementById('btnMasterItems').addEventListener('click', () => {
+        masterTab = 'items';
+        document.getElementById('btnMasterItems').className = 'btn-press px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 text-xs font-black';
+        document.getElementById('btnMasterUnits').className = 'btn-press px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold';
+        renderMasterData();
+      });
+      document.getElementById('txtMasterSearch').addEventListener('input', renderMasterData);
+      renderMasterData();
+
+      // =====================================================================
+      // FIREBASE ADMIN BACKEND (Auth · Coupons · LiveConfig · Cloud Saves)
+      // =====================================================================
+      let fbApp = null;
+      let fbAuth = null;
+      let fbDb = null;
+      let fbMod = null;
+      let fbAdminReady = false;
+      let fbIsAdmin = false;
+      let fbAdminUser = null;
+      let fbCouponsCache = [];
+      let fbSavesCache = [];
+      let editingCloudUid = '';
+
+      function updateAdminCloudBadges() {
+        const badge = document.getElementById('lblAdminCloudBadge');
+        const modeNote = document.getElementById('lblLoginModeNote');
+        const cfg = (typeof window.RCD_FIREBASE_CONFIG === 'object' && window.RCD_FIREBASE_CONFIG) ? window.RCD_FIREBASE_CONFIG : {};
+        const configured = (typeof window.RCD_IS_FIREBASE_READY === 'function') && window.RCD_IS_FIREBASE_READY();
+
+        const cfgStatus = document.getElementById('lblFbConfigStatus');
+        if (cfgStatus) {
+          cfgStatus.textContent = configured
+            ? `✅ 설정됨 (Project: ${cfg.projectId})`
+            : '미설정 (오프라인/로컬 모드로 동작 중)';
+          cfgStatus.className = configured
+            ? 'text-[11px] font-bold text-emerald-300'
+            : 'text-[11px] font-bold text-amber-300';
+        }
+        if (modeNote) {
+          modeNote.textContent = configured
+            ? `🔥 Firebase 연동 감지 (${cfg.projectId}) · 운영자 이메일로 로그인하거나 오프라인 패스코드를 사용하세요.`
+            : '⚡ firebase-config.js 미설정 상태 · 기본 패스코드로 로그인한 뒤 [마스터·보안 설정]에서 Firebase를 연결할 수 있습니다.';
+        }
+        if (badge) {
+          if (!configured) {
+            badge.textContent = '⚡ 로컬 모드';
+            badge.className = 'px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300';
+          } else if (fbIsAdmin && fbAdminUser) {
+            badge.textContent = `🔥 Firebase Admin (${fbAdminUser.email || fbAdminUser.uid.slice(0, 8)})`;
+            badge.className = 'px-2.5 py-1 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-[11px] font-extrabold text-emerald-300';
+          } else {
+            badge.textContent = '🔒 Firebase 미인증 (읽기전용/로컬)';
+            badge.className = 'px-2.5 py-1 rounded-xl bg-amber-950/80 border border-amber-500/40 text-[11px] font-bold text-amber-300';
+          }
+        }
+      }
+
+      function parseFirebaseConfigSnippet(rawText) {
+        const txt = (rawText || '').trim();
+        if (!txt) throw new Error('설정을 입력하세요.');
+        try {
+          const direct = JSON.parse(txt);
+          if (direct && direct.apiKey && direct.projectId) return direct;
+        } catch (_) {}
+        const keys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'];
+        const out = {};
+        keys.forEach(k => {
+          const re = new RegExp(`(?:["']?${k}["']?)\\s*:\\s*["']([^"']+)["']`);
+          const m = re.exec(txt);
+          if (m && m[1]) out[k] = m[1].trim();
+        });
+        if (!out.apiKey || !out.projectId) {
+          throw new Error('apiKey 또는 projectId를 찾을 수 없습니다.');
+        }
+        return {
+          apiKey: out.apiKey || '',
+          authDomain: out.authDomain || `${out.projectId}.firebaseapp.com`,
+          projectId: out.projectId || '',
+          storageBucket: out.storageBucket || `${out.projectId}.firebasestorage.app`,
+          messagingSenderId: out.messagingSenderId || '',
+          appId: out.appId || ''
+        };
+      }
+
+      function renderFbConfigCard() {
+        const txt = document.getElementById('txtFbConfigInput');
+        if (txt && typeof window.RCD_FIREBASE_CONFIG === 'object' && window.RCD_IS_FIREBASE_READY && window.RCD_IS_FIREBASE_READY()) {
+          if (!txt.value.trim()) {
+            txt.value = JSON.stringify(window.RCD_FIREBASE_CONFIG, null, 2);
+          }
+        }
+        updateAdminCloudBadges();
+      }
+
+      async function verifyAdminDocForUser(user) {
+        if (!user || !fbDb || !fbMod) return { ok: false, reason: 'not_ready', code: '' };
+        try {
+          const snap = await fbMod.getDoc(fbMod.doc(fbDb, 'admins', user.uid));
+          return { ok: snap.exists(), reason: snap.exists() ? 'ok' : 'missing', code: '' };
+        } catch (err) {
+          return { ok: false, reason: err?.code === 'permission-denied' ? 'permission' : 'error', code: err?.code || err?.message || '' };
+        }
+      }
+
+      function showAdminErrorReason(errBox, user, res) {
+        if (!errBox || !user) return;
+        errBox.classList.remove('hidden');
+        if (res.reason === 'permission') {
+          errBox.innerHTML = `❌ Firestore 규칙 차단(permission-denied): Firestore → 규칙 탭에 <code>firestore.rules</code>를 붙여넣고 <strong>게시</strong>했는지 확인하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
+        } else if (res.reason === 'missing') {
+          errBox.innerHTML = `❌ Firestore <code>admins/${user.uid}</code> 문서가 없습니다. 데이터 탭에서 컬렉션 <code>admins</code> / 문서 ID에 UID를 추가하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
+        } else {
+          errBox.innerHTML = `❌ Firestore 조회 오류(${res.code || 'unknown'}): Firestore 데이터베이스가 생성되어 있는지 확인하세요. <button type="button" id="btnCopyMissingAdminUid" class="underline text-amber-300 ml-1">UID 복사</button>`;
+        }
+        document.getElementById('btnCopyMissingAdminUid')?.addEventListener('click', () => copyText(user.uid, '운영자 UID가 복사되었습니다!'));
+      }
+
+      function renderFbCouponsList() {
+        const list = document.getElementById('fbCouponsList');
+        const statusEl = document.getElementById('lblFbCouponsStatus');
+        if (!list) return;
+        if (statusEl) {
+          statusEl.textContent = fbIsAdmin
+            ? `총 ${fbCouponsCache.length}개 서버 쿠폰 로드됨`
+            : 'Firebase 운영자 로그인 후 서버 쿠폰 목록이 표시됩니다.';
+        }
+        list.innerHTML = '';
+        if (!fbIsAdmin) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">Firebase 운영자 계정으로 로그인하면 서버 쿠폰과 실시간 사용량(선착순)을 관리할 수 있습니다.</div>';
+          return;
+        }
+        if (!fbCouponsCache.length) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">등록된 Firestore 서버 쿠폰이 없습니다. 왼쪽에서 생성 후 [🔥 Firestore 서버 쿠폰 발급]을 누르세요.</div>';
+          return;
+        }
+        fbCouponsCache.forEach(c => {
+          const code = c.id;
+          const summary = formatCouponSummaryText(c) || '보상 없음';
+          const used = Number(c.usedCount) || 0;
+          const max = Number(c.maxUses) || 0;
+          const quotaText = max > 0 ? `${used}/${max}명` : `${used}회/무제한`;
+          const row = document.createElement('div');
+          row.className = 'p-2.5 rounded-xl bg-slate-950/85 border border-slate-800 flex items-center justify-between gap-2';
+          row.innerHTML = `
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-xs font-black ${c.enabled !== false ? 'text-emerald-300' : 'text-slate-500 line-through'}">${code}</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-amber-200">${quotaText}</span>
+                <span class="text-[10px] text-slate-400">${c.expiresAt || '무기한'}</span>
+              </div>
+              <div class="text-[11px] text-slate-300 truncate">${summary}</div>
+            </div>
+            <div class="flex gap-1 shrink-0">
+              <button type="button" class="btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-amber-200">${c.enabled !== false ? '활성' : '중지'}</button>
+              <button type="button" class="btn-press px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-900/70 text-[10px] font-bold text-rose-300">삭제</button>
+            </div>
+          `;
+          const [togBtn, delBtn] = row.querySelectorAll('button');
+          togBtn.addEventListener('click', async () => {
+            try {
+              const nextEnabled = !(c.enabled !== false);
+              await fbMod.setDoc(fbMod.doc(fbDb, 'coupons', code), { enabled: nextEnabled }, { merge: true });
+              c.enabled = nextEnabled;
+              renderFbCouponsList();
+              showToast(`[${code}] 상태가 ${nextEnabled ? '활성화' : '중지'}로 변경되었습니다.`);
+            } catch (err) {
+              showToast(`쿠폰 상태 변경 실패: ${err?.message || '권한 확인'}`);
+            }
+          });
+          delBtn.addEventListener('click', async () => {
+            try {
+              await fbMod.deleteDoc(fbMod.doc(fbDb, 'coupons', code));
+              fbCouponsCache = fbCouponsCache.filter(x => x.id !== code);
+              renderFbCouponsList();
+              showToast(`[${code}] Firestore 쿠폰이 삭제되었습니다.`);
+            } catch (err) {
+              showToast(`쿠폰 삭제 실패: ${err?.message || '권한 확인'}`);
+            }
+          });
+          list.appendChild(row);
+        });
+      }
+
+      async function loadFbCoupons() {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          renderFbCouponsList();
+          return;
+        }
+        try {
+          const snap = await fbMod.getDocs(fbMod.collection(fbDb, 'coupons'));
+          fbCouponsCache = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
+            .sort((a, b) => (Number(b.createdAtMs) || 0) - (Number(a.createdAtMs) || 0));
+          renderFbCouponsList();
+        } catch (err) {
+          console.warn('[Admin Load Coupons]', err);
+          showToast('Firestore 쿠폰 목록 조회에 실패했습니다.');
+        }
+      }
+
+      function renderFbSavesList() {
+        const list = document.getElementById('fbSavesList');
+        if (!list) return;
+        const q = (document.getElementById('txtFbSaveSearch')?.value || '').trim().toLowerCase();
+        list.innerHTML = '';
+        if (!fbIsAdmin) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">Firebase 운영자 로그인 후 클라우드 유저 세이브 목록을 불러올 수 있습니다.</div>';
+          return;
+        }
+        const filtered = fbSavesCache.filter(item => {
+          if (!q) return true;
+          return `${item.uid} ${item.email || ''}`.toLowerCase().includes(q);
+        });
+        if (!filtered.length) {
+          list.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">조회된 클라우드 유저 세이브가 없습니다.</div>';
+          return;
+        }
+        filtered.forEach(item => {
+          const row = document.createElement('div');
+          const active = editingCloudUid === item.uid;
+          row.className = `p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-2 ${active ? 'bg-sky-950/60 border-sky-400' : 'bg-slate-950/85 border-slate-800'}`;
+          const dt = item.updatedAtMs ? new Date(item.updatedAtMs).toLocaleString('ko-KR') : '-';
+          const who = item.email ? `${item.email} (${item.uid.slice(0, 8)}...)` : `게스트 ${item.uid.slice(0, 12)}...`;
+          row.innerHTML = `
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-extrabold text-white truncate">${who}</div>
+              <div class="text-[10px] text-slate-400">${(item.accountGold || 0).toLocaleString()}G · ${item.accountGems || 0}💎 · ${item.accountShards || 0}✨ · 최근 ${dt}</div>
+            </div>
+            <button type="button" class="btn-press px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-[10px] font-extrabold text-white shrink-0">편집기로 열기</button>
+          `;
+          row.querySelector('button').addEventListener('click', () => {
+            try {
+              if (!item.saveJson) return showToast('saveJson 데이터가 비어 있습니다.');
+              editingSave = normalizeSaveObject(JSON.parse(item.saveJson));
+              editingCloudUid = item.uid;
+              const lbl = document.getElementById('lblSelectedCloudUid');
+              if (lbl) lbl.textContent = `☁️ 클라우드 대상: ${item.email || item.uid}`;
+              renderSaveEditor();
+              renderFbSavesList();
+              showToast(`[${item.email || item.uid.slice(0, 10)}] 클라우드 세이브를 불러왔습니다.`);
+            } catch (_) {
+              showToast('클라우드 세이브 JSON 해석에 실패했습니다.');
+            }
+          });
+          list.appendChild(row);
+        });
+      }
+
+      async function loadFbSaves() {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          renderFbSavesList();
+          return;
+        }
+        try {
+          const qRef = fbMod.query(fbMod.collection(fbDb, 'saves'), fbMod.orderBy('updatedAtMs', 'desc'), fbMod.limit(50));
+          const snap = await fbMod.getDocs(qRef);
+          fbSavesCache = snap.docs.map(d => Object.assign({ uid: d.id }, d.data() || {}));
+          renderFbSavesList();
+        } catch (err) {
+          console.warn('[Admin Load Saves]', err);
+          showToast('클라우드 세이브 목록 조회에 실패했습니다.');
+        }
+      }
+
+      async function initAdminFirebase(forceReload = false) {
+        updateAdminCloudBadges();
+        renderFbConfigCard();
+        const isHttp = (location.protocol === 'https:' || location.protocol === 'http:');
+        if (!isHttp || typeof window.RCD_IS_FIREBASE_READY !== 'function' || !window.RCD_IS_FIREBASE_READY()) {
+          renderFbCouponsList();
+          renderFbSavesList();
+          return;
+        }
+        if (fbAdminReady && !forceReload) return;
+        try {
+          const [appMod, authMod, fsMod] = await Promise.all([
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js')
+          ]);
+          fbMod = Object.assign({}, appMod, authMod, fsMod);
+          const appName = forceReload ? `rcd-admin-${Date.now()}` : 'rcd-admin';
+          const existing = appMod.getApps().find(a => a.name === appName);
+          fbApp = existing || appMod.initializeApp(window.RCD_FIREBASE_CONFIG, appName);
+          fbAuth = authMod.getAuth(fbApp);
+          fbDb = fsMod.getFirestore(fbApp);
+          fbAdminReady = true;
+
+          authMod.onAuthStateChanged(fbAuth, async (user) => {
+            const errBox = document.getElementById('lblFbLoginError');
+            if (!user) {
+              fbIsAdmin = false;
+              fbAdminUser = null;
+              updateAdminCloudBadges();
+              renderFbCouponsList();
+              renderFbSavesList();
+              return;
+            }
+            const res = await verifyAdminDocForUser(user);
+            if (!res.ok) {
+              fbIsAdmin = false;
+              fbAdminUser = null;
+              showAdminErrorReason(errBox, user, res);
+              updateAdminCloudBadges();
+              renderFbCouponsList();
+              renderFbSavesList();
+              return;
+            }
+            fbIsAdmin = true;
+            fbAdminUser = user;
+            if (errBox) errBox.classList.add('hidden');
+            sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+            updateAdminCloudBadges();
+            unlockAdminUI();
+            loadFbCoupons();
+            loadFbSaves();
+            if (typeof loadAdminLeaderboard === 'function') loadAdminLeaderboard();
+          });
+        } catch (err) {
+          console.warn('[Admin Firebase Init]', err);
+          showToast('Firebase Admin SDK 초기화에 실패했습니다.');
+        }
+      }
+
+      document.getElementById('fbLoginForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errBox = document.getElementById('lblFbLoginError');
+        if (!window.RCD_IS_FIREBASE_READY || !window.RCD_IS_FIREBASE_READY()) {
+          if (errBox) {
+            errBox.classList.remove('hidden');
+            errBox.textContent = '⚠️ firebase-config.js가 설정되지 않았습니다. 아래 기본 패스코드로 먼저 로그인해 설정하세요.';
+          }
+          return;
+        }
+        await initAdminFirebase();
+        if (!fbAdminReady || !fbAuth || !fbMod) return showToast('Firebase 연결에 실패했습니다.');
+        const email = (document.getElementById('txtAdminEmail')?.value || '').trim();
+        const pass = document.getElementById('txtAdminFbPass')?.value || '';
+        if (!email || !pass) return showToast('이메일과 비밀번호를 입력하세요.');
+        try {
+          if (errBox) errBox.classList.add('hidden');
+          const cred = await fbMod.signInWithEmailAndPassword(fbAuth, email, pass);
+          const res = await verifyAdminDocForUser(cred.user);
+          if (!res.ok) showAdminErrorReason(errBox, cred.user, res);
+        } catch (err) {
+          if (errBox) {
+            errBox.classList.remove('hidden');
+            errBox.textContent = `❌ 로그인 실패: ${err?.message || err?.code || '이메일/비밀번호를 확인하세요.'}`;
+          }
+        }
+      });
+
+      document.getElementById('btnLockAdmin')?.addEventListener('click', () => {
+        if (fbAuth && fbMod && fbAuth.currentUser) {
+          fbMod.signOut(fbAuth).catch(() => {});
+        }
+      });
+
+      document.getElementById('btnPublishFbCoupon')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          return showToast('🔥 Firebase 운영자 계정으로 로그인해야 서버 쿠폰을 발급할 수 있습니다.');
+        }
+        const d = getCouponFormData();
+        if (!d.couponId) return showToast('쿠폰 식별 ID를 입력하세요.');
+        if (!formatCouponSummaryText(d)) return showToast('보상을 최소 1개 이상 입력하세요.');
+        const maxUses = Math.max(0, Math.floor(Number(document.getElementById('cpnMaxUses')?.value) || 0));
+        try {
+          await fbMod.setDoc(fbMod.doc(fbDb, 'coupons', d.couponId), {
+            gold: d.gold,
+            gems: d.gems,
+            shards: d.shards,
+            goldPotion: d.goldPotion,
+            shockScroll: d.shockScroll,
+            bossBane: d.bossBane,
+            itemId: d.itemId || '',
+            itemLv: d.itemId ? d.itemLv : 0,
+            itemEx: d.itemId ? d.itemEx : 0,
+            expiresAt: d.expiresAt || '',
+            maxUses,
+            usedCount: 0,
+            enabled: true,
+            createdAtMs: Date.now(),
+            createdBy: fbAdminUser?.uid || ''
+          }, { merge: true });
+          showToast(`🔥 [${d.couponId}] Firestore 서버 쿠폰 즉시 발급 완료!`);
+          await loadFbCoupons();
+        } catch (err) {
+          showToast(`서버 쿠폰 발급 실패: ${err?.message || '권한 확인'}`);
+        }
+      });
+
+      document.getElementById('btnRefreshFbCoupons')?.addEventListener('click', loadFbCoupons);
+
+      document.getElementById('btnPublishFbLiveConfig')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          return showToast('🔥 Firebase 운영자 로그인 후 실시간 DB에 발행할 수 있습니다.');
+        }
+        const payload = buildLiveConfigPayload();
+        try {
+          await fbMod.setDoc(fbMod.doc(fbDb, 'liveConfig', 'current'), payload, { merge: true });
+          showToast('🔥 Firestore liveConfig/current 실시간 공지·배율 발행 완료!');
+        } catch (err) {
+          showToast(`실시간 발행 실패: ${err?.message || '권한 확인'}`);
+        }
+      });
+
+      document.getElementById('btnFetchFbLiveConfig')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbDb || !fbMod) {
+          return showToast('Firebase 연결 후 조회할 수 있습니다.');
+        }
+        try {
+          const snap = await fbMod.getDoc(fbMod.doc(fbDb, 'liveConfig', 'current'));
+          if (!snap.exists()) return showToast('아직 Firestore에 liveConfig/current 문서가 없습니다.');
+          const cfg = snap.data() || {};
+          liveConfigDraft = Object.assign(liveConfigDraft, cfg);
+          if (cfg.coupons && typeof cfg.coupons === 'object') {
+            couponTable = cfg.coupons;
+            localStorage.setItem(ADMIN_COUPON_TABLE_KEY, JSON.stringify(couponTable));
+            renderCouponTable();
+          }
+          syncLiveConfigDraftInputs();
+          showToast('🔥 Firestore에서 현재 실시간 공지·배율을 불러왔습니다!');
+        } catch (err) {
+          showToast(`불러오기 실패: ${err?.message || '오류'}`);
+        }
+      });
+
+      document.getElementById('btnLoadFbSaves')?.addEventListener('click', loadFbSaves);
+      document.getElementById('txtFbSaveSearch')?.addEventListener('input', renderFbSavesList);
+
+      document.getElementById('btnSaveFbCloudSave')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          return showToast('🔥 Firebase 운영자 계정으로 로그인해야 클라우드 DB를 수정할 수 있습니다.');
+        }
+        if (!editingSave) return showToast('먼저 편집할 유저 세이브를 불러오세요.');
+        if (!editingCloudUid) return showToast('상단 [클라우드 유저 목록]에서 대상 유저를 선택하세요.');
+        syncEditorFieldsToObj();
+        const now = Date.now();
+        editingSave.adminEditedAt = now;
+        editingSave.saveUpdatedAt = now;
+        try {
+          await fbMod.setDoc(fbMod.doc(fbDb, 'saves', editingCloudUid), {
+            uid: editingCloudUid,
+            saveJson: JSON.stringify(editingSave),
+            accountGold: Number(editingSave.accountGold) || 0,
+            accountGems: Number(editingSave.accountGems) || 0,
+            accountShards: Number(editingSave.accountShards) || 0,
+            updatedAtMs: now,
+            adminEditedAt: now
+          }, { merge: true });
+          showToast(`☁️ [${editingCloudUid.slice(0, 10)}...] 클라우드 DB 저장 완료! 유저 기기에 실시간 반영됩니다.`);
+          await loadFbSaves();
+        } catch (err) {
+          showToast(`클라우드 저장 실패: ${err?.message || '권한 확인'}`);
+        }
+      });
+
+      function formatAdminLbScore(board, score) {
+        const n = Number(score) || 0;
+        if (board === 'boss_rush') {
+          const s = Math.max(0, Math.floor(n));
+          return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')} (${n.toFixed(1)}s)`;
+        }
+        return `W${Math.floor(n)}`;
+      }
+
+      async function loadAdminLeaderboard() {
+        const listEl = document.getElementById('adminLbList');
+        const selEl = document.getElementById('selAdminLbBoard');
+        if (!listEl || !selEl) return;
+        const board = selEl.value || 'endless';
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          listEl.innerHTML = '<div class="col-span-full text-center text-xs text-slate-400 py-4">Firebase 운영자 로그인 후 순위를 조회할 수 있습니다.</div>';
+          return;
+        }
+        listEl.innerHTML = '<div class="col-span-full text-center text-xs text-slate-400 py-4">⏳ 리더보드 데이터를 불러오는 중...</div>';
+        try {
+          const q = fbMod.query(
+            fbMod.collection(fbDb, 'leaderboards', board, 'entries'),
+            fbMod.orderBy('score', board === 'boss_rush' ? 'asc' : 'desc'),
+            fbMod.limit(50)
+          );
+          const snap = await fbMod.getDocs(q);
+          listEl.innerHTML = '';
+          if (snap.empty) {
+            listEl.innerHTML = '<div class="col-span-full text-center text-xs text-slate-500 py-4">해당 보드에 등록된 기록이 없습니다.</div>';
+            return;
+          }
+          let rank = 1;
+          snap.forEach((docSnap) => {
+            const d = docSnap.data() || {};
+            const uid = d.uid || docSnap.id;
+            const nick = String(d.nickname || `지휘관#${String(uid).slice(0, 5)}`).trim().slice(0, 16);
+
+            const card = document.createElement('div');
+            card.className = 'flex items-center justify-between gap-2 bg-slate-950/85 border border-slate-800 rounded-xl px-3 py-2';
+
+            const info = document.createElement('div');
+            info.className = 'min-w-0';
+            const topLine = document.createElement('div');
+            topLine.className = 'text-xs font-bold text-slate-100 truncate';
+            topLine.textContent = `#${rank} ${nick} · ${formatAdminLbScore(board, d.score)}`;
+            const subLine = document.createElement('div');
+            subLine.className = 'text-[10px] text-slate-500 font-mono truncate';
+            subLine.textContent = `UID: ${uid}`;
+            info.appendChild(topLine);
+            info.appendChild(subLine);
+
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'btn-press px-2.5 py-1 rounded-lg bg-rose-900/80 hover:bg-rose-700 text-[11px] font-bold text-rose-100 shrink-0';
+            delBtn.textContent = '삭제';
+            delBtn.addEventListener('click', async () => {
+              if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) return showToast('운영자 권한이 필요합니다.');
+              try {
+                await fbMod.deleteDoc(fbMod.doc(fbDb, 'leaderboards', board, 'entries', uid));
+                showToast(`🗑️ [${nick}] 리더보드 기록 삭제 완료`);
+                await loadAdminLeaderboard();
+              } catch (err) {
+                showToast(`삭제 실패: ${err?.message || '권한 확인'}`);
+              }
+            });
+
+            card.appendChild(info);
+            card.appendChild(delBtn);
+            listEl.appendChild(card);
+            rank++;
+          });
+        } catch (err) {
+          listEl.innerHTML = '';
+          const errDiv = document.createElement('div');
+          errDiv.className = 'col-span-full text-center text-xs text-rose-300 py-4';
+          errDiv.textContent = `조회 실패: ${err?.message || 'Firestore 규칙 확인'}`;
+          listEl.appendChild(errDiv);
+        }
+      }
+
+      let adminLbResetConfirmUntil = 0;
+      document.getElementById('btnLoadAdminLb')?.addEventListener('click', loadAdminLeaderboard);
+      document.getElementById('selAdminLbBoard')?.addEventListener('change', loadAdminLeaderboard);
+      document.getElementById('btnResetAdminLb')?.addEventListener('click', async () => {
+        if (!fbAdminReady || !fbIsAdmin || !fbDb || !fbMod) {
+          return showToast('🔥 Firebase 운영자 로그인 후 보드를 초기화할 수 있습니다.');
+        }
+        const board = document.getElementById('selAdminLbBoard')?.value || 'endless';
+        const now = Date.now();
+        if (now > adminLbResetConfirmUntil) {
+          adminLbResetConfirmUntil = now + 4000;
+          return showToast(`⚠️ 4초 안에 [보드 초기화]를 한 번 더 누르면 [${board}] 모든 기록이 삭제됩니다!`);
+        }
+        adminLbResetConfirmUntil = 0;
+        try {
+          const snap = await fbMod.getDocs(fbMod.collection(fbDb, 'leaderboards', board, 'entries'));
+          let removed = 0;
+          for (const dSnap of snap.docs) {
+            await fbMod.deleteDoc(fbMod.doc(fbDb, 'leaderboards', board, 'entries', dSnap.id));
+            removed++;
+          }
+          showToast(`🧹 [${board}] 보드 기록 ${removed}건 시즌 초기화 완료!`);
+          await loadAdminLeaderboard();
+        } catch (err) {
+          showToast(`초기화 실패: ${err?.message || '권한 확인'}`);
+        }
+      });
+
+      document.getElementById('btnSaveFbConfigOverride')?.addEventListener('click', async () => {
+        try {
+          const cfg = parseFirebaseConfigSnippet(document.getElementById('txtFbConfigInput')?.value || '');
+          localStorage.setItem('rcd_firebase_config_override', JSON.stringify(cfg));
+          window.RCD_FIREBASE_CONFIG = cfg;
+          window.RCD_IS_FIREBASE_READY = () => !!(cfg.apiKey && cfg.apiKey.length > 8 && cfg.projectId);
+          renderFbConfigCard();
+          await initAdminFirebase(true);
+          showToast(`✅ 브라우저 테스트용 Firebase 설정 적용 (${cfg.projectId})!`);
+        } catch (err) {
+          showToast(`❌ 설정 파싱 실패: ${err?.message || '올바른 firebaseConfig를 붙여넣으세요.'}`);
+        }
+      });
+
+      document.getElementById('btnDownloadFbConfigJs')?.addEventListener('click', () => {
+        try {
+          const cfg = parseFirebaseConfigSnippet(document.getElementById('txtFbConfigInput')?.value || '');
+          const code = [
+            '// Firebase Project Configuration for Random Character Defense (Web + PWA + Android APK)',
+            '(function (global) {',
+            '  const DEFAULT_CONFIG = ' + JSON.stringify(cfg, null, 4).replace(/\n/g, '\n  ') + ';',
+            '',
+            '  let active = Object.assign({}, DEFAULT_CONFIG);',
+            '  try {',
+            '    if (!active.apiKey && global.localStorage) {',
+            "      const ov = global.localStorage.getItem('rcd_firebase_config_override');",
+            '      if (ov) {',
+            '        const parsed = JSON.parse(ov);',
+            "        if (parsed && typeof parsed === 'object' && parsed.apiKey && parsed.projectId) {",
+            '          active = Object.assign({}, DEFAULT_CONFIG, parsed);',
+            '        }',
+            '      }',
+            '    }',
+            '  } catch (_) {}',
+            '',
+            '  global.RCD_FIREBASE_CONFIG = active;',
+            '  global.RCD_IS_FIREBASE_READY = function () {',
+            '    const c = global.RCD_FIREBASE_CONFIG;',
+            "    return !!(c && typeof c.apiKey === 'string' && c.apiKey.trim().length > 8 && typeof c.projectId === 'string' && c.projectId.trim().length > 0);",
+            '  };',
+            "})(typeof window !== 'undefined' ? window : globalThis);",
+            ''
+          ].join('\n');
+          downloadFile('firebase-config.js', code, 'application/javascript');
+          showToast('📄 firebase-config.js 다운로드 완료! 저장소 루트에 덮어쓰고 푸시하세요.');
+        } catch (err) {
+          showToast(`❌ 먼저 유효한 Firebase 설정을 붙여넣으세요: ${err?.message || ''}`);
+        }
+      });
+
+      document.getElementById('btnClearFbConfigOverride')?.addEventListener('click', () => {
+        localStorage.removeItem('rcd_firebase_config_override');
+        showToast('테스트용 로컬 Firebase 설정이 초기화되었습니다. 페이지를 새로고침하세요.');
+      });
+
+      // Auto-unlock if active session exists
+      if (sessionStorage.getItem(ADMIN_SESSION_KEY) === '1') {
+        unlockAdminUI();
+      }
+      initAdminFirebase();
+    })();
+  </script>
+</body>
+</html>
