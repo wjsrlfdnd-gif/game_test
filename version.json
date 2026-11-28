@@ -1,8 +1,8 @@
 {
-  "buildId": "2026.11.27-challenge-arenas-v10",
+  "buildId": "2026.11.27-daily-caps-v11",
   "commit": "local",
-  "cacheName": "rcd-offline-v24",
-  "deployedAt": "2026-11-28T04:30:00Z",
-  "notes": "퀘스트·챌린지 전용 2.5D 신규 맵 3종(24타일 커스텀 배치) 및 신규 몬스터·보스 6종 추가",
+  "cacheName": "rcd-offline-v25",
+  "deployedAt": "2026-11-28T07:55:00Z",
+  "notes": "퀘스트(추가의뢰 5회·무료새로고침 2회) 및 특수 시련 3종·오늘의 변이 일일 2회 제한 강화(소진 시 자정까지 입장 잠금)",
   "forceReload": false
 }

@@ -2103,7 +2103,7 @@
           <div class="p-2.5 rounded-xl bg-gradient-to-br from-amber-950/65 to-slate-950 border border-amber-500/45 flex flex-col justify-between gap-1.5 shadow">
             <div class="flex flex-wrap items-center justify-between gap-1">
               <span class="text-xs font-extrabold text-amber-300">🪙 황금 소굴 (10W)</span>
-              <span id="lblTrialGoldRemain" class="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/35 text-[9px] font-bold text-amber-200">보너스 3/3</span>
+              <span id="lblTrialGoldRemain" class="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/35 text-[9px] font-bold text-amber-200">입장 2/2</span>
             </div>
             <div class="relative h-14 rounded-lg overflow-hidden border border-amber-500/35 bg-slate-950">
               <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E" data-asset-key="map_challenge_vault" alt="황금 보물고 투기장" class="w-full h-full object-cover opacity-80" />
@@ -2126,7 +2126,7 @@
           <div class="p-2.5 rounded-xl bg-gradient-to-br from-fuchsia-950/65 to-slate-950 border border-fuchsia-500/45 flex flex-col justify-between gap-1.5 shadow">
             <div class="flex flex-wrap items-center justify-between gap-1">
               <span class="text-xs font-extrabold text-fuchsia-300">✨ 수정 균열 (10W)</span>
-              <span id="lblTrialShardRemain" class="px-1.5 py-0.5 rounded-full bg-fuchsia-500/20 border border-fuchsia-400/35 text-[9px] font-bold text-fuchsia-200">보너스 3/3</span>
+              <span id="lblTrialShardRemain" class="px-1.5 py-0.5 rounded-full bg-fuchsia-500/20 border border-fuchsia-400/35 text-[9px] font-bold text-fuchsia-200">입장 2/2</span>
             </div>
             <div class="relative h-14 rounded-lg overflow-hidden border border-fuchsia-500/35 bg-slate-950">
               <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E" data-asset-key="map_challenge_rift" alt="수정 균열 성소" class="w-full h-full object-cover opacity-80" />
@@ -2149,7 +2149,7 @@
           <div class="p-2.5 rounded-xl bg-gradient-to-br from-cyan-950/65 to-slate-950 border border-cyan-500/45 flex flex-col justify-between gap-1.5 shadow">
             <div class="flex flex-wrap items-center justify-between gap-1">
               <span class="text-xs font-extrabold text-cyan-300">🔨 강철 요새 (10W)</span>
-              <span id="lblTrialForgeRemain" class="px-1.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/35 text-[9px] font-bold text-cyan-200">확정드랍 3/3</span>
+              <span id="lblTrialForgeRemain" class="px-1.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/35 text-[9px] font-bold text-cyan-200">확정드랍 2/2</span>
             </div>
             <div class="relative h-14 rounded-lg overflow-hidden border border-cyan-500/35 bg-slate-950">
               <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E" data-asset-key="map_challenge_vault" alt="대장간 투기장" class="w-full h-full object-cover opacity-80" />
@@ -2195,7 +2195,7 @@
           <div class="p-2.5 rounded-xl bg-gradient-to-br from-emerald-950/65 to-slate-950 border border-emerald-500/45 flex flex-col justify-between gap-1.5 shadow">
             <div class="flex flex-wrap items-center justify-between gap-1">
               <span id="lblMutatorBadge" class="text-xs font-extrabold text-emerald-300">🎲 오늘의 변이 (15W)</span>
-              <span id="lblMutatorRemain" class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/35 text-[9px] font-bold text-emerald-200">일일 보너스 3/3</span>
+              <span id="lblMutatorRemain" class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/35 text-[9px] font-bold text-emerald-200">일일 입장 2/2</span>
             </div>
             <div class="relative h-14 rounded-lg overflow-hidden border border-emerald-500/35 bg-slate-950">
               <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E" data-asset-key="map_challenge_rift" alt="시공 변이 성소" class="w-full h-full object-cover opacity-80" />
@@ -2935,7 +2935,7 @@
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
               <span>실시간 자동 업데이트 (30초 동기화)</span>
             </div>
-            <div id="lblLiveVersionInfo" class="text-[10px] text-slate-400 truncate mt-0.5 tabular-nums">빌드: 2026.11.27-challenge-arenas-v10</div>
+            <div id="lblLiveVersionInfo" class="text-[10px] text-slate-400 truncate mt-0.5 tabular-nums">빌드: 2026.11.27-daily-caps-v11</div>
           </div>
           <button id="btnCheckUpdateNow" class="game-btn px-2.5 py-1.5 rounded-lg bg-emerald-600/25 hover:bg-emerald-600/40 border border-emerald-400/50 text-[11px] font-bold text-emerald-200 shrink-0">
             🔄 업데이트 확인
@@ -6190,6 +6190,11 @@
         return DAILY_MUTATORS[h % DAILY_MUTATORS.length];
       }
 
+      const DAILY_BONUS_QUEST_LIMIT = 5;
+      const DAILY_FREE_REFRESH_LIMIT = 2;
+      const TRIAL_DAILY_LIMIT = 2;
+      const MUTATOR_DAILY_LIMIT = 2;
+
       function syncDailyMutatorCounter() {
         const today = typeof getTodayDateKey === 'function' ? getTodayDateKey() : new Date().toISOString().slice(0, 10);
         if (mutatorDate !== today) {
@@ -6210,7 +6215,38 @@
 
       function getTrialBonusRemaining(modeKey) {
         syncTrialBonusCounter();
-        return Math.max(0, 3 - (trialClearsToday[modeKey] || 0));
+        return Math.max(0, TRIAL_DAILY_LIMIT - (trialClearsToday[modeKey] || 0));
+      }
+
+      function getMutatorRemaining() {
+        syncDailyMutatorCounter();
+        return Math.max(0, MUTATOR_DAILY_LIMIT - (mutatorClearsToday || 0));
+      }
+
+      function getDailyModeEntryRemaining(modeKey) {
+        if (modeKey === 'trial_gold' || modeKey === 'trial_shard' || modeKey === 'trial_forge') {
+          return getTrialBonusRemaining(modeKey);
+        }
+        if (modeKey === 'daily_mutator') {
+          return getMutatorRemaining();
+        }
+        return Infinity;
+      }
+
+      function isDailyModeLocked(modeKey) {
+        return getDailyModeEntryRemaining(modeKey) <= 0;
+      }
+
+      function syncModalRestartLockBtn() {
+        const btn = document.getElementById('btnModalRestart');
+        if (!btn) return;
+        const locked = isDailyModeLocked(gameMode);
+        btn.disabled = locked;
+        btn.setAttribute('aria-disabled', locked ? 'true' : 'false');
+        btn.textContent = locked ? '🔒 일일 입장 소진 (자정 리셋)' : '다시 도전하기';
+        btn.className = locked
+          ? 'game-btn px-5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 font-bold text-sm cursor-not-allowed opacity-70'
+          : 'game-btn px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm shadow-lg';
       }
 
       function formatCompactNum(n) {
@@ -8988,6 +9024,7 @@
       }
 
       function renderGameOverSummary() {
+        syncModalRestartLockBtn();
         const box = document.getElementById('gameOverStatsBox');
         if (!box) return;
         const rows = Object.values(runUnitStats).filter(r => r.dmg > 0).sort((a, b) => b.dmg - a.dmg);
@@ -9112,23 +9149,20 @@
           syncTrialBonusCounter();
           const tr = getTrialRewardSummary().goldTrial;
           const used = trialClearsToday.trial_gold || 0;
-          const hasBonus = used < 3;
+          const hasBonus = used < TRIAL_DAILY_LIMIT;
           let subTxt = '';
           if (hasBonus) {
             trialClearsToday.trial_gold = used + 1;
             accountGold += tr.gold;
             consumables.goldPotion += tr.potions;
             accountShards += tr.shards;
-            subTxt = `일일 보너스(${trialClearsToday.trial_gold}/3): +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨ 파편 · 황금 비약 +${tr.potions}개 지급 완료!`;
+            const lockNote = trialClearsToday.trial_gold >= TRIAL_DAILY_LIMIT ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
+            subTxt = `일일 입장(${trialClearsToday.trial_gold}/${TRIAL_DAILY_LIMIT}): +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨ 파편 · 황금 비약 +${tr.potions}개 지급 완료!${lockNote}`;
           } else {
-            const baseG = Math.round(tr.gold * 0.30);
-            const baseS = Math.max(1, Math.round(tr.shards * 0.30));
-            accountGold += baseG;
-            accountShards += baseS;
-            subTxt = `일일 보너스 3회 소진 · 기본 보상(30%): +${baseG.toLocaleString()} 금화 · +${baseS}✨ 파편 지급!`;
+            subTxt = `🔒 오늘의 일일 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})가 이미 소진되었습니다. 자정에 초기화됩니다.`;
           }
           playSound('victory');
-          document.getElementById('gameOverTitle').textContent = '🪙 황금 고블린 소굴 클리어!';
+          document.getElementById('gameOverTitle').textContent = '🪙 황금 소굴 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-amber-300 mb-2';
           document.getElementById('gameOverSub').textContent = subTxt;
           document.getElementById('btnModalNextStage').classList.add('hidden');
@@ -9142,23 +9176,20 @@
           syncTrialBonusCounter();
           const tr = getTrialRewardSummary().shardTrial;
           const used = trialClearsToday.trial_shard || 0;
-          const hasBonus = used < 3;
+          const hasBonus = used < TRIAL_DAILY_LIMIT;
           let subTxt = '';
           if (hasBonus) {
             trialClearsToday.trial_shard = used + 1;
             accountShards += tr.shards;
             accountGems += tr.gems;
             accountGold += tr.gold;
-            subTxt = `일일 보너스(${trialClearsToday.trial_shard}/3): +${tr.shards}✨ 파편 · +${tr.gems}💎 보석 · +${tr.gold.toLocaleString()} 금화 지급 완료!`;
+            const lockNote = trialClearsToday.trial_shard >= TRIAL_DAILY_LIMIT ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
+            subTxt = `일일 입장(${trialClearsToday.trial_shard}/${TRIAL_DAILY_LIMIT}): +${tr.shards}✨ 파편 · +${tr.gems}💎 보석 · +${tr.gold.toLocaleString()} 금화 지급 완료!${lockNote}`;
           } else {
-            const baseS = Math.max(2, Math.round(tr.shards * 0.30));
-            const baseG = Math.round(tr.gold * 0.30);
-            accountShards += baseS;
-            accountGold += baseG;
-            subTxt = `일일 보너스 3회 소진 · 기본 보상(30%): +${baseS}✨ 파편 · +${baseG.toLocaleString()} 금화 지급!`;
+            subTxt = `🔒 오늘의 일일 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})가 이미 소진되었습니다. 자정에 초기화됩니다.`;
           }
           playSound('victory');
-          document.getElementById('gameOverTitle').textContent = '✨ 마력 수정 균열 클리어!';
+          document.getElementById('gameOverTitle').textContent = '✨ 수정 균열 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-fuchsia-300 mb-2';
           document.getElementById('gameOverSub').textContent = subTxt;
           document.getElementById('btnModalNextStage').classList.add('hidden');
@@ -9172,7 +9203,7 @@
           syncTrialBonusCounter();
           const tr = getTrialRewardSummary().forgeTrial;
           const used = trialClearsToday.trial_forge || 0;
-          const hasBonus = used < 3;
+          const hasBonus = used < TRIAL_DAILY_LIMIT;
           let subTxt = '';
           if (hasBonus) {
             trialClearsToday.trial_forge = used + 1;
@@ -9184,14 +9215,11 @@
             const picked = pool[Math.floor(Math.random() * pool.length)] || SHOP_CATALOG[2];
             const droppedItem = addInventoryItem(picked, false);
             playSound(dropTier >= 4 ? 'mythic' : 'victory');
-            subTxt = `일일 보너스(${trialClearsToday.trial_forge}/3): +${tr.gems}💎 · +${tr.gold.toLocaleString()}G · +${tr.shards}✨ | 🎁 장비 드랍: [${TIER_META[droppedItem.tier].name}] ${droppedItem.name}`;
+            const lockNote = trialClearsToday.trial_forge >= TRIAL_DAILY_LIMIT ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
+            subTxt = `일일 입장(${trialClearsToday.trial_forge}/${TRIAL_DAILY_LIMIT}): +${tr.gems}💎 · +${tr.gold.toLocaleString()}G · +${tr.shards}✨ | 🎁 장비 드랍: [${TIER_META[droppedItem.tier].name}] ${droppedItem.name}${lockNote}`;
           } else {
-            const baseG = Math.round(tr.gold * 0.30);
-            const baseS = Math.max(1, Math.round(tr.shards * 0.30));
-            accountGold += baseG;
-            accountShards += baseS;
             playSound('victory');
-            subTxt = `일일 보너스 3회 소진 · 기본 보상(30%): +${baseG.toLocaleString()} 금화 · +${baseS}✨ 파편 (확정 장비 드랍 제외)`;
+            subTxt = `🔒 오늘의 일일 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})가 이미 소진되었습니다. 자정에 초기화됩니다.`;
           }
           document.getElementById('gameOverTitle').textContent = '🔨 강철 요새 시련 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-cyan-300 mb-2';
@@ -9230,18 +9258,17 @@
           syncDailyMutatorCounter();
           const mut = getActiveMutatorRule();
           const tr = getTrialRewardSummary().mutatorChallenge;
-          const hasBonus = mutatorClearsToday < 3;
+          const hasBonus = mutatorClearsToday < MUTATOR_DAILY_LIMIT;
           let rwText = '';
           if (hasBonus) {
             accountGems += tr.gems;
             accountGold += tr.gold;
             accountShards += tr.shards;
             mutatorClearsToday++;
-            rwText = `일일 보너스(${mutatorClearsToday}/3): +${tr.gems}💎 · +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨`;
+            const lockNote = mutatorClearsToday >= MUTATOR_DAILY_LIMIT ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
+            rwText = `일일 입장(${mutatorClearsToday}/${MUTATOR_DAILY_LIMIT}): +${tr.gems}💎 · +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨${lockNote}`;
           } else {
-            const baseG = Math.round(tr.gold * 0.30);
-            accountGold += baseG;
-            rwText = `일일 보너스 3회 소진 · 기본 보상: +${baseG.toLocaleString()} 금화 (파편 0✨)`;
+            rwText = `🔒 오늘의 일일 입장 횟수(${MUTATOR_DAILY_LIMIT}/${MUTATOR_DAILY_LIMIT})가 이미 소진되었습니다. 자정에 초기화됩니다.`;
           }
           playSound('victory');
           document.getElementById('gameOverTitle').textContent = `🎲 오늘의 변이 [${mut ? mut.name : '도전'}] 클리어!`;
@@ -12685,15 +12712,15 @@
 
         const timerEl = document.getElementById('lblDailyResetTimer');
         if (timerEl) {
-          const bonusLeft = Math.max(0, 10 - (dailyBonusQuestsClaimed || 0));
-          timerEl.textContent = `다음 리셋 ${getTimeUntilMidnightStr()} · 완료 ${dailyCompletedToday}회 · 추가의뢰 잔여 ${bonusLeft}/10`;
+          const bonusLeft = Math.max(0, DAILY_BONUS_QUEST_LIMIT - (dailyBonusQuestsClaimed || 0));
+          timerEl.textContent = `다음 리셋 ${getTimeUntilMidnightStr()} · 완료 ${dailyCompletedToday}회 · 추가의뢰 잔여 ${bonusLeft}/${DAILY_BONUS_QUEST_LIMIT}`;
         }
         const dateEl = document.getElementById('lblDailyDateBadge');
         if (dateEl) dateEl.textContent = dailyQuestDate || getTodayDateKey();
         const refBtn = document.getElementById('btnRefreshDailyQuests');
         if (refBtn) {
-          const freeLeft = Math.max(0, 3 - (dailyQuestRefreshesUsed || 0));
-          refBtn.textContent = freeLeft > 0 ? `🔄 무료 새로고침 (${freeLeft}/3)` : '🔄 새로고침 (500G)';
+          const freeLeft = Math.max(0, DAILY_FREE_REFRESH_LIMIT - (dailyQuestRefreshesUsed || 0));
+          refBtn.textContent = freeLeft > 0 ? `🔄 무료 새로고침 (${freeLeft}/${DAILY_FREE_REFRESH_LIMIT})` : '🔄 새로고침 (500G)';
         }
 
         let claimableCount = 0;
@@ -12733,16 +12760,16 @@
             accountGems += q.gem;
             accountShards += q.sh;
             playSound('coin');
-            // 일일 추가 의뢰 10회 한도 내에서 새 추가 의뢰 자동 생성
-            if ((dailyBonusQuestsClaimed || 0) < 10) {
+            // 일일 추가 의뢰 5회 한도 내에서 새 추가 의뢰 자동 생성
+            if ((dailyBonusQuestsClaimed || 0) < DAILY_BONUS_QUEST_LIMIT) {
               const activeStats = new Set(dailyQuests.filter(item => !item.claimed).map(item => item.stat));
               const candidates = DAILY_QUEST_POOL.filter(t => !activeStats.has(t.stat) && t.stat !== q.stat);
               const poolChoice = candidates.length > 0 ? candidates : DAILY_QUEST_POOL;
               const nextTpl = poolChoice[Math.floor(Math.random() * poolChoice.length)];
               dailyQuests[qIdx] = createDynamicQuest(nextTpl, true);
-              showToast(`🎁 퀘스트 보상 수령(+${Number(q.g || 0).toLocaleString()}G · +${q.gem}💎 · +${q.sh}✨) → 추가 의뢰 생성 (${10 - dailyBonusQuestsClaimed}/10 남음)`);
+              showToast(`🎁 퀘스트 보상 수령(+${Number(q.g || 0).toLocaleString()}G · +${q.gem}💎 · +${q.sh}✨) → 추가 의뢰 생성 (${DAILY_BONUS_QUEST_LIMIT - dailyBonusQuestsClaimed}/${DAILY_BONUS_QUEST_LIMIT} 남음)`);
             } else {
-              showToast(`🎁 퀘스트 보상 수령(+${Number(q.g || 0).toLocaleString()}G · +${q.gem}💎 · +${q.sh}✨)! 오늘의 추가 의뢰 한도(10회)를 모두 완료했습니다.`);
+              showToast(`🎁 퀘스트 보상 수령(+${Number(q.g || 0).toLocaleString()}G · +${q.gem}💎 · +${q.sh}✨)! 오늘의 추가 의뢰 한도(${DAILY_BONUS_QUEST_LIMIT}회)를 모두 완료했습니다.`);
             }
             renderLobbyAll();
           });
@@ -12833,30 +12860,52 @@
         if (typeof syncDailyMutatorCounter === 'function') syncDailyMutatorCounter();
         if (typeof syncTrialBonusCounter === 'function') syncTrialBonusCounter();
         const trialScaleTxt = `난이도 x${getTrialDifficultyScale().hpMult.toFixed(1)}`;
+        const syncDailyEntryBtn = (btnId, rem, maxCnt, openLabel, openClass) => {
+          const btn = document.getElementById(btnId);
+          if (!btn) return;
+          const locked = rem <= 0;
+          btn.disabled = locked;
+          btn.setAttribute('aria-disabled', locked ? 'true' : 'false');
+          btn.textContent = locked ? `🔒 오늘 입장 완료 (0/${maxCnt} · 자정 리셋)` : openLabel;
+          btn.className = locked
+            ? 'game-btn w-full py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 font-bold text-[11px] cursor-not-allowed opacity-70'
+            : openClass;
+        };
+
+        const rGold = getTrialBonusRemaining('trial_gold');
         const tgRem = document.getElementById('lblTrialGoldRemain');
         if (tgRem) {
-          const r = getTrialBonusRemaining('trial_gold');
-          tgRem.textContent = r > 0 ? `보너스 ${r}/3 · ${trialScaleTxt}` : `보너스 소진(30%) · ${trialScaleTxt}`;
+          tgRem.textContent = rGold > 0 ? `입장 ${rGold}/${TRIAL_DAILY_LIMIT} · ${trialScaleTxt}` : `🔒 일일 잠금 (0/${TRIAL_DAILY_LIMIT})`;
         }
+        syncDailyEntryBtn('btnStartTrialGold', rGold, TRIAL_DAILY_LIMIT, '🪙 황금 소굴 입장',
+          'game-btn w-full py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[11px] shadow');
+
+        const rShard = getTrialBonusRemaining('trial_shard');
         const tsRem = document.getElementById('lblTrialShardRemain');
         if (tsRem) {
-          const r = getTrialBonusRemaining('trial_shard');
-          tsRem.textContent = r > 0 ? `보너스 ${r}/3 · ${trialScaleTxt}` : `보너스 소진(30%) · ${trialScaleTxt}`;
+          tsRem.textContent = rShard > 0 ? `입장 ${rShard}/${TRIAL_DAILY_LIMIT} · ${trialScaleTxt}` : `🔒 일일 잠금 (0/${TRIAL_DAILY_LIMIT})`;
         }
+        syncDailyEntryBtn('btnStartTrialShard', rShard, TRIAL_DAILY_LIMIT, '✨ 수정 균열 입장',
+          'game-btn w-full py-1.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-black text-[11px] shadow');
+
+        const rForge = getTrialBonusRemaining('trial_forge');
         const tfRem = document.getElementById('lblTrialForgeRemain');
         if (tfRem) {
-          const r = getTrialBonusRemaining('trial_forge');
-          tfRem.textContent = r > 0 ? `확정드랍 ${r}/3 · ${trialScaleTxt}` : `드랍 소진(30%) · ${trialScaleTxt}`;
+          tfRem.textContent = rForge > 0 ? `확정드랍 ${rForge}/${TRIAL_DAILY_LIMIT} · ${trialScaleTxt}` : `🔒 일일 잠금 (0/${TRIAL_DAILY_LIMIT})`;
         }
+        syncDailyEntryBtn('btnStartTrialForge', rForge, TRIAL_DAILY_LIMIT, '🔨 강철 요새 입장',
+          'game-btn w-full py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-slate-950 font-black text-[11px] shadow');
 
         const todayMut = typeof getTodayMutatorConfig === 'function' ? getTodayMutatorConfig() : null;
         const mutBadgeEl = document.getElementById('lblMutatorBadge');
         if (mutBadgeEl && todayMut) mutBadgeEl.textContent = `🎲 ${todayMut.name} (15W)`;
+        const remMut = getMutatorRemaining();
         const mutRemainEl = document.getElementById('lblMutatorRemain');
         if (mutRemainEl) {
-          const remMut = Math.max(0, 3 - mutatorClearsToday);
-          mutRemainEl.textContent = remMut > 0 ? `일일 보너스 ${remMut}/3` : '일일 보너스 소진 (기본 30%)';
+          mutRemainEl.textContent = remMut > 0 ? `일일 입장 ${remMut}/${MUTATOR_DAILY_LIMIT}` : `🔒 일일 잠금 (0/${MUTATOR_DAILY_LIMIT})`;
         }
+        syncDailyEntryBtn('btnStartDailyMutator', remMut, MUTATOR_DAILY_LIMIT, '🎲 오늘의 변이 도전',
+          'game-btn w-full py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-[11px] shadow');
         const bossRecEl = document.getElementById('lblBossRushRecord');
         if (bossRecEl) {
           bossRecEl.textContent = bestBossRushSec > 0
@@ -12900,15 +12949,20 @@
 
       // 자정(하루 경과) 자동 리셋 및 카운트다운 표시 타이머
       setInterval(() => {
-        const resetOccurred = checkDailyQuestAutoReset(true);
+        const today = getTodayDateKey();
+        const resetOccurred = checkDailyQuestAutoReset(true)
+          || (trialBonusDate && trialBonusDate !== today)
+          || (mutatorDate && mutatorDate !== today);
         if (resetOccurred) {
+          syncTrialBonusCounter();
+          syncDailyMutatorCounter();
           renderLobbyAll();
           return;
         }
         const timerEl = document.getElementById('lblDailyResetTimer');
         if (timerEl && !document.getElementById('lobbyTabQuest').classList.contains('hidden')) {
-          const bonusLeft = Math.max(0, 10 - (dailyBonusQuestsClaimed || 0));
-          timerEl.textContent = `다음 리셋 ${getTimeUntilMidnightStr()} · 완료 ${dailyCompletedToday}회 · 추가의뢰 잔여 ${bonusLeft}/10`;
+          const bonusLeft = Math.max(0, DAILY_BONUS_QUEST_LIMIT - (dailyBonusQuestsClaimed || 0));
+          timerEl.textContent = `다음 리셋 ${getTimeUntilMidnightStr()} · 완료 ${dailyCompletedToday}회 · 추가의뢰 잔여 ${bonusLeft}/${DAILY_BONUS_QUEST_LIMIT}`;
         }
       }, 1000);
 
@@ -13685,13 +13739,13 @@
         }
       });
 
-      // Quest Refresh (3 Free/day, then 500G) & Additional Content Launchers
+      // Quest Refresh (2 Free/day, then 500G) & Additional Content Launchers (2/day Hard Lock on Trials & Mutator)
       document.getElementById('btnRefreshDailyQuests').addEventListener('click', () => {
         checkDailyQuestAutoReset(false);
-        const freeLeft = Math.max(0, 3 - (dailyQuestRefreshesUsed || 0));
+        const freeLeft = Math.max(0, DAILY_FREE_REFRESH_LIMIT - (dailyQuestRefreshesUsed || 0));
         if (freeLeft <= 0) {
           if (accountGold < 500) {
-            return showToast('무료 새로고침 3회를 모두 사용했습니다! 추가 새로고침에는 500G가 필요합니다.');
+            return showToast(`무료 새로고침 ${DAILY_FREE_REFRESH_LIMIT}회를 모두 사용했습니다! 추가 새로고침에는 500G가 필요합니다.`);
           }
           accountGold -= 500;
         }
@@ -13705,14 +13759,19 @@
         };
         dailyQuestClaimed = { kills: false, merges: false, bosses: false };
         playSound('summon');
-        const nextFree = Math.max(0, 3 - dailyQuestRefreshesUsed);
+        const nextFree = Math.max(0, DAILY_FREE_REFRESH_LIMIT - dailyQuestRefreshesUsed);
         showToast(freeLeft > 0
-          ? `🔄 새로운 퀘스트 3종 생성! (무료 새로고침 ${nextFree}/3 남음)`
+          ? `🔄 새로운 퀘스트 3종 생성! (무료 새로고침 ${nextFree}/${DAILY_FREE_REFRESH_LIMIT} 남음)`
           : '🔄 500G를 사용해 새로운 퀘스트 3종을 생성했습니다!');
         renderLobbyAll();
       });
 
       document.getElementById('btnStartTrialGold').addEventListener('click', () => {
+        if (isDailyModeLocked('trial_gold')) {
+          showToast(`🔒 오늘의 [황금 소굴] 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})를 모두 사용했습니다! 자정에 초기화됩니다.`);
+          renderLobbyAll();
+          return;
+        }
         gameMode = 'trial_gold';
         activeMutatorId = '';
         resetGame();
@@ -13721,6 +13780,11 @@
       });
 
       document.getElementById('btnStartTrialShard').addEventListener('click', () => {
+        if (isDailyModeLocked('trial_shard')) {
+          showToast(`🔒 오늘의 [수정 균열] 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})를 모두 사용했습니다! 자정에 초기화됩니다.`);
+          renderLobbyAll();
+          return;
+        }
         gameMode = 'trial_shard';
         activeMutatorId = '';
         resetGame();
@@ -13729,6 +13793,11 @@
       });
 
       document.getElementById('btnStartTrialForge').addEventListener('click', () => {
+        if (isDailyModeLocked('trial_forge')) {
+          showToast(`🔒 오늘의 [강철 요새] 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})를 모두 사용했습니다! 자정에 초기화됩니다.`);
+          renderLobbyAll();
+          return;
+        }
         gameMode = 'trial_forge';
         activeMutatorId = '';
         resetGame();
@@ -13745,6 +13814,11 @@
 
       document.getElementById('btnStartDailyMutator').addEventListener('click', () => {
         syncDailyMutatorCounter();
+        if (isDailyModeLocked('daily_mutator')) {
+          showToast(`🔒 오늘의 [오늘의 변이] 입장 횟수(${MUTATOR_DAILY_LIMIT}/${MUTATOR_DAILY_LIMIT})를 모두 사용했습니다! 자정에 초기화됩니다.`);
+          renderLobbyAll();
+          return;
+        }
         const todayMut = getTodayMutatorConfig();
         activeMutatorId = todayMut.id;
         gameMode = 'daily_mutator';
@@ -14269,10 +14343,23 @@
       });
       document.getElementById('btnRestart').addEventListener('click', () => {
         document.getElementById('settingsModal').classList.add('hidden');
+        if (isDailyModeLocked(gameMode)) {
+          showToast('🔒 오늘의 일일 입장 횟수(2/2)를 모두 사용했습니다! 자정(00:00)에 초기화됩니다.');
+          switchScreen(true);
+          return;
+        }
         resetGame();
         switchScreen(false);
       });
-      document.getElementById('btnModalRestart').addEventListener('click', resetGame);
+      document.getElementById('btnModalRestart').addEventListener('click', () => {
+        if (isDailyModeLocked(gameMode)) {
+          showToast('🔒 오늘의 일일 입장 횟수(2/2)를 모두 사용했습니다! 자정(00:00)에 초기화됩니다.');
+          document.getElementById('gameOverModal').classList.add('hidden');
+          switchScreen(true);
+          return;
+        }
+        resetGame();
+      });
       document.getElementById('btnDiffNormal')?.addEventListener('click', () => setStageDifficulty('normal'));
       document.getElementById('btnDiffHard')?.addEventListener('click', () => setStageDifficulty('hard'));
       document.getElementById('btnDiffNightmare')?.addEventListener('click', () => setStageDifficulty('nightmare'));
@@ -14369,7 +14456,7 @@
       // =====================================================================
       // Mobile Game Runtime (PWA + Android APK) & Real-Time OTA / Live-Ops
       // =====================================================================
-      const APP_BUILD_ID = '2026.11.27-challenge-arenas-v10';
+      const APP_BUILD_ID = '2026.11.27-daily-caps-v11';
       let deferredInstallPrompt = null;
       let pwaSwRegistered = false;
       let swRegistrationRef = null;
@@ -15797,7 +15884,7 @@
           if (r && r.ok) swContent = await r.text();
         } catch (_) {}
         if (!swContent) {
-          swContent = "const CACHE_NAME = 'rcd-offline-v24';\nself.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));\n";
+          swContent = "const CACHE_NAME = 'rcd-offline-v25';\nself.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));\n";
         }
         const blob = new Blob([swContent], { type: 'application/javascript' });
         const a = document.createElement('a');
