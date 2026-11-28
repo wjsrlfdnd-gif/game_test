@@ -1,5 +1,5 @@
-// Random Character Defense — Mobile Game Real-Time OTA & Offline Service Worker (v22)
-const CACHE_NAME = 'rcd-offline-v22';
+// Random Character Defense — Mobile Game Real-Time OTA & Offline Service Worker (v23)
+const CACHE_NAME = 'rcd-offline-v23';
 const CANONICAL_HTML = './random_character_defense.html';
 const CORE_ASSETS = [
   CANONICAL_HTML,

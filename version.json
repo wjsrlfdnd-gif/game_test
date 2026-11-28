@@ -1,8 +1,8 @@
 {
-  "buildId": "2026.11.26-rebalance-ui-v8",
+  "buildId": "2026.11.27-auto-bounty-v9",
   "commit": "local",
-  "cacheName": "rcd-offline-v22",
-  "deployedAt": "2026-11-26T00:00:00Z",
-  "notes": "스테이지 단조 난이도(A안), 3개 등급군 공용 장비(B안), 시련/소모품/보안 개편, 오프라인 정적 Tailwind PWA & 모바일/데스크톱 UI 전면 개편",
+  "cacheName": "rcd-offline-v23",
+  "deployedAt": "2026-11-27T00:00:00Z",
+  "notes": "현상금 보스 쿨타임 30초 조정 및 자동 현상금 호출 ON/OFF 토글(단축키 Shift+B) 추가",
   "forceReload": false
 }
