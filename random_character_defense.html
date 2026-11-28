@@ -2935,7 +2935,7 @@
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
               <span>실시간 자동 업데이트 (30초 동기화)</span>
             </div>
-            <div id="lblLiveVersionInfo" class="text-[10px] text-slate-400 truncate mt-0.5 tabular-nums">빌드: 2026.11.28-entry-forge-sync-v12</div>
+            <div id="lblLiveVersionInfo" class="text-[10px] text-slate-400 truncate mt-0.5 tabular-nums">빌드: 2026.11.28-hard-curve-v13</div>
           </div>
           <button id="btnCheckUpdateNow" class="game-btn px-2.5 py-1.5 rounded-lg bg-emerald-600/25 hover:bg-emerald-600/40 border border-emerald-400/50 text-[11px] font-bold text-emerald-200 shrink-0">
             🔄 업데이트 확인
@@ -4001,11 +4001,11 @@
       let currentMap = 'meadow';
       let currentStageSub = 1; // 1 to 10 (n-1 to n-10)
 
-      // Stage Difficulty Modes (Monotonic A-Option Base: Normal -> Hard -> Nightmare unlocked on 10-10 clear)
+      // Stage Difficulty Modes (Continuous Monotonic Escalation: Normal 10-10 < Hard 1-1 < ... < Hard 10-10 < Nightmare 1-1)
       const DIFFICULTY_MODES = {
-        normal:    { key: 'normal',    label: '노멀',       shortLabel: '노멀',       badge: '🟢 노멀',       hpMult: 2.0,  defMult: 1.00, rewardMult: 1.00 },
-        hard:      { key: 'hard',      label: '하드',       shortLabel: '하드',       badge: '🔥 하드',       hpMult: 15.0, defMult: 1.45, rewardMult: 2.30 },
-        nightmare: { key: 'nightmare', label: '나이트메어', shortLabel: '나이트메어', badge: '💀 나이트메어', hpMult: 75.0, defMult: 2.00, rewardMult: 4.20 }
+        normal:    { key: 'normal',    label: '노멀',       shortLabel: '노멀',       badge: '🟢 노멀',       hpMult: 2.0,     defMult: 1.00, stepBase: 1.074, defBase: 1.018, rewardMult: 1.00, econBase: 1.0,   econStep: 1.036, idxOffset: 0,   bossGemBonus: 0, gemBase: 8,  gemStep: 0.28, shBase: 6,  shStep: 0.30 },
+        hard:      { key: 'hard',      label: '하드',       shortLabel: '하드',       badge: '🔥 하드',       hpMult: 4200.0,  defMult: 7.80, stepBase: 1.020, defBase: 1.005, rewardMult: 2.30, econBase: 38.0,  econStep: 1.014, idxOffset: 100, bossGemBonus: 1, gemBase: 40, gemStep: 0.35, shBase: 40, shStep: 0.35 },
+        nightmare: { key: 'nightmare', label: '나이트메어', shortLabel: '나이트메어', badge: '💀 나이트메어', hpMult: 50000.0, defMult: 17.0, stepBase: 1.014, defBase: 1.003, rewardMult: 4.20, econBase: 165.0, econStep: 1.011, idxOffset: 200, bossGemBonus: 2, gemBase: 82, gemStep: 0.45, shBase: 82, shStep: 0.45 }
       };
       let stageDifficulty = 'normal';
 
@@ -5033,12 +5033,12 @@
           const maxVisibleSub = Math.min(10, maxUnlockedSub + 1);
           for (let s = 1; s <= maxVisibleSub; s++) {
             const unlocked = isStageUnlocked(currentMap, s);
-            const mult = getStageStepMult(s);
+            const mult = getStageDisplayMult(s, currentMap);
             const opt = document.createElement('option');
             opt.value = String(s);
             opt.disabled = !unlocked;
             opt.textContent = unlocked
-              ? `${s}단계 (x${mult.toFixed(2)})`
+              ? `${s}단계 (x${formatStageMult(mult)})`
               : `🔒 ${s}단계 (${s - 1}단계 클리어 필요)`;
             subSel.appendChild(opt);
           }
@@ -6349,9 +6349,8 @@
         const wNum = MAPS[currentMap].worldNum;
         const dCfg = getDifficultyConfig();
         if (compact) return `${dCfg.shortLabel} ${wNum}-${currentStageSub}`;
-        const mult = getStageStepMult(currentStageSub, currentMap);
-        const multStr = mult >= 100 ? Math.round(mult).toLocaleString() : mult.toFixed(2);
-        return `[${dCfg.shortLabel}] ${wNum}-${currentStageSub} (x${multStr})`;
+        const dispMult = getStageDisplayMult(currentStageSub, currentMap);
+        return `[${dCfg.shortLabel}] ${wNum}-${currentStageSub} (x${formatStageMult(dispMult)})`;
       }
 
       function getActiveRewardSummary() {
@@ -6361,14 +6360,35 @@
       }
 
       // Option A Monotonic Stage Curve: globalIdx = (worldNum - 1) * 10 + (subLv - 1) in [0..99]
-      // Smooth continuous escalation across all 100 stages: (n+1)-1 is always ~1.074x harder & more rewarding than n-10!
+      // Continuous escalation across Normal (1-1~10-10) -> Hard (1-1~10-10) -> Nightmare (1-1~10-10)
       function getGlobalStageIndex(mapKey = currentMap, subLv = currentStageSub) {
         const wNum = (MAPS[mapKey] && MAPS[mapKey].worldNum) ? MAPS[mapKey].worldNum : 1;
         return Math.max(0, (wNum - 1) * 10 + (Math.max(1, Number(subLv) || 1) - 1));
       }
 
-      function getStageStepMult(subLv = currentStageSub, mapKey = currentMap) {
-        return Math.pow(1.074, getGlobalStageIndex(mapKey, subLv));
+      function getStageStepMult(subLv = currentStageSub, mapKey = currentMap, diff = stageDifficulty) {
+        const dCfg = getDifficultyConfig(diff);
+        return Math.pow(dCfg.stepBase || 1.074, getGlobalStageIndex(mapKey, subLv));
+      }
+
+      // Unified display multiplier normalized to Normal 1-1 (= x1.00) so Hard 1-1 > Normal 10-10 & Nightmare 1-1 > Hard 10-10
+      function getStageDisplayMult(subLv = currentStageSub, mapKey = currentMap, diff = stageDifficulty) {
+        const dCfg = getDifficultyConfig(diff);
+        const baseHpMult = (DIFFICULTY_MODES.normal && DIFFICULTY_MODES.normal.hpMult) || 2.0;
+        return getStageStepMult(subLv, mapKey, diff) * (dCfg.hpMult / baseHpMult);
+      }
+
+      function formatStageMult(mult) {
+        const v = Number(mult) || 0;
+        if (v >= 10000) return formatCompactNum(v);
+        if (v >= 1000) return v.toFixed(2).replace(/\.00$/, '');
+        return v.toFixed(2);
+      }
+
+      function getStageBaseNormalDef(subLv = currentStageSub, mapKey = currentMap, diff = stageDifficulty) {
+        const dCfg = getDifficultyConfig(diff);
+        const idx = getGlobalStageIndex(mapKey, subLv);
+        return 10 * Math.pow(dCfg.defBase || 1.018, idx) * dCfg.defMult;
       }
 
       function getWorldBaseMult(mapKey = currentMap) {
@@ -6392,28 +6412,32 @@
         const wNum = MAPS[mapKey].worldNum;
         const idx = getGlobalStageIndex(mapKey, subLv);
         const dCfg = getDifficultyConfig(diff);
-        const econScale = Math.pow(1.036, idx) * dCfg.rewardMult;
-        const battleScale = Math.pow(1.018, idx) * Math.pow(dCfg.rewardMult, 0.45);
+        const econScale = (dCfg.econBase || 1.0) * Math.pow(dCfg.econStep || 1.036, idx);
+        const battleScale = dCfg.key === 'normal'
+          ? Math.pow(1.018, idx)
+          : Math.pow(econScale, 0.50);
 
         const recKey = getStageRecordKey(mapKey, subLv, diff);
         const isFirstClear = !(stageRecords[recKey] && stageRecords[recKey].cleared);
 
         const ev = getLiveEventMultipliers();
+        const effIdx = idx + (dCfg.idxOffset || 0);
+        const gemBonus = dCfg.bossGemBonus || 0;
         const midGold = Math.round(220 * battleScale);
         const midAccGold = Math.round(260 * econScale * ev.goldMult);
-        const midGems = Math.max(1, Math.round((2 + idx * 0.06) * Math.pow(dCfg.rewardMult, 0.65) * ev.gemMult));
+        const midGems = Math.max(1, Math.round((2 + effIdx * 0.06 + gemBonus) * ev.gemMult));
 
         const mainGold = Math.round(480 * battleScale);
         const mainAccGold = Math.round(620 * econScale * ev.goldMult);
-        const mainGems = Math.max(1, Math.round((5 + idx * 0.10) * Math.pow(dCfg.rewardMult, 0.65) * ev.gemMult));
+        const mainGems = Math.max(1, Math.round((5 + effIdx * 0.10 + gemBonus * 2) * ev.gemMult));
 
         const bountyGold = Math.round(180 * battleScale);
         const bountyAccGold = Math.round(180 * econScale * ev.goldMult);
-        const bountyGems = Math.max(1, Math.round((2 + idx * 0.04) * Math.pow(dCfg.rewardMult, 0.65) * ev.gemMult));
+        const bountyGems = Math.max(1, Math.round((2 + effIdx * 0.04 + gemBonus) * ev.gemMult));
 
         const baseClearGold = Math.round(900 * econScale * ev.goldMult);
-        const baseClearGems = Math.max(1, Math.round((8 + idx * 0.28) * dCfg.rewardMult * ev.gemMult));
-        const baseClearShards = Math.max(1, Math.round((6 + idx * 0.30) * Math.pow(dCfg.rewardMult, 0.72) * ev.shardMult));
+        const baseClearGems = Math.max(1, Math.round(((dCfg.gemBase ?? 8) + idx * (dCfg.gemStep ?? 0.28)) * ev.gemMult));
+        const baseClearShards = Math.max(1, Math.round(((dCfg.shBase ?? 6) + idx * (dCfg.shStep ?? 0.30)) * ev.shardMult));
         const clearGold = isFirstClear ? baseClearGold * 2 : baseClearGold;
         const clearGems = isFirstClear ? baseClearGems * 2 : baseClearGems;
         const clearShards = isFirstClear ? baseClearShards * 2 : baseClearShards;
@@ -6439,7 +6463,7 @@
               const rec = stageRecords[getStageRecordKey(k, s, diff)];
               if (rec && rec.cleared) {
                 const idx = getGlobalStageIndex(k, s);
-                const sc = Math.pow(1.036, idx) * dCfg.rewardMult;
+                const sc = (dCfg.econBase || 1.0) * Math.pow(dCfg.econStep || 1.036, idx);
                 if (sc > best) best = sc;
               }
             }
@@ -7392,11 +7416,11 @@
           }
         }
 
-        // Base Normal HP: 120 * totalMult; Monotonic DEF across all 100 stages (1-1 ~ 10-10)
+        // Base Normal HP: 120 * totalMult; Continuous Normal -> Hard -> Nightmare DEF scaling
         // Step-by-step Normal -> Inter -> Elite: HP x1.5 per tier, DEF x1.25 per tier
         const baseNormalHp = 120 * totalMult;
         const baseNormalDef = isStageMode
-          ? 10 * Math.pow(1.018, getGlobalStageIndex(currentMap, currentStageSub)) * diffCfg.defMult
+          ? getStageBaseNormalDef(currentStageSub, currentMap)
           : 12.5 * trialDiffObj.defMult;
 
         const interHp = baseNormalHp * 1.5;
@@ -11320,6 +11344,7 @@
         const wNum = mapCfg.worldNum;
         const dCfg = getDifficultyConfig();
         const diffMult = getStageStepMult(currentStageSub, currentMap);
+        const dispMult = getStageDisplayMult(currentStageSub, currentMap);
         let curWorldClearedCnt = 0;
         for (let s = 1; s <= 10; s++) {
           const r = stageRecords[getStageRecordKey(currentMap, s)];
@@ -11333,7 +11358,7 @@
           wClearBadge.className = `px-2.5 py-0.5 rounded-full bg-slate-950/80 border border-slate-700 text-xs font-extrabold backdrop-blur-sm ${curWorldClearedCnt > 0 ? 'text-emerald-400' : 'text-slate-300'}`;
         }
         document.getElementById('lobbySelectedWorldTitle').textContent = `${wNum}월드: ${mapCfg.title} (${wNum}-${currentStageSub})`;
-        document.getElementById('lobbyDiffBadge').textContent = `${dCfg.badge} · 통합 배율 x${diffMult.toFixed(2)}`;
+        document.getElementById('lobbyDiffBadge').textContent = `${dCfg.badge} · 통합 배율 x${formatStageMult(dispMult)}`;
 
         const subGrid = document.getElementById('stageSubGrid');
         subGrid.innerHTML = '';
@@ -11348,13 +11373,14 @@
         const maxVisibleSub = Math.min(10, maxUnlockedSub + 1);
         for (let s = 1; s <= maxVisibleSub; s++) {
           const unlocked = isStageUnlocked(currentMap, s);
-          const sm = getStageStepMult(s, currentMap);
+          const sm = getStageDisplayMult(s, currentMap);
           const isSel = s === currentStageSub;
           const rec = stageRecords[getStageRecordKey(currentMap, s)];
           const b = document.createElement('button');
           if (unlocked) {
             const cleared = !!(rec && rec.cleared);
-            const recTag = rec ? (cleared ? '👑클리어' : `W${rec.bestWave}`) : `x${sm >= 100 ? Math.round(sm) : sm.toFixed(1)}`;
+            const smLabel = sm >= 10000 ? formatCompactNum(sm) : (sm >= 100 ? Math.round(sm) : sm.toFixed(1));
+            const recTag = rec ? (cleared ? '👑클리어' : `W${rec.bestWave}`) : `x${smLabel}`;
             b.className = `game-btn relative py-2 px-1.5 rounded-xl border text-center transition ${isSel
               ? 'bg-gradient-to-b from-amber-400 to-amber-500 text-slate-950 border-amber-200 font-black shadow-lg ring-2 ring-amber-300/60'
               : (cleared
@@ -11382,13 +11408,13 @@
           subGrid.appendChild(b);
         }
 
-        // Monster Tier & Boss previews matching spawnWaveMob Option-A monotonic formulas
+        // Monster Tier & Boss previews matching spawnWaveMob continuous Normal -> Hard -> Nightmare formulas
         const w1Scale = diffMult * getWorldBaseMult(currentMap) * dCfg.hpMult;
         const w15Scale = Math.pow(1.13, 14) * w1Scale;
         const w30Scale = Math.pow(1.13, 29) * w1Scale;
 
         const nHp = Math.round(120 * w1Scale);
-        const nDef = Math.round(10 * Math.pow(1.018, getGlobalStageIndex(currentMap, currentStageSub)) * dCfg.defMult);
+        const nDef = Math.round(getStageBaseNormalDef(currentStageSub, currentMap));
         const iHp = Math.round(nHp * 1.5);
         const iDef = Math.round(nDef * 1.25);
         const eHp = Math.round(iHp * 1.5);
@@ -12606,7 +12632,7 @@
         resetGame();
         switchScreen(false);
         const wNum = MAPS[currentMap].worldNum;
-        showToast(`스테이지 ${wNum}-${currentStageSub} (난이도 x${getStageStepMult(currentStageSub).toFixed(2)}) 전투 시작!`);
+        showToast(`[${getDifficultyConfig().shortLabel}] 스테이지 ${wNum}-${currentStageSub} (통합 배율 x${formatStageMult(getStageDisplayMult(currentStageSub, currentMap))}) 전투 시작!`);
       });
 
       const DAILY_QUEST_POOL = [
@@ -14239,7 +14265,7 @@
         currentStageSub = nextSub;
         resetGame();
         renderLobbyAll();
-        showToast(`단계 변경: ${MAPS[currentMap].worldNum}-${currentStageSub} (통합 배율 x${getStageStepMult(currentStageSub, currentMap).toFixed(2)})`);
+        showToast(`단계 변경: [${getDifficultyConfig().shortLabel}] ${MAPS[currentMap].worldNum}-${currentStageSub} (통합 배율 x${formatStageMult(getStageDisplayMult(currentStageSub, currentMap))})`);
       });
 
       document.getElementById('btnSpeed').addEventListener('click', () => {
@@ -14533,7 +14559,7 @@
       // =====================================================================
       // Mobile Game Runtime (PWA + Android APK) & Real-Time OTA / Live-Ops
       // =====================================================================
-      const APP_BUILD_ID = '2026.11.28-entry-forge-sync-v12';
+      const APP_BUILD_ID = '2026.11.28-hard-curve-v13';
       let deferredInstallPrompt = null;
       let pwaSwRegistered = false;
       let swRegistrationRef = null;
@@ -15961,7 +15987,7 @@
           if (r && r.ok) swContent = await r.text();
         } catch (_) {}
         if (!swContent) {
-          swContent = "const CACHE_NAME = 'rcd-offline-v26';\nself.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));\n";
+          swContent = "const CACHE_NAME = 'rcd-offline-v27';\nself.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));\n";
         }
         const blob = new Blob([swContent], { type: 'application/javascript' });
         const a = document.createElement('a');

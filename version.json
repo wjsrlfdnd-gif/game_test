@@ -1,8 +1,8 @@
 {
-  "buildId": "2026.11.28-entry-forge-sync-v12",
+  "buildId": "2026.11.28-hard-curve-v13",
   "commit": "local",
-  "cacheName": "rcd-offline-v26",
-  "deployedAt": "2026-11-28T08:25:00Z",
-  "notes": "장비 보석·파편 강화/초월/승급 비용 공식 개선, 퀘스트 미완료 항목 전용 새로고침·추가의뢰 합산 한도 보강, 시련·변이 입장 시점 2/2 차감 반영",
+  "cacheName": "rcd-offline-v27",
+  "deployedAt": "2026-11-28T13:00:00Z",
+  "notes": "노멀 10-10 → 하드 1-1 → 하드 10-10 → 나이트메어 1-1 연속 난이도/방어/보상 곡선 개선 및 통합 배율 표시 동기화",
   "forceReload": false
 }
