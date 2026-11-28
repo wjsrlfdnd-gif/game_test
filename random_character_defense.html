@@ -2935,7 +2935,7 @@
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
               <span>실시간 자동 업데이트 (30초 동기화)</span>
             </div>
-            <div id="lblLiveVersionInfo" class="text-[10px] text-slate-400 truncate mt-0.5 tabular-nums">빌드: 2026.11.27-daily-caps-v11</div>
+            <div id="lblLiveVersionInfo" class="text-[10px] text-slate-400 truncate mt-0.5 tabular-nums">빌드: 2026.11.28-entry-forge-sync-v12</div>
           </div>
           <button id="btnCheckUpdateNow" class="game-btn px-2.5 py-1.5 rounded-lg bg-emerald-600/25 hover:bg-emerald-600/40 border border-emerald-400/50 text-[11px] font-bold text-emerald-200 shrink-0">
             🔄 업데이트 확인
@@ -5129,16 +5129,27 @@
         return Math.round(30 * ts * (1 + lv * 0.35) * sw * em);
       }
 
+      function calcMultiStepUpgradeGold(tier, lv, ex = 0, steps = 1) {
+        const safeLv = Math.max(0, Math.min(MAX_ITEM_LEVEL, Math.floor(lv || 0)));
+        const count = Math.max(0, Math.min(steps, MAX_ITEM_LEVEL - safeLv));
+        let total = 0;
+        for (let s = 0; s < count; s++) {
+          total += calcStepUpgradeGold(tier, safeLv + s, ex);
+        }
+        return total;
+      }
+
       function calcItemTranscendCost(item) {
         const tier = Math.max(0, item?.tier || 0);
         const ex = Math.max(0, item?.extraLevel || 0);
         const nextEx = Math.min(MAX_ITEM_TRANSCEND, ex + 1);
         const ts = ITEM_TIER_COST_SCALE[tier] || 36.0;
+        const gold = Math.round(450 * ts * Math.pow(1.42, nextEx - 1));
         return {
           nextEx,
-          gold: Math.round(450 * ts * Math.pow(1.42, nextEx - 1)),
-          gems: Math.max(2, Math.round((2 + tier) * (1 + (nextEx - 1) * 0.45))),
-          shards: Math.max(6, Math.round((8 + tier * 4) * (1 + (nextEx - 1) * 0.45)))
+          gold,
+          gems: Math.max(4 + tier, Math.round(Math.pow(gold, 0.68) * 0.068)),
+          shards: Math.max(12 + tier * 4, Math.round(Math.pow(gold, 0.70) * 0.18))
         };
       }
 
@@ -5156,7 +5167,9 @@
         const ex = Math.max(0, item?.extraLevel || 0);
         if (lv >= MAX_ITEM_LEVEL) return calcItemTranscendCost(item).gems;
         const tier = Math.max(0, item?.tier || 0);
-        return Math.max(1, Math.round((1 + Math.floor(tier / 2)) * (1 + ex * 0.35)));
+        const equivGold = calcMultiStepUpgradeGold(tier, lv, ex, 3);
+        const minFloor = 2 + Math.floor(tier / 2);
+        return Math.max(minFloor, Math.round(Math.pow(Math.max(1, equivGold), 0.68) * 0.062));
       }
 
       function calcExtraShardCost(item) {
@@ -5167,8 +5180,8 @@
         const t = item.tier;
         return {
           gold: [400, 900, 1800, 3500, 6500, 19500][t] || 19500,
-          gems: [2, 3, 4, 6, 9, 27][t] || 27,
-          shards: [8, 14, 22, 30, 42, 126][t] || 126
+          gems: [4, 7, 12, 20, 32, 65][t] || 65,
+          shards: [12, 22, 36, 60, 95, 210][t] || 210
         };
       }
 
@@ -5223,7 +5236,9 @@
         const ex = Math.max(0, item?.extraLevel || 0);
         if (lv >= MAX_ITEM_LEVEL) return calcExtraShardCost(item);
         const tier = Math.max(0, item?.tier || 0);
-        return Math.max(4, Math.round((4 + tier * 2 + Math.floor(lv / 2)) * (1 + ex * 0.25)));
+        const equivGold = calcMultiStepUpgradeGold(tier, lv, ex, 2);
+        const minFloor = 6 + tier * 2;
+        return Math.max(minFloor, Math.round(Math.pow(Math.max(1, equivGold), 0.70) * 0.16));
       }
 
       // 강화 수치(+0~+15, ★1~★5)별 시인성 스타일/테두리/배지 메타 반환
@@ -6237,6 +6252,26 @@
         return getDailyModeEntryRemaining(modeKey) <= 0;
       }
 
+      function consumeDailyModeEntry(modeKey) {
+        if (modeKey === 'trial_gold' || modeKey === 'trial_shard' || modeKey === 'trial_forge') {
+          syncTrialBonusCounter();
+          const used = trialClearsToday[modeKey] || 0;
+          if (used >= TRIAL_DAILY_LIMIT) return false;
+          trialClearsToday[modeKey] = used + 1;
+          saveGameData();
+          return true;
+        }
+        if (modeKey === 'daily_mutator') {
+          syncDailyMutatorCounter();
+          const used = mutatorClearsToday || 0;
+          if (used >= MUTATOR_DAILY_LIMIT) return false;
+          mutatorClearsToday = used + 1;
+          saveGameData();
+          return true;
+        }
+        return true;
+      }
+
       function syncModalRestartLockBtn() {
         const btn = document.getElementById('btnModalRestart');
         if (!btn) return;
@@ -6695,6 +6730,7 @@
       }
 
       function resetGame() {
+        syncModalRestartLockBtn();
         bossBaneTimer = 0;
         consumableCds = { goldPotion: 0, shockScroll: 0, bossBane: 0 };
         consumableUsedRun = { goldPotion: 0, shockScroll: 0, bossBane: 0 };
@@ -9148,19 +9184,13 @@
         if (gameMode === 'trial_gold') {
           syncTrialBonusCounter();
           const tr = getTrialRewardSummary().goldTrial;
-          const used = trialClearsToday.trial_gold || 0;
-          const hasBonus = used < TRIAL_DAILY_LIMIT;
-          let subTxt = '';
-          if (hasBonus) {
-            trialClearsToday.trial_gold = used + 1;
-            accountGold += tr.gold;
-            consumables.goldPotion += tr.potions;
-            accountShards += tr.shards;
-            const lockNote = trialClearsToday.trial_gold >= TRIAL_DAILY_LIMIT ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
-            subTxt = `일일 입장(${trialClearsToday.trial_gold}/${TRIAL_DAILY_LIMIT}): +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨ 파편 · 황금 비약 +${tr.potions}개 지급 완료!${lockNote}`;
-          } else {
-            subTxt = `🔒 오늘의 일일 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})가 이미 소진되었습니다. 자정에 초기화됩니다.`;
-          }
+          const used = Math.min(TRIAL_DAILY_LIMIT, Math.max(1, trialClearsToday.trial_gold || 1));
+          const rem = Math.max(0, TRIAL_DAILY_LIMIT - used);
+          accountGold += tr.gold;
+          consumables.goldPotion += tr.potions;
+          accountShards += tr.shards;
+          const lockNote = rem <= 0 ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
+          const subTxt = `일일 입장(${used}/${TRIAL_DAILY_LIMIT} · 잔여 ${rem}회): +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨ 파편 · 황금 비약 +${tr.potions}개 지급 완료!${lockNote}`;
           playSound('victory');
           document.getElementById('gameOverTitle').textContent = '🪙 황금 소굴 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-amber-300 mb-2';
@@ -9175,19 +9205,13 @@
         if (gameMode === 'trial_shard') {
           syncTrialBonusCounter();
           const tr = getTrialRewardSummary().shardTrial;
-          const used = trialClearsToday.trial_shard || 0;
-          const hasBonus = used < TRIAL_DAILY_LIMIT;
-          let subTxt = '';
-          if (hasBonus) {
-            trialClearsToday.trial_shard = used + 1;
-            accountShards += tr.shards;
-            accountGems += tr.gems;
-            accountGold += tr.gold;
-            const lockNote = trialClearsToday.trial_shard >= TRIAL_DAILY_LIMIT ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
-            subTxt = `일일 입장(${trialClearsToday.trial_shard}/${TRIAL_DAILY_LIMIT}): +${tr.shards}✨ 파편 · +${tr.gems}💎 보석 · +${tr.gold.toLocaleString()} 금화 지급 완료!${lockNote}`;
-          } else {
-            subTxt = `🔒 오늘의 일일 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})가 이미 소진되었습니다. 자정에 초기화됩니다.`;
-          }
+          const used = Math.min(TRIAL_DAILY_LIMIT, Math.max(1, trialClearsToday.trial_shard || 1));
+          const rem = Math.max(0, TRIAL_DAILY_LIMIT - used);
+          accountShards += tr.shards;
+          accountGems += tr.gems;
+          accountGold += tr.gold;
+          const lockNote = rem <= 0 ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
+          const subTxt = `일일 입장(${used}/${TRIAL_DAILY_LIMIT} · 잔여 ${rem}회): +${tr.shards}✨ 파편 · +${tr.gems}💎 보석 · +${tr.gold.toLocaleString()} 금화 지급 완료!${lockNote}`;
           playSound('victory');
           document.getElementById('gameOverTitle').textContent = '✨ 수정 균열 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-fuchsia-300 mb-2';
@@ -9202,25 +9226,18 @@
         if (gameMode === 'trial_forge') {
           syncTrialBonusCounter();
           const tr = getTrialRewardSummary().forgeTrial;
-          const used = trialClearsToday.trial_forge || 0;
-          const hasBonus = used < TRIAL_DAILY_LIMIT;
-          let subTxt = '';
-          if (hasBonus) {
-            trialClearsToday.trial_forge = used + 1;
-            accountGems += tr.gems;
-            accountGold += tr.gold;
-            accountShards += tr.shards;
-            const dropTier = rollForgeTrialDropTier();
-            const pool = SHOP_CATALOG.filter(x => x.tier === dropTier);
-            const picked = pool[Math.floor(Math.random() * pool.length)] || SHOP_CATALOG[2];
-            const droppedItem = addInventoryItem(picked, false);
-            playSound(dropTier >= 4 ? 'mythic' : 'victory');
-            const lockNote = trialClearsToday.trial_forge >= TRIAL_DAILY_LIMIT ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
-            subTxt = `일일 입장(${trialClearsToday.trial_forge}/${TRIAL_DAILY_LIMIT}): +${tr.gems}💎 · +${tr.gold.toLocaleString()}G · +${tr.shards}✨ | 🎁 장비 드랍: [${TIER_META[droppedItem.tier].name}] ${droppedItem.name}${lockNote}`;
-          } else {
-            playSound('victory');
-            subTxt = `🔒 오늘의 일일 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})가 이미 소진되었습니다. 자정에 초기화됩니다.`;
-          }
+          const used = Math.min(TRIAL_DAILY_LIMIT, Math.max(1, trialClearsToday.trial_forge || 1));
+          const rem = Math.max(0, TRIAL_DAILY_LIMIT - used);
+          accountGems += tr.gems;
+          accountGold += tr.gold;
+          accountShards += tr.shards;
+          const dropTier = rollForgeTrialDropTier();
+          const pool = SHOP_CATALOG.filter(x => x.tier === dropTier);
+          const picked = pool[Math.floor(Math.random() * pool.length)] || SHOP_CATALOG[2];
+          const droppedItem = addInventoryItem(picked, false);
+          playSound(dropTier >= 4 ? 'mythic' : 'victory');
+          const lockNote = rem <= 0 ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
+          const subTxt = `일일 입장(${used}/${TRIAL_DAILY_LIMIT} · 잔여 ${rem}회): +${tr.gems}💎 · +${tr.gold.toLocaleString()}G · +${tr.shards}✨ | 🎁 장비 드랍: [${TIER_META[droppedItem.tier].name}] ${droppedItem.name}${lockNote}`;
           document.getElementById('gameOverTitle').textContent = '🔨 강철 요새 시련 클리어!';
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-cyan-300 mb-2';
           document.getElementById('gameOverSub').textContent = subTxt;
@@ -9258,18 +9275,13 @@
           syncDailyMutatorCounter();
           const mut = getActiveMutatorRule();
           const tr = getTrialRewardSummary().mutatorChallenge;
-          const hasBonus = mutatorClearsToday < MUTATOR_DAILY_LIMIT;
-          let rwText = '';
-          if (hasBonus) {
-            accountGems += tr.gems;
-            accountGold += tr.gold;
-            accountShards += tr.shards;
-            mutatorClearsToday++;
-            const lockNote = mutatorClearsToday >= MUTATOR_DAILY_LIMIT ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
-            rwText = `일일 입장(${mutatorClearsToday}/${MUTATOR_DAILY_LIMIT}): +${tr.gems}💎 · +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨${lockNote}`;
-          } else {
-            rwText = `🔒 오늘의 일일 입장 횟수(${MUTATOR_DAILY_LIMIT}/${MUTATOR_DAILY_LIMIT})가 이미 소진되었습니다. 자정에 초기화됩니다.`;
-          }
+          const used = Math.min(MUTATOR_DAILY_LIMIT, Math.max(1, mutatorClearsToday || 1));
+          const rem = Math.max(0, MUTATOR_DAILY_LIMIT - used);
+          accountGems += tr.gems;
+          accountGold += tr.gold;
+          accountShards += tr.shards;
+          const lockNote = rem <= 0 ? ' · 🔒 오늘 입장 완료 (자정 리셋)' : '';
+          const rwText = `일일 입장(${used}/${MUTATOR_DAILY_LIMIT} · 잔여 ${rem}회): +${tr.gems}💎 · +${tr.gold.toLocaleString()} 금화 · +${tr.shards}✨${lockNote}`;
           playSound('victory');
           document.getElementById('gameOverTitle').textContent = `🎲 오늘의 변이 [${mut ? mut.name : '도전'}] 클리어!`;
           document.getElementById('gameOverTitle').className = 'text-2xl sm:text-3xl font-extrabold text-emerald-300 mb-2';
@@ -12671,18 +12683,38 @@
         return picked;
       }
 
+      const DAILY_BASE_QUEST_COUNT = 3;
+
+      function normalizeDailyQuestLimits() {
+        dailyBonusQuestsClaimed = Math.min(
+          DAILY_BONUS_QUEST_LIMIT,
+          Math.max(0, Math.floor(dailyBonusQuestsClaimed || 0))
+        );
+        if (!Array.isArray(dailyQuests)) return;
+        let allowedActiveBonus = Math.max(0, DAILY_BONUS_QUEST_LIMIT - dailyBonusQuestsClaimed);
+        dailyQuests.forEach(q => {
+          if (!q || !q.isBonus || q.claimed) return;
+          if (allowedActiveBonus > 0) {
+            allowedActiveBonus--;
+          } else {
+            q.claimed = true;
+          }
+        });
+      }
+
       function checkDailyQuestAutoReset(notify = false) {
         const today = getTodayDateKey();
         const needsInit = !Array.isArray(dailyQuests) || dailyQuests.length === 0;
         if (dailyQuestDate !== today || needsInit) {
           const wasDifferentDay = dailyQuestDate && dailyQuestDate !== today;
+          const dateChanged = dailyQuestDate !== today;
           dailyQuestDate = today;
-          if (wasDifferentDay) {
+          if (dateChanged) {
             dailyCompletedToday = 0;
             dailyQuestRefreshesUsed = 0;
             dailyBonusQuestsClaimed = 0;
           }
-          dailyQuests = generateDailyQuestSet(3, false);
+          dailyQuests = generateDailyQuestSet(DAILY_BASE_QUEST_COUNT, false);
           dailyQuestBase = {
             kills: questStats.totalKills,
             merges: questStats.totalMerges,
@@ -12694,6 +12726,7 @@
           }
           return true;
         }
+        normalizeDailyQuestLimits();
         return false;
       }
 
@@ -12709,6 +12742,7 @@
         if (!dList || !aList) return;
 
         checkDailyQuestAutoReset(true);
+        normalizeDailyQuestLimits();
 
         const timerEl = document.getElementById('lblDailyResetTimer');
         if (timerEl) {
@@ -12719,8 +12753,19 @@
         if (dateEl) dateEl.textContent = dailyQuestDate || getTodayDateKey();
         const refBtn = document.getElementById('btnRefreshDailyQuests');
         if (refBtn) {
+          const unclaimedCount = dailyQuests.filter(q => q && !q.claimed).length;
           const freeLeft = Math.max(0, DAILY_FREE_REFRESH_LIMIT - (dailyQuestRefreshesUsed || 0));
-          refBtn.textContent = freeLeft > 0 ? `🔄 무료 새로고침 (${freeLeft}/${DAILY_FREE_REFRESH_LIMIT})` : '🔄 새로고침 (500G)';
+          if (unclaimedCount === 0) {
+            refBtn.disabled = true;
+            refBtn.setAttribute('aria-disabled', 'true');
+            refBtn.textContent = '✅ 오늘 퀘스트 완료';
+            refBtn.className = 'game-btn px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs shadow opacity-70 cursor-not-allowed';
+          } else {
+            refBtn.disabled = false;
+            refBtn.setAttribute('aria-disabled', 'false');
+            refBtn.textContent = freeLeft > 0 ? `🔄 무료 새로고침 (${freeLeft}/${DAILY_FREE_REFRESH_LIMIT})` : '🔄 새로고침 (500G)';
+            refBtn.className = 'game-btn px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow';
+          }
         }
 
         let claimableCount = 0;
@@ -12753,21 +12798,34 @@
           `;
           row.querySelector('button').addEventListener('click', () => {
             if (!ready) return;
+            if (q.isBonus && (dailyBonusQuestsClaimed || 0) >= DAILY_BONUS_QUEST_LIMIT) {
+              q.claimed = true;
+              showToast(`오늘의 추가 의뢰 한도(${DAILY_BONUS_QUEST_LIMIT}회)를 모두 완료했습니다.`);
+              renderLobbyAll();
+              return;
+            }
             q.claimed = true;
             dailyCompletedToday++;
-            if (q.isBonus) dailyBonusQuestsClaimed = (dailyBonusQuestsClaimed || 0) + 1;
+            if (q.isBonus) {
+              dailyBonusQuestsClaimed = Math.min(DAILY_BONUS_QUEST_LIMIT, (dailyBonusQuestsClaimed || 0) + 1);
+            }
             accountGold += q.g;
             accountGems += q.gem;
             accountShards += q.sh;
             playSound('coin');
-            // 일일 추가 의뢰 5회 한도 내에서 새 추가 의뢰 자동 생성
-            if ((dailyBonusQuestsClaimed || 0) < DAILY_BONUS_QUEST_LIMIT) {
-              const activeStats = new Set(dailyQuests.filter(item => !item.claimed).map(item => item.stat));
+            // 일일 추가 의뢰 5회 한도(이미 수령한 횟수 + 현재 대기 중인 추가 의뢰 수 합산) 내에서만 새 추가 의뢰 생성
+            const activeBonusCount = dailyQuests.filter(item => item && item.isBonus && !item.claimed).length;
+            const totalBonusIssued = (dailyBonusQuestsClaimed || 0) + activeBonusCount;
+            const bonusClaimLeft = Math.max(0, DAILY_BONUS_QUEST_LIMIT - (dailyBonusQuestsClaimed || 0));
+            if (totalBonusIssued < DAILY_BONUS_QUEST_LIMIT) {
+              const activeStats = new Set(dailyQuests.filter(item => item && !item.claimed).map(item => item.stat));
               const candidates = DAILY_QUEST_POOL.filter(t => !activeStats.has(t.stat) && t.stat !== q.stat);
               const poolChoice = candidates.length > 0 ? candidates : DAILY_QUEST_POOL;
               const nextTpl = poolChoice[Math.floor(Math.random() * poolChoice.length)];
               dailyQuests[qIdx] = createDynamicQuest(nextTpl, true);
-              showToast(`🎁 퀘스트 보상 수령(+${Number(q.g || 0).toLocaleString()}G · +${q.gem}💎 · +${q.sh}✨) → 추가 의뢰 생성 (${DAILY_BONUS_QUEST_LIMIT - dailyBonusQuestsClaimed}/${DAILY_BONUS_QUEST_LIMIT} 남음)`);
+              showToast(`🎁 퀘스트 보상 수령(+${Number(q.g || 0).toLocaleString()}G · +${q.gem}💎 · +${q.sh}✨) → 추가 의뢰 생성 (잔여 ${bonusClaimLeft}/${DAILY_BONUS_QUEST_LIMIT})`);
+            } else if (bonusClaimLeft > 0) {
+              showToast(`🎁 퀘스트 보상 수령(+${Number(q.g || 0).toLocaleString()}G · +${q.gem}💎 · +${q.sh}✨) · 남은 추가 의뢰 ${bonusClaimLeft}개를 완료하세요.`);
             } else {
               showToast(`🎁 퀘스트 보상 수령(+${Number(q.g || 0).toLocaleString()}G · +${q.gem}💎 · +${q.sh}✨)! 오늘의 추가 의뢰 한도(${DAILY_BONUS_QUEST_LIMIT}회)를 모두 완료했습니다.`);
             }
@@ -13739,9 +13797,16 @@
         }
       });
 
-      // Quest Refresh (2 Free/day, then 500G) & Additional Content Launchers (2/day Hard Lock on Trials & Mutator)
+      // Quest Refresh (2 Free/day, then 500G — active unclaimed slots only) & Additional Content Launchers (2/day Entry Consumption)
       document.getElementById('btnRefreshDailyQuests').addEventListener('click', () => {
         checkDailyQuestAutoReset(false);
+        normalizeDailyQuestLimits();
+        const activeIndices = dailyQuests
+          .map((q, idx) => (q && !q.claimed ? idx : -1))
+          .filter(idx => idx >= 0);
+        if (activeIndices.length === 0) {
+          return showToast('오늘의 일일 퀘스트와 추가 의뢰를 모두 완료했습니다. 내일 자정에 초기화됩니다.');
+        }
         const freeLeft = Math.max(0, DAILY_FREE_REFRESH_LIMIT - (dailyQuestRefreshesUsed || 0));
         if (freeLeft <= 0) {
           if (accountGold < 500) {
@@ -13751,58 +13816,66 @@
         }
         dailyQuestRefreshesUsed = (dailyQuestRefreshesUsed || 0) + 1;
         dailyQuestDate = getTodayDateKey();
-        dailyQuests = generateDailyQuestSet(3, false);
-        dailyQuestBase = {
-          kills: questStats.totalKills,
-          merges: questStats.totalMerges,
-          bosses: questStats.bossKills
-        };
-        dailyQuestClaimed = { kills: false, merges: false, bosses: false };
+        const usedStats = new Set();
+        activeIndices.forEach(idx => {
+          const prev = dailyQuests[idx];
+          const prevStat = prev ? prev.stat : null;
+          const keepBonus = !!(prev && prev.isBonus);
+          let candidates = DAILY_QUEST_POOL.filter(t => !usedStats.has(t.stat) && t.stat !== prevStat);
+          if (candidates.length === 0) candidates = DAILY_QUEST_POOL.filter(t => !usedStats.has(t.stat));
+          if (candidates.length === 0) candidates = DAILY_QUEST_POOL;
+          const nextTpl = candidates[Math.floor(Math.random() * candidates.length)];
+          usedStats.add(nextTpl.stat);
+          dailyQuests[idx] = createDynamicQuest(nextTpl, keepBonus);
+        });
         playSound('summon');
         const nextFree = Math.max(0, DAILY_FREE_REFRESH_LIMIT - dailyQuestRefreshesUsed);
         showToast(freeLeft > 0
-          ? `🔄 새로운 퀘스트 3종 생성! (무료 새로고침 ${nextFree}/${DAILY_FREE_REFRESH_LIMIT} 남음)`
-          : '🔄 500G를 사용해 새로운 퀘스트 3종을 생성했습니다!');
+          ? `🔄 진행 중인 퀘스트 ${activeIndices.length}종 새로고침! (무료 새로고침 ${nextFree}/${DAILY_FREE_REFRESH_LIMIT} 남음)`
+          : `🔄 500G를 사용해 진행 중인 퀘스트 ${activeIndices.length}종을 새로고침했습니다!`);
         renderLobbyAll();
       });
 
       document.getElementById('btnStartTrialGold').addEventListener('click', () => {
-        if (isDailyModeLocked('trial_gold')) {
+        if (!consumeDailyModeEntry('trial_gold')) {
           showToast(`🔒 오늘의 [황금 소굴] 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})를 모두 사용했습니다! 자정에 초기화됩니다.`);
           renderLobbyAll();
           return;
         }
+        const rem = getDailyModeEntryRemaining('trial_gold');
         gameMode = 'trial_gold';
         activeMutatorId = '';
         resetGame();
         switchScreen(false);
-        showToast('🪙 [황금 보물고 투기장] 황금 미믹 군주 10웨이브 시련 시작!');
+        showToast(`🪙 [황금 보물고 투기장] 입장! (일일 잔여 ${rem}/${TRIAL_DAILY_LIMIT}회)`);
       });
 
       document.getElementById('btnStartTrialShard').addEventListener('click', () => {
-        if (isDailyModeLocked('trial_shard')) {
+        if (!consumeDailyModeEntry('trial_shard')) {
           showToast(`🔒 오늘의 [수정 균열] 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})를 모두 사용했습니다! 자정에 초기화됩니다.`);
           renderLobbyAll();
           return;
         }
+        const rem = getDailyModeEntryRemaining('trial_shard');
         gameMode = 'trial_shard';
         activeMutatorId = '';
         resetGame();
         switchScreen(false);
-        showToast('✨ [수정 균열 성소] 수정 균열 술사단 10웨이브 시련 시작!');
+        showToast(`✨ [수정 균열 성소] 입장! (일일 잔여 ${rem}/${TRIAL_DAILY_LIMIT}회)`);
       });
 
       document.getElementById('btnStartTrialForge').addEventListener('click', () => {
-        if (isDailyModeLocked('trial_forge')) {
+        if (!consumeDailyModeEntry('trial_forge')) {
           showToast(`🔒 오늘의 [강철 요새] 입장 횟수(${TRIAL_DAILY_LIMIT}/${TRIAL_DAILY_LIMIT})를 모두 사용했습니다! 자정에 초기화됩니다.`);
           renderLobbyAll();
           return;
         }
+        const rem = getDailyModeEntryRemaining('trial_forge');
         gameMode = 'trial_forge';
         activeMutatorId = '';
         resetGame();
         switchScreen(false);
-        showToast('🔨 [황금 보물고 · 대장간 투기장] 용광로 강철 거신 10웨이브 도전!');
+        showToast(`🔨 [황금 보물고 · 대장간 투기장] 입장! (일일 잔여 ${rem}/${TRIAL_DAILY_LIMIT}회)`);
       });
 
       document.getElementById('btnStartBossRush').addEventListener('click', () => {
@@ -13814,16 +13887,18 @@
 
       document.getElementById('btnStartDailyMutator').addEventListener('click', () => {
         syncDailyMutatorCounter();
-        if (isDailyModeLocked('daily_mutator')) {
+        if (!consumeDailyModeEntry('daily_mutator')) {
           showToast(`🔒 오늘의 [오늘의 변이] 입장 횟수(${MUTATOR_DAILY_LIMIT}/${MUTATOR_DAILY_LIMIT})를 모두 사용했습니다! 자정에 초기화됩니다.`);
           renderLobbyAll();
           return;
         }
+        const rem = getDailyModeEntryRemaining('daily_mutator');
         const todayMut = getTodayMutatorConfig();
         activeMutatorId = todayMut.id;
         gameMode = 'daily_mutator';
         resetGame();
         switchScreen(false);
+        showToast(`🎲 [오늘의 변이] 입장! (일일 잔여 ${rem}/${MUTATOR_DAILY_LIMIT}회)`);
       });
 
       document.getElementById('btnStartSpeedRush').addEventListener('click', () => {
@@ -14343,8 +14418,9 @@
       });
       document.getElementById('btnRestart').addEventListener('click', () => {
         document.getElementById('settingsModal').classList.add('hidden');
-        if (isDailyModeLocked(gameMode)) {
-          showToast('🔒 오늘의 일일 입장 횟수(2/2)를 모두 사용했습니다! 자정(00:00)에 초기화됩니다.');
+        if (!consumeDailyModeEntry(gameMode)) {
+          const maxLim = gameMode === 'daily_mutator' ? MUTATOR_DAILY_LIMIT : TRIAL_DAILY_LIMIT;
+          showToast(`🔒 오늘의 일일 입장 횟수(${maxLim}/${maxLim})를 모두 소진했습니다! 로비로 이동합니다.`);
           switchScreen(true);
           return;
         }
@@ -14352,8 +14428,9 @@
         switchScreen(false);
       });
       document.getElementById('btnModalRestart').addEventListener('click', () => {
-        if (isDailyModeLocked(gameMode)) {
-          showToast('🔒 오늘의 일일 입장 횟수(2/2)를 모두 사용했습니다! 자정(00:00)에 초기화됩니다.');
+        if (!consumeDailyModeEntry(gameMode)) {
+          const maxLim = gameMode === 'daily_mutator' ? MUTATOR_DAILY_LIMIT : TRIAL_DAILY_LIMIT;
+          showToast(`🔒 오늘의 일일 입장 횟수(${maxLim}/${maxLim})를 모두 소진했습니다! 로비로 이동합니다.`);
           document.getElementById('gameOverModal').classList.add('hidden');
           switchScreen(true);
           return;
@@ -14456,7 +14533,7 @@
       // =====================================================================
       // Mobile Game Runtime (PWA + Android APK) & Real-Time OTA / Live-Ops
       // =====================================================================
-      const APP_BUILD_ID = '2026.11.27-daily-caps-v11';
+      const APP_BUILD_ID = '2026.11.28-entry-forge-sync-v12';
       let deferredInstallPrompt = null;
       let pwaSwRegistered = false;
       let swRegistrationRef = null;
@@ -15884,7 +15961,7 @@
           if (r && r.ok) swContent = await r.text();
         } catch (_) {}
         if (!swContent) {
-          swContent = "const CACHE_NAME = 'rcd-offline-v25';\nself.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));\n";
+          swContent = "const CACHE_NAME = 'rcd-offline-v26';\nself.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));\n";
         }
         const blob = new Blob([swContent], { type: 'application/javascript' });
         const a = document.createElement('a');

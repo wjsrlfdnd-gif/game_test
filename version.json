@@ -1,8 +1,8 @@
 {
-  "buildId": "2026.11.27-daily-caps-v11",
+  "buildId": "2026.11.28-entry-forge-sync-v12",
   "commit": "local",
-  "cacheName": "rcd-offline-v25",
-  "deployedAt": "2026-11-28T07:55:00Z",
-  "notes": "퀘스트(추가의뢰 5회·무료새로고침 2회) 및 특수 시련 3종·오늘의 변이 일일 2회 제한 강화(소진 시 자정까지 입장 잠금)",
+  "cacheName": "rcd-offline-v26",
+  "deployedAt": "2026-11-28T08:25:00Z",
+  "notes": "장비 보석·파편 강화/초월/승급 비용 공식 개선, 퀘스트 미완료 항목 전용 새로고침·추가의뢰 합산 한도 보강, 시련·변이 입장 시점 2/2 차감 반영",
   "forceReload": false
 }
