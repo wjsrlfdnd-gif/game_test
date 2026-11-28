@@ -1,8 +1,8 @@
 {
-  "buildId": "2026.11.27-auto-bounty-v9",
+  "buildId": "2026.11.27-challenge-arenas-v10",
   "commit": "local",
-  "cacheName": "rcd-offline-v23",
-  "deployedAt": "2026-11-27T00:00:00Z",
-  "notes": "현상금 보스 쿨타임 30초 조정 및 자동 현상금 호출 ON/OFF 토글(단축키 Shift+B) 추가",
+  "cacheName": "rcd-offline-v24",
+  "deployedAt": "2026-11-28T04:30:00Z",
+  "notes": "퀘스트·챌린지 전용 2.5D 신규 맵 3종(24타일 커스텀 배치) 및 신규 몬스터·보스 6종 추가",
   "forceReload": false
 }
