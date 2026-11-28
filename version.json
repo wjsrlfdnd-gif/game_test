@@ -1,8 +1,8 @@
 {
-  "buildId": "2026.11.28-hard-curve-v13",
+  "buildId": "2026.11.28-hero-exclusive-v14",
   "commit": "local",
-  "cacheName": "rcd-offline-v27",
-  "deployedAt": "2026-11-28T13:00:00Z",
-  "notes": "노멀 10-10 → 하드 1-1 → 하드 10-10 → 나이트메어 1-1 연속 난이도/방어/보상 곡선 개선 및 통합 배율 표시 동기화",
+  "cacheName": "rcd-offline-v28",
+  "deployedAt": "2026-11-28T13:35:00Z",
+  "notes": "뽑기 전용 신화~초월 영웅 전용 장비 9종 추가, 전용 장비 픽업 뽑기·천장(15회/30회), 영웅별 전용 각성 효과 및 전투·도감·대장간 UI 연동",
   "forceReload": false
 }
